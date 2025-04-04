@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import NavBar from "../components/NavBar";
 
 const LoginContainer = styled.div`
     display: flex;
@@ -85,7 +84,6 @@ function Login() {
 
     return (
         <div>
-            <NavBar />
             <LoginContainer>
                 <UserTypeToggle>
                     <ToggleButton className="host-btn">HOST</ToggleButton>

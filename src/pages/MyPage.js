@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import SideBar from "../components/SideBar";
-import NavBar from "../components/NavBar";
+import profileImg from "../assets/jpg/profile1.jpg";
 
 const Container = styled.div`
     display: flex;
@@ -10,6 +10,7 @@ const Container = styled.div`
 const Content = styled.div`
     flex: 1;
     padding: 40px;
+    margin-top: 50px;
 `;
 
 const ProfileCard = styled.div`
@@ -21,19 +22,17 @@ const ProfileCard = styled.div`
 `;
 
 const ProfileImage = styled.img`
-    width: 80px;
-    height: 80px;
+    width: 130px;
+    height: 130px;
     border-radius: 50%;
+    border: 1px grey;
+    align-items: center;
 `;
 
 const UserName = styled.h2`
     font-size: 22px;
     font-weight: bold;
-`;
-
-const VipBadge = styled.span`
-    color: orange;
-    font-weight: bold;
+    margin: 0px;
 `;
 
 const InfoSection = styled.div`
@@ -70,22 +69,20 @@ const Tag = styled.span`
 const MyPage = () => {
     return (
         <div>
-            <NavBar />
             <Container>
                 <SideBar />
                 <Content>
                     <ProfileCard>
-                        <ProfileImage src="/profile.jpg" alt="프로필 이미지" />
+                        <ProfileImage src={profileImg} alt="프로필 이미지" />
                         <div>
-                            <UserName>루비루바라라부룩방구</UserName>
-                            <VipBadge>나의 등급 : VIP</VipBadge>
+                            <UserName>문민선</UserName>
                         </div>
                     </ProfileCard>
 
                     <InfoSection>
                         <InfoRow>
                             <Label>이메일</Label>
-                            <Data>rubyru@gmail.com</Data>
+                            <Data>munminsun@gmail.com</Data>
                         </InfoRow>
                         <InfoRow>
                             <Label>전화번호</Label>

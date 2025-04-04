@@ -8,7 +8,14 @@ const SidebarContainer = styled.div`
 
 const Title = styled.h2`
     font-size: 20px;
-    margin-bottom: 20px;
+    margin-top: 50px;
+    margin-bottom: 10px;
+`;
+
+const Divider = styled.div`
+    width: 200px;
+    height: 2px;
+    background-color: #ffbc39;
 `;
 
 const MenuList = styled.ul`
@@ -27,6 +34,7 @@ const Sidebar = () => {
     return (
         <SidebarContainer>
             <Title>마이 페이지</Title>
+            <Divider />
             <MenuList>
                 <MenuItem active>예약 내역</MenuItem>
                 <MenuItem>채팅 내역</MenuItem>

@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { FaMap, FaUser, FaHeart, FaCalendarAlt } from "react-icons/fa";
 import { IoSearch } from "react-icons/io5";
-import styled from "styled-components"
+import styled from "styled-components";
 
 const Navbar = styled.nav`
     display: flex;
@@ -66,7 +66,7 @@ const NavBar = () => {
                 <Link to="/favorites">
                     <FaHeart size={20} />
                 </Link>
-                <Link to="/profile">
+                <Link to="/MyPage">
                     <FaUser size={20} />
                 </Link>
             </NavRight>
