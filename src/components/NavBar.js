@@ -66,7 +66,7 @@ const NavBar = () => {
                 <Link to="/favorites">
                     <FaHeart size={20} />
                 </Link>
-                <Link to="/MyPage">
+                <Link to="/mypage">
                     <FaUser size={20} />
                 </Link>
             </NavRight>

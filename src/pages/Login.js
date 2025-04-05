@@ -6,7 +6,7 @@ const LoginContainer = styled.div`
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 240px;
+    margin-top: 20vh;
 `;
 
 const UserTypeToggle = styled.div`
@@ -19,8 +19,10 @@ const ToggleButton = styled.button`
     padding: 10px 20px;
     margin: 0px 10px;
     border: 1px solid #ffbc39;
-    border-radius: 15px;
+    border-radius: 10px;
     background: none;
+    color: #ffbc39;
+    font-weight: bold;
     cursor: pointer;
 
     &.active {
@@ -31,7 +33,7 @@ const ToggleButton = styled.button`
 
 const LoginBox = styled.div`
     border: 1px solid #d9d9d9;
-    padding: 30px;
+    padding: 20px 30px;
     border-radius: 15px;
 `;
 
@@ -41,11 +43,16 @@ const LoginForm = styled.form`
     width: 300px;
 `;
 
+const Label = styled.div`
+    width: 120px;
+    margin: 10px 0px;
+`;
+
 const Input = styled.input`
     padding: 10px;
     margin-bottom: 10px;
     border: 1px solid #d9d9d9;
-    border-radius: 15px;
+    border-radius: 10px;
 `;
 
 const LoginButton = styled.button`
@@ -53,8 +60,15 @@ const LoginButton = styled.button`
     color: white;
     padding: 10px;
     border: none;
-    border-radius: 15px;
+    border-radius: 10px;
     cursor: pointer;
+    margin: 5px 0px 20px;
+`;
+
+const LoginCheck = styled.span`
+    color: red;
+    font-size: 16px;
+    text-align: center;
 `;
 
 const LoginLinks = styled.div`
@@ -64,9 +78,10 @@ const LoginLinks = styled.div`
     width: 361px;
 `;
 
-const SetColorLink = styled(Link)`
+const SetLink = styled(Link)`
     color: #868686;
-    text-decoration: none;
+    text-decoration: underline;
+    padding: 0px 10px;
 
     &:hover {
         text-decoration: underline;
@@ -93,28 +108,27 @@ function Login() {
                 </UserTypeToggle>
                 <LoginBox>
                     <LoginForm onSubmit={handleSubmit}>
+                        <Label>이메일</Label>
                         <Input
                             type="email"
-                            placeholder="이메일"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
                         />
+                        <Label>비밀번호</Label>
                         <Input
                             type="password"
-                            placeholder="비밀번호"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
                         />
                         <LoginButton type="submit">Sign In</LoginButton>
+                        <LoginCheck>회원정보가 일치하지 않습니다.</LoginCheck>
                     </LoginForm>
                 </LoginBox>
                 <LoginLinks>
-                    <SetColorLink to="/signup">회원가입</SetColorLink>
-                    <SetColorLink to="/forgot-password">
-                        비밀번호를 잊으셨나요?
-                    </SetColorLink>
+                    <SetLink to="/signup">회원가입</SetLink>
+                    <SetLink to="/forgot-password">비밀번호 찾기</SetLink>
                 </LoginLinks>
             </LoginContainer>
         </div>

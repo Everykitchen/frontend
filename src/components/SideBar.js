@@ -36,7 +36,7 @@ const Sidebar = () => {
             <Title>마이 페이지</Title>
             <Divider />
             <MenuList>
-                <MenuItem active>예약 내역</MenuItem>
+                <MenuItem>예약 내역</MenuItem>
                 <MenuItem>채팅 내역</MenuItem>
                 <MenuItem>후기 관리</MenuItem>
                 <MenuItem>찜 목록</MenuItem>
