@@ -1,3 +1,4 @@
+import { useState } from "react";
 import ReservationCard from "../../components/ReservationCard";
 import Sidebar from "../../components/UserSideBar";
 import styled from "styled-components";
@@ -7,9 +8,10 @@ const Container = styled.div`
     min-height: 100vh;
 `;
 
-const Content = styled.div`
-    flex: 1; /* 나머지 영역 다 차지 */
-    padding: 32px; /* 여백 */
+const ContentWrapper = styled.div`
+    padding: 40px;
+    margin-top: 30px;
+    flex: 1;
 `;
 
 const Title = styled.h2`
@@ -30,36 +32,70 @@ const Tab = styled.div`
 `;
 
 const Reservation = () => {
+    const [activeTab, setActiveTab] = useState("전체");
+
     const reservationList = [
         {
-            id: "19980719",
+            id: "1",
             imageUrl: "이미지URL",
             name: "파이브잇 쿠킹스튜디오샤랄라❤️",
             location: "서울 은평구",
             time: "2025.3.13 15:00 ~ 17:00 (4인)",
             status: "진행중",
         },
-        // 다른 예약 데이터...
+        {
+            id: "2",
+            imageUrl: "이미지URL",
+            name: "마이키친 렌탈스튜디오",
+            location: "서울 강남구",
+            time: "2025.2.5 11:00 ~ 13:00 (2인)",
+            status: "완료",
+        },
+        {
+            id: "3",
+            imageUrl: "이미지URL",
+            name: "소셜키친 공유주방",
+            location: "서울 종로구",
+            time: "2025.4.1 14:00 ~ 16:00 (6인)",
+            status: "진행중",
+        },
     ];
+
+    const filterList =
+        activeTab === "전체"
+            ? reservationList
+            : reservationList.filter((item) => item.status === activeTab);
 
     return (
         <Container>
             <Sidebar />
-            <Content>
+            <ContentWrapper>
                 <Title>예약 내역</Title>
                 <TabMenu>
-                    <Tab active>전체 (2)</Tab>
-                    <Tab>진행중 (1)</Tab>
-                    <Tab>완료 (1)</Tab>
+                    {["전체", "진행중", "완료"].map((tab) => (
+                        <Tab
+                            key={tab}
+                            active={activeTab === tab}
+                            onClick={() => setActiveTab(tab)}
+                        >
+                            {tab} (
+                            {tab === "전체"
+                                ? reservationList.length
+                                : reservationList.filter(
+                                      (item) => item.status === tab
+                                  ).length}
+                            )
+                        </Tab>
+                    ))}
                 </TabMenu>
 
-                {reservationList.map((reservation) => (
+                {filterList.map((reservation) => (
                     <ReservationCard
                         key={reservation.id}
                         reservation={reservation}
                     />
                 ))}
-            </Content>
+            </ContentWrapper>
         </Container>
     );
 };

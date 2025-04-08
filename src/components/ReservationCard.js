@@ -1,6 +1,6 @@
 import styled from "styled-components";
 
-const CardContainer = styled.div`
+const Card = styled.div`
     display: flex;
     border: 1px solid #ddd;
     border-radius: 10px;
@@ -8,65 +8,72 @@ const CardContainer = styled.div`
     margin-bottom: 16px;
 `;
 
-const Img = styled.img`
+const Image = styled.img`
     width: 150px;
     height: 100px;
     border-radius: 8px;
     margin-right: 16px;
 `;
 
-const Content = styled.div`
+const Info = styled.div`
     flex: 1;
 `;
 
-const Top = styled.div`
+const TopInfo = styled.div`
     display: flex;
     justify-content: space-between;
-    margin-bottom: 8px;
+    align-items: top;
 `;
 
-const ReserveNum = styled.div`
+const ReservationNumber = styled.div`
     color: #888;
     font-size: 14px;
 `;
 
-const Status = styled.div`
+const StatusBadge = styled.div`
     background-color: orange;
     color: white;
     border-radius: 4px;
-    padding: 2px 8px;
+    padding: 10px 0px;
     font-size: 12px;
+    min-width: 70px;
+    text-align: center;
 `;
 
-const Title = styled.div`
+const Name = styled.div`
     font-size: 18px;
     font-weight: bold;
+    margin-bottom: 10px;
 `;
 
 const Location = styled.div`
-    font-size: 14px;
+    font-size: 12px;
     color: #555;
+    margin-bottom: 10px;
 `;
 
 const Time = styled.div`
     font-size: 14px;
     color: #555;
+    margin-bottom: 10px;
 `;
 
 const ReservationCard = ({ reservation }) => {
     return (
-        <CardContainer>
-            <Img src={reservation.imageUrl} />
-            <Content>
-                <Top>
-                    <ReserveNum>예약 번호 {reservation.id}</ReserveNum>
-                    <Status>{reservation.status}</Status>
-                </Top>
-                <Title>{reservation.name}</Title>
+        <Card>
+            <Image src={reservation.imageUrl} />
+            <Info>
+                <TopInfo>
+                    <ReservationNumber>
+                        예약 번호 {reservation.id}
+                    </ReservationNumber>
+                    <StatusBadge>{reservation.status}</StatusBadge>
+                </TopInfo>
+                <Name>{reservation.name}</Name>
                 <Location>{reservation.location}</Location>
                 <Time>{reservation.time}</Time>
-            </Content>
-        </CardContainer>
+            </Info>
+        </Card>
     );
 };
 
