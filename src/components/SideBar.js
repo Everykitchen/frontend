@@ -1,3 +1,4 @@
+import { NavLink } from "react-router-dom";
 import styled from "styled-components";
 
 const SidebarContainer = styled.div`
@@ -23,11 +24,18 @@ const MenuList = styled.ul`
     padding: 0;
 `;
 
-const MenuItem = styled.li`
+const MenuItem = styled(NavLink)`
+    display: block;
     padding: 10px;
+    text-decoration: none;
+    color: black;
+    font-weight: normal;
     cursor: pointer;
-    font-weight: ${(props) => (props.active ? "bold" : "normal")};
-    color: ${(props) => (props.active ? "orange" : "black")};
+
+    &.active {
+        color: orange;
+        font-weight: bold;
+    }
 `;
 
 const Sidebar = () => {
@@ -36,11 +44,11 @@ const Sidebar = () => {
             <Title>마이 페이지</Title>
             <Divider />
             <MenuList>
-                <MenuItem>예약 내역</MenuItem>
-                <MenuItem>채팅 내역</MenuItem>
-                <MenuItem>후기 관리</MenuItem>
-                <MenuItem>찜 목록</MenuItem>
-                <MenuItem>회원 정보 수정</MenuItem>
+                <MenuItem to="/reservation">예약 내역</MenuItem>
+                <MenuItem to="/chat">채팅 내역</MenuItem>
+                <MenuItem to="/review">후기 관리</MenuItem>
+                <MenuItem to="/wishlist">찜 목록</MenuItem>
+                <MenuItem to="/edit-profile">회원 정보 수정</MenuItem>
             </MenuList>
         </SidebarContainer>
     );

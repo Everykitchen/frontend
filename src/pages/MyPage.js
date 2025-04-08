@@ -10,10 +10,10 @@ const Container = styled.div`
 const Content = styled.div`
     flex: 1;
     padding: 40px;
-    margin-top: 50px;
+    margin-top: 30px;
 `;
 
-const ProfileCard = styled.div`
+const ProfileSection = styled.div`
     display: flex;
     align-items: center;
     gap: 20px;
@@ -25,14 +25,16 @@ const ProfileImage = styled.img`
     width: 130px;
     height: 130px;
     border-radius: 50%;
-    border: 1px grey;
+    border: 1px solid black;
     align-items: center;
 `;
 
+const ProfileInfo = styled.div``;
+
 const UserName = styled.h2`
-    font-size: 22px;
+    font-size: 30px;
     font-weight: bold;
-    margin: 0px;
+    margin: 0px 0px 5px 0px;
 `;
 
 const InfoSection = styled.div`
@@ -42,16 +44,18 @@ const InfoSection = styled.div`
 const InfoRow = styled.div`
     display: flex;
     align-items: center;
-    margin-bottom: 10px;
 `;
 
 const Label = styled.div`
-    width: 120px;
+    width: 200px;
     font-weight: bold;
+    padding: 10px 0px;
 `;
 
 const Data = styled.div`
     color: #555;
+    padding-left: 5px;
+    font-size: 14px;
 `;
 
 const TagContainer = styled.div`
@@ -72,22 +76,23 @@ const MyPage = () => {
             <Container>
                 <SideBar />
                 <Content>
-                    <ProfileCard>
+                    <ProfileSection>
                         <ProfileImage src={profileImg} alt="프로필 이미지" />
-                        <div>
+                        <ProfileInfo>
                             <UserName>문민선</UserName>
-                        </div>
-                    </ProfileCard>
-
+                            <div>
+                                <InfoRow>
+                                    <Data>이메일 :</Data>
+                                    <Data>munminsun@gmail.com</Data>
+                                </InfoRow>
+                                <InfoRow>
+                                    <Data>휴대폰 :</Data>
+                                    <Data>010-0000-0000</Data>
+                                </InfoRow>
+                            </div>
+                        </ProfileInfo>
+                    </ProfileSection>
                     <InfoSection>
-                        <InfoRow>
-                            <Label>이메일</Label>
-                            <Data>munminsun@gmail.com</Data>
-                        </InfoRow>
-                        <InfoRow>
-                            <Label>전화번호</Label>
-                            <Data>010-0000-0000</Data>
-                        </InfoRow>
                         <InfoRow>
                             <Label>주로 활동하는 지역</Label>
                             <TagContainer>
