@@ -1,6 +1,7 @@
 import AppRouter from "./routes/AppRouter";
 import NavBar from "./components/NavBar";
 import styled from "styled-components";
+import GlobalStyle from "./components/GlobalStyle";
 
 const AppContainer = styled.div`
     display: flex;
@@ -24,6 +25,7 @@ const Content = styled.div`
 function App() {
     return (
         <AppContainer>
+            <GlobalStyle />
             <FixedNavBar>
                 <NavBar />
             </FixedNavBar>

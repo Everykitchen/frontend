@@ -1,77 +1,100 @@
-import { Link } from "react-router-dom";
-import { FaMap, FaUser, FaHeart, FaCalendarAlt } from "react-icons/fa";
-import { IoSearch } from "react-icons/io5";
+import React from "react";
 import styled from "styled-components";
+import { Link } from "react-router-dom";
+import Logo from "./Logo";
 
-const Navbar = styled.nav`
+import mapIcon from "../assets/icons/mapIcon.svg";
+import calendarIcon from "../assets/icons/calendarIcon.svg";
+import heartIcon from "../assets/icons/heartIcon.svg";
+import userIcon from "../assets/icons/userIcon.svg";
+import searchIcon from "../assets/icons/searchIcon.svg";
+
+const HeaderWrapper = styled.header`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 20px;
+    padding: 14px 30px;
     background-color: white;
     border-bottom: 1px solid #ddd;
 `;
 
-const Logo = styled(Link)`
-    font-size: 20px;
-    font-weight: bold;
-    color: #ff9900;
-    text-decoration: none;
-    margin-left: 10px;
-`;
-
-const NavMiddle = styled.div`
-    display: flex;
-    align-items: center;
-`;
-
-const SearchBar = styled.input`
-    flex-grow: 1;
-    padding: 5px;
-    border: 1px solid #ddd;
-    border-radius: 20px;
+const SearchSection = styled.div`
+    position: relative;
     width: 600px;
-    text-align: center;
 `;
 
-const NavRight = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 20px;
+const SearchInput = styled.input`
+    width: 100%;
+    padding: 8px 20px 8px 20px; 
+    border-radius: 30px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    background-color: #f3f3f3;
+    text-align: left;
 
-    a {
-        color: black;
-        text-decoration: none;
+    &:focus {
+        outline: none;
+        border-color: #ffbc39;
+        background-color: #fff;
+    }
+
+    &::placeholder {
+        color: #aaa;
+        font-size: 14px;
     }
 `;
 
-const NavBar = () => {
+const SearchIcon = styled.img`
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+`;
+
+const IconSection = styled.div`
+    display: flex;
+    gap: 20px;
+    align-items: center;
+`;
+
+const IconLink = styled(Link)`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+`;
+
+const IconImg = styled.img`
+    width: 20px;
+    height: 20px;
+`;
+
+const Navbar = () => {
     return (
-        <Navbar>
-            <Logo to="/">에브리키친</Logo>
-            <NavMiddle>
-                <SearchBar
-                    type="text"
-                    placeholder="찾으시는 주방을 검색해보세요"
-                />
-                <IoSearch size={20} />
-            </NavMiddle>
-            <NavRight>
-                <Link to="/map">
-                    <FaMap size={20} />
-                </Link>
-                <Link to="/calendar">
-                    <FaCalendarAlt size={20} />
-                </Link>
-                <Link to="/favorites">
-                    <FaHeart size={20} />
-                </Link>
-                <Link to="/mypage">
-                    <FaUser size={20} />
-                </Link>
-            </NavRight>
-        </Navbar>
+        <HeaderWrapper>
+            <Logo />
+            <SearchSection>
+                <SearchInput placeholder="찾으시는 주방을 검색해보세요! " />
+                <SearchIcon src={searchIcon} alt="검색" />
+                </SearchSection>
+            <IconSection>
+                <IconLink to="/map">
+                    <IconImg src={mapIcon} alt="지도" />
+                </IconLink>
+                <IconLink to="/calendar">
+                    <IconImg src={calendarIcon} alt="달력" />
+                </IconLink>
+                <IconLink to="/favorites">
+                    <IconImg src={heartIcon} alt="찜" />
+                </IconLink>
+                <IconLink to="/profile">
+                    <IconImg src={userIcon} alt="프로필" />
+                </IconLink>
+            </IconSection>
+        </HeaderWrapper>
     );
 };
 
-export default NavBar;
+export default Navbar;
