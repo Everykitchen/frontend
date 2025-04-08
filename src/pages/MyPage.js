@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import SideBar from "../components/SideBar";
+import SideBar from "../components/UserSideBar";
 import profileImg from "../assets/jpg/profile1.jpg";
 
 const Container = styled.div`
