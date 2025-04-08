@@ -74,7 +74,7 @@ const UserSidebar = () => {
         { path: "/mypage/reviews", label: "후기 관리" },
         { path: "/mypage/favorites", label: "찜 목록" },
         { divider: true },
-        { path: "/mypage/profile", label: "회원 정보 수정" },
+        { path: "/mypage/editprofile", label: "회원 정보 수정" },
     ];
 
     return (
@@ -89,9 +89,16 @@ const UserSidebar = () => {
                     const isActive = location.pathname === item.path;
                     return (
                         <MenuItemWrapper key={item.path}>
-                            <MenuItem active={isActive} onClick={() => navigate(item.path)}>
+                            <MenuItem
+                                active={isActive}
+                                onClick={() => navigate(item.path)}
+                            >
                                 {item.label}
-                                <OrangeCircle src={orangeCircle} alt="active" active={isActive} />
+                                <OrangeCircle
+                                    src={orangeCircle}
+                                    alt="active"
+                                    active={isActive}
+                                />
                             </MenuItem>
                         </MenuItemWrapper>
                     );

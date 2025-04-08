@@ -25,7 +25,7 @@ const SearchSection = styled.div`
 
 const SearchInput = styled.input`
     width: 100%;
-    padding: 8px 20px 8px 20px; 
+    padding: 8px 20px 8px 20px;
     border-radius: 30px;
     border: 1px solid #ddd;
     font-size: 14px;
@@ -78,7 +78,7 @@ const Navbar = () => {
             <SearchSection>
                 <SearchInput placeholder="찾으시는 주방을 검색해보세요! " />
                 <SearchIcon src={searchIcon} alt="검색" />
-                </SearchSection>
+            </SearchSection>
             <IconSection>
                 <IconLink to="/map">
                     <IconImg src={mapIcon} alt="지도" />
@@ -89,8 +89,8 @@ const Navbar = () => {
                 <IconLink to="/favorites">
                     <IconImg src={heartIcon} alt="찜" />
                 </IconLink>
-                <IconLink to="/profile">
-                    <IconImg src={userIcon} alt="프로필" />
+                <IconLink to="/mypage">
+                    <IconImg src={userIcon} alt="마이페이지" />
                 </IconLink>
             </IconSection>
         </HeaderWrapper>
