@@ -74,7 +74,7 @@ const UserSidebar = () => {
         { path: "/mypage/reviews", label: "후기 관리" },
         { path: "/mypage/favorites", label: "찜 목록" },
         { divider: true },
-        { path: "/mypage/editprofile", label: "회원 정보 수정" },
+        { path: "/mypage", label: "회원 정보 수정" },
     ];
 
     return (
