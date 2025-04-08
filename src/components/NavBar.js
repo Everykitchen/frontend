@@ -19,17 +19,39 @@ const HeaderWrapper = styled.header`
 `;
 
 const SearchSection = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    position: relative;
+    width: 400px;
 `;
 
 const SearchInput = styled.input`
-    padding: 6px 16px;
-    border-radius: 20px;
+    width: 100%;
+    padding: 8px 20px 8px 20px; 
+    border-radius: 30px;
     border: 1px solid #ddd;
-    width: 400px;
     font-size: 14px;
+    background-color: #f3f3f3;
+    text-align: left;
+
+    &:focus {
+        outline: none;
+        border-color: #ffbc39;
+        background-color: #fff;
+    }
+
+    &::placeholder {
+        color: #aaa;
+        font-size: 14px;
+    }
+`;
+
+const SearchIcon = styled.img`
+    position: absolute;
+    right: 1px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
 `;
 
 const IconSection = styled.div`
@@ -54,9 +76,9 @@ const Navbar = () => {
         <HeaderWrapper>
             <Logo />
             <SearchSection>
-                <SearchInput placeholder="찾으시는 주방을 검색해보세요" />
-                <IconImg src={searchIcon} alt="검색" />
-            </SearchSection>
+                <SearchInput placeholder="찾으시는 주방을 검색해보세요! " />
+                <SearchIcon src={searchIcon} alt="검색" />
+                </SearchSection>
             <IconSection>
                 <IconLink to="/map">
                     <IconImg src={mapIcon} alt="지도" />
