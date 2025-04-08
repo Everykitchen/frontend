@@ -20,7 +20,7 @@ const HeaderWrapper = styled.header`
 
 const SearchSection = styled.div`
     position: relative;
-    width: 400px;
+    width: 600px;
 `;
 
 const SearchInput = styled.input`
@@ -46,11 +46,11 @@ const SearchInput = styled.input`
 
 const SearchIcon = styled.img`
     position: absolute;
-    right: 1px;
+    right: 20px;
     top: 50%;
     transform: translateY(-50%);
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     cursor: pointer;
 `;
 
