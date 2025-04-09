@@ -7,7 +7,7 @@ import orangeCircle from "../assets/icons/orangeDot.svg";
 const SidebarContainer = styled.div`
     width: 240px;
     background-color: white;
-    border-right: 1px solid #ddd;
+    border-right: 1px solid "#B8B8B8";
     padding: 40px 30px;
 `;
 
@@ -59,7 +59,7 @@ const OrangeCircle = styled.img`
 
 const Divider = styled.div`
     height: 1px;
-    background-color: #ddd;
+    background-color: "#B8B8B8";
     margin: 8px 0;
 `;
 
@@ -69,7 +69,7 @@ const UserSidebar = () => {
 
     const menuItems = [
         { path: "/mypage/reservations", label: "예약 내역" },
-        { path: "/mypage/chat", label: "채팅 내역" },
+        { path: "/mypage/chats", label: "채팅 내역" },
         { divider: true },
         { path: "/mypage/reviews", label: "후기 관리" },
         { path: "/mypage/favorites", label: "찜 목록" },
@@ -109,3 +109,7 @@ const UserSidebar = () => {
 };
 
 export default UserSidebar;
+
+
+export {SidebarContainer,Title, Underline, MenuList, MenuItemWrapper, 
+    MenuItem, OrangeCircle, Divider};

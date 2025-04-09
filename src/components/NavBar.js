@@ -49,14 +49,14 @@ const SearchIcon = styled.img`
     right: 20px;
     top: 50%;
     transform: translateY(-50%);
-    width: 18px;
-    height: 18px;
+    width: 17px;
+    height: 17px;
     cursor: pointer;
 `;
 
 const IconSection = styled.div`
     display: flex;
-    gap: 20px;
+    gap: 23px;
     align-items: center;
 `;
 
@@ -67,8 +67,8 @@ const IconLink = styled(Link)`
 `;
 
 const IconImg = styled.img`
-    width: 20px;
-    height: 20px;
+    width: ${(props) => props.width};
+    height: ${(props) => props.height};
 `;
 
 const Navbar = () => {
@@ -81,16 +81,16 @@ const Navbar = () => {
             </SearchSection>
             <IconSection>
                 <IconLink to="/map">
-                    <IconImg src={mapIcon} alt="지도" />
+                    <IconImg src={mapIcon} alt="지도" width={"18px"} height={"18px"} />
                 </IconLink>
                 <IconLink to="/calendar">
-                    <IconImg src={calendarIcon} alt="달력" />
+                    <IconImg src={calendarIcon} alt="달력" width={"20px"} height={"20px"} />
                 </IconLink>
                 <IconLink to="/favorites">
-                    <IconImg src={heartIcon} alt="찜" />
+                    <IconImg src={heartIcon} alt="찜" width={"20px"} height={"20px"} />
                 </IconLink>
                 <IconLink to="/mypage">
-                    <IconImg src={userIcon} alt="마이페이지" />
+                    <IconImg src={userIcon} alt="마이페이지" width={"17px"} height={"17px"} />
                 </IconLink>
             </IconSection>
         </HeaderWrapper>
