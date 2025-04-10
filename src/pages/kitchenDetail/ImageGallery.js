@@ -7,14 +7,18 @@ const ImageGrid = styled.div`
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   margin-bottom: 32px;
-  height: 360px; /* 원하는 전체 높이로 조정 */
+  height: 360px;
+  width: 100%;
+  max-width: 1200px; 
+  margin-left: auto;
+  margin-right: auto;
 `;
 
 const MainImage = styled.img`
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 10px;
+  border-radius: 0px;
 `;
 
 const SubImages = styled.div`
@@ -28,7 +32,7 @@ const SubImage = styled.img`
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 10px;
+  border-radius: 0px;
 `;
 
 const ImageGallery = () => {

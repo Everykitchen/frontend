@@ -14,12 +14,19 @@ const Container = styled.div`
 
 const ContentWrapper = styled.div`
     display: flex;
-    gap: 40px;
+    gap: 50px;
     align-items: flex-start;
 `;
 
 const LeftSection = styled.div`
     flex: 2;
+`;
+
+const KitchenName = styled.h1`
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 100%; /* 38.4px */
+    letter-spacing: -0.64px;
 `;
 
 const KitchenDetailPage = () => {
@@ -49,7 +56,7 @@ const KitchenDetailPage = () => {
     return (
         <Container>
             <ImageGallery />
-            <div style={{ marginTop: 40 }} />
+            <div style={{ marginTop: 60 }} />
 
             <ContentWrapper>
                 <LeftSection>
@@ -58,10 +65,10 @@ const KitchenDetailPage = () => {
                             style={{
                                 display: "flex",
                                 alignItems: "center",
-                                gap: "8px",
+                                gap: "80px",
                             }}
                         >
-                            <h1>소담 쿠킹 스튜디오 메인홀</h1>
+                            <KitchenName>소담 쿠킹 스튜디오 메인홀</KitchenName>
                             <img
                                 src={shareIcon}
                                 alt="공유"
@@ -71,10 +78,10 @@ const KitchenDetailPage = () => {
                     </div>
                     <div style={{ margin: "8px 0", lineHeight: "1.4" }}>
                         <div>서울 은평구</div>
-                        <div>40,000원 / 1시간 [3시간부터]</div>
+                        <div>40,000원 ~ / 1시간 [3시간부터]</div>
                         <div
                             style={{
-                                marginTop: 4,
+                                marginTop: 5,
                                 fontSize: 14,
                                 color: "#555",
                             }}
