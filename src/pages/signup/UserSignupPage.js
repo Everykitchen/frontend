@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import CommonButton from "../../components/Button";
-// import axios from "axios"; 
+// import axios from "axios";
 
 // ------------- styled components -------------
 const FormContainer = styled.div`
@@ -151,13 +151,18 @@ const UserSignupPage = () => {
 
     // 인증번호 확인
     const handleVerifyCode = () => {
+        // 인증번호가 발송되지 않은 상태라면 차단
+        if (!serverCode) {
+            alert("먼저 인증번호를 요청해주세요.");
+            return;
+        }
+
         if (form.code === serverCode) {
             setIsEmailVerified(true);
             setIsSendingCode(false);
             setTimeLeft(0);
             alert("이메일 인증 성공");
         } else {
-            setIsEmailVerified(false);
             alert("인증번호가 일치하지 않습니다.");
         }
     };

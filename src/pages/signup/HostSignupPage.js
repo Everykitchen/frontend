@@ -148,6 +148,12 @@ const HostSignupPage = () => {
     };
 
     const handleVerifyCode = () => {
+        // 인증번호가 발송되지 않은 상태라면 차단
+        if (!serverCode) {
+            alert("먼저 인증번호를 요청해주세요.");
+            return;
+        }
+
         if (form.code === serverCode) {
             setIsEmailVerified(true);
             setIsSendingCode(false);
