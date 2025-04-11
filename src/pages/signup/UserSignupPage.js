@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import CommonButton from "../../components/Button";
-// import axios from "axios";
+// import axios from "axios"; // 실제 사용 시 주석 해제
 
 // ------------- styled components -------------
 const FormContainer = styled.div`
@@ -85,12 +85,10 @@ const UserSignupPage = () => {
     });
 
     const [errors, setErrors] = useState({});
-    const [serverCode, setServerCode] = useState("");
     const [isEmailVerified, setIsEmailVerified] = useState(false);
     const [isSendingCode, setIsSendingCode] = useState(false);
     const [timeLeft, setTimeLeft] = useState(0);
 
-    // 타이머 로직
     useEffect(() => {
         let timer;
         if (timeLeft > 0) {
@@ -125,7 +123,7 @@ const UserSignupPage = () => {
         return passwordRegex.test(password);
     };
 
-    // 인증번호 전송
+    // 이메일 인증번호 전송
     const handleSendCode = async () => {
         if (!isValidEmail(form.email)) {
             setErrors((prev) => ({
@@ -136,34 +134,46 @@ const UserSignupPage = () => {
         }
 
         try {
-            // const res = await axios.post("/api/auth/send-verification-code", { email: form.email });
-            // const receivedCode = res.data.code;
-            const receivedCode = "123456"; // 테스트용
+            // 실제 요청
+            // await axios.post("/api/auth/send-verification-code", {
+            //     email: form.email,
+            // });
 
-            setServerCode(receivedCode);
             setIsSendingCode(true);
-            setTimeLeft(120);
-            alert("인증번호가 전송되었습니다. 테스트 코드: 123456");
+            setTimeLeft(60);
+            alert("인증번호가 이메일로 전송되었습니다.");
         } catch (error) {
             alert("인증번호 전송 실패");
         }
     };
 
     // 인증번호 확인
-    const handleVerifyCode = () => {
-        // 인증번호가 발송되지 않은 상태라면 차단
-        if (!serverCode) {
-            alert("먼저 인증번호를 요청해주세요.");
+    const handleVerifyCode = async () => {
+        if (!form.code) {
+            setErrors((prev) => ({
+                ...prev,
+                code: "인증번호를 입력해주세요.",
+            }));
             return;
         }
 
-        if (form.code === serverCode) {
+        try {
+            // 실제 요청
+            // await axios.post("/api/auth/verify-code", {
+            //     email: form.email,
+            //     code: form.code,
+            // });
+
             setIsEmailVerified(true);
             setIsSendingCode(false);
             setTimeLeft(0);
             alert("이메일 인증 성공");
-        } else {
-            alert("인증번호가 일치하지 않습니다.");
+        } catch (error) {
+            // 인증 실패 시
+            setErrors((prev) => ({
+                ...prev,
+                code: "인증번호가 일치하지 않습니다.",
+            }));
         }
     };
 
@@ -200,7 +210,7 @@ const UserSignupPage = () => {
             };
 
             // await axios.post("/api/auth/signup", requestBody);
-            console.log("회원가입 요청 내용:", requestBody);
+            console.log("회원가입 요청:", requestBody);
             alert("회원가입 요청 완료");
         } catch (error) {
             alert("회원가입 중 오류 발생");

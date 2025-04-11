@@ -1,7 +1,8 @@
+// src/pages/signup/HostSignupPage.js
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import CommonButton from "../../components/Button";
-// import axios from "axios"; // 실제 API 연동 시 사용
+// import axios from "axios"; // 나중에 연동 시 주석 해제
 
 const FormContainer = styled.div`
     max-width: 500px;
@@ -85,12 +86,11 @@ const HostSignupPage = () => {
     });
 
     const [errors, setErrors] = useState({});
-    const [serverCode, setServerCode] = useState("");
+    const [serverCodeSent, setServerCodeSent] = useState(false);
     const [isEmailVerified, setIsEmailVerified] = useState(false);
     const [isSendingCode, setIsSendingCode] = useState(false);
     const [timeLeft, setTimeLeft] = useState(0);
 
-    // 인증 타이머
     useEffect(() => {
         let timer;
         if (timeLeft > 0) {
@@ -115,66 +115,71 @@ const HostSignupPage = () => {
     };
 
     const handleFileChange = (e) => {
-        setForm({ ...form, businessFile: e.target.files[0] });
+        setForm((prev) => ({ ...prev, businessFile: e.target.files[0] }));
     };
 
     const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email);
     const isStrongPassword = (pw) =>
-        /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+{}[\]:;<>,.?/~`|\\-]).{8,20}$/.test(
-            pw
-        );
+        /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+{}[\]:;<>,.?/~`|\\-]).{8,20}$/.test(pw);
 
     const handleSendCode = async () => {
         if (!isValidEmail(form.email)) {
-            setErrors((prev) => ({
-                ...prev,
-                email: "올바른 형식이 아닙니다.",
-            }));
+            setErrors((prev) => ({ ...prev, email: "올바른 형식이 아닙니다." }));
             return;
         }
 
         try {
             // const res = await axios.post("/api/auth/send-verification-code", { email: form.email });
-            // const receivedCode = res.data.code;
-            const receivedCode = "123456"; // 테스트용
-
-            setServerCode(receivedCode);
+            // 인증 성공 시 backend에서 전송된 인증번호는 res.data.code일 수도 있음
+            setServerCodeSent(true);
             setIsSendingCode(true);
-            setTimeLeft(120);
-            alert("인증번호가 전송되었습니다. 테스트 코드: 123456");
+            setTimeLeft(60);
+            alert("인증번호가 전송되었습니다.");
         } catch (error) {
             alert("인증번호 전송 실패");
         }
     };
 
-    const handleVerifyCode = () => {
-        // 인증번호가 발송되지 않은 상태라면 차단
-        if (!serverCode) {
+    const handleVerifyCode = async () => {
+        if (!serverCodeSent) {
             alert("먼저 인증번호를 요청해주세요.");
             return;
         }
 
-        if (form.code === serverCode) {
+        try {
+            // const res = await axios.post("/api/auth/verify-code", {
+            //     email: form.email,
+            //     code: form.code,
+            // });
+
+            // if (res.status === 200) {
             setIsEmailVerified(true);
             setIsSendingCode(false);
             setTimeLeft(0);
             alert("이메일 인증 성공");
-        } else {
+            // }
+        } catch (error) {
             alert("인증번호가 일치하지 않습니다.");
         }
     };
 
     const validate = () => {
         const newErrors = {};
+
         if (!isValidEmail(form.email))
             newErrors.email = "올바른 형식이 아닙니다.";
+
         if (!isStrongPassword(form.password))
             newErrors.password = "영문, 숫자, 특수문자 포함 8~20자";
+
         if (form.password !== form.confirmPassword)
             newErrors.confirmPassword = "비밀번호가 일치하지 않습니다.";
-        if (!isEmailVerified) newErrors.code = "이메일 인증이 필요합니다.";
+
+        if (!isEmailVerified)
+            newErrors.code = "이메일 인증이 필요합니다.";
 
         setErrors(newErrors);
+
         if (Object.keys(newErrors).length === 0) {
             submitForm();
         }
@@ -193,26 +198,23 @@ const HostSignupPage = () => {
             );
             requestBody.append("businessNumber", form.businessNumber);
             requestBody.append("role", "HOST");
+
             if (form.businessFile) {
                 requestBody.append("businessFile", form.businessFile);
             }
 
-            // const response = await axios.post("/api/auth/signup", requestBody);
-            // if (response.status === 200) {
-            //   alert("회원가입 완료!");
-            // }
+            // const response = await axios.post('/api/auth/signup', requestBody);
+            // if (response.status === 200) alert("회원가입 완료!");
 
             console.log("보낼 데이터(FormData):", requestBody);
-            alert("회원가입 요청 준비 완료");
+            alert("회원가입 요청 완료");
         } catch (error) {
             alert("회원가입 중 오류 발생");
         }
     };
 
     const formatTime = (seconds) => {
-        const m = Math.floor(seconds / 60)
-            .toString()
-            .padStart(2, "0");
+        const m = Math.floor(seconds / 60).toString().padStart(2, "0");
         const s = (seconds % 60).toString().padStart(2, "0");
         return `${m}:${s}`;
     };
@@ -224,7 +226,7 @@ const HostSignupPage = () => {
             {/* 이메일 */}
             <FieldGroup>
                 <LabelRow>
-                    <Label htmlFor="email">이메일</Label>
+                    <Label>이메일</Label>
                     {errors.email && <ErrorText>{errors.email}</ErrorText>}
                 </LabelRow>
                 <InlineFlex>
@@ -233,17 +235,13 @@ const HostSignupPage = () => {
                         value={form.email}
                         onChange={handleChange}
                         placeholder="example@example.com"
+                        disabled={isEmailVerified || timeLeft > 0}
                         invalid={errors.email}
-                        disabled={
-                            isEmailVerified || isSendingCode || timeLeft > 0
-                        }
                     />
                     <CommonButton
                         type="button"
                         onClick={handleSendCode}
-                        disabled={
-                            timeLeft > 0 || isEmailVerified || isSendingCode
-                        }
+                        disabled={timeLeft > 0 || isEmailVerified}
                     >
                         {timeLeft > 0
                             ? `재전송 ${formatTime(timeLeft)}`
@@ -255,7 +253,7 @@ const HostSignupPage = () => {
             {/* 인증번호 */}
             <FieldGroup>
                 <LabelRow>
-                    <Label htmlFor="code">인증번호</Label>
+                    <Label>인증번호</Label>
                     {errors.code && <ErrorText>{errors.code}</ErrorText>}
                 </LabelRow>
                 <InlineFlex>
@@ -276,110 +274,43 @@ const HostSignupPage = () => {
                 </InlineFlex>
             </FieldGroup>
 
-            {/* 비밀번호 */}
-            <FieldGroup>
-                <LabelRow>
-                    <Label htmlFor="password">비밀번호</Label>
-                    {errors.password && (
-                        <ErrorText>{errors.password}</ErrorText>
-                    )}
-                </LabelRow>
-                <Input
-                    name="password"
-                    type="password"
-                    value={form.password}
-                    onChange={handleChange}
-                    placeholder="문자, 숫자, 특수문자 포함 8~20자"
-                    invalid={errors.password}
-                />
-            </FieldGroup>
-
-            {/* 비밀번호 확인 */}
-            <FieldGroup>
-                <LabelRow>
-                    <Label htmlFor="confirmPassword">비밀번호 확인</Label>
-                    {errors.confirmPassword && (
-                        <ErrorText>{errors.confirmPassword}</ErrorText>
-                    )}
-                </LabelRow>
-                <Input
-                    name="confirmPassword"
-                    type="password"
-                    value={form.confirmPassword}
-                    onChange={handleChange}
-                    placeholder="비밀번호 재입력"
-                    invalid={errors.confirmPassword}
-                />
-            </FieldGroup>
-
-            {/* 이름 */}
-            <FieldGroup>
-                <LabelRow>
-                    <Label htmlFor="name">이름</Label>
-                </LabelRow>
-                <Input
-                    name="name"
-                    value={form.name}
-                    onChange={handleChange}
-                    placeholder="이름을 입력해주세요"
-                />
-            </FieldGroup>
-
-            {/* 전화번호 */}
-            <FieldGroup>
-                <LabelRow>
-                    <Label htmlFor="phone">전화번호</Label>
-                </LabelRow>
-                <Input
-                    name="phone"
-                    value={form.phone}
-                    onChange={handleChange}
-                    placeholder="휴대폰 번호 입력"
-                />
-            </FieldGroup>
+            {/* 나머지 입력필드 */}
+            {[
+                { name: "password", label: "비밀번호", type: "password", placeholder: "문자, 숫자, 특수문자 포함 8~20자", errorKey: "password" },
+                { name: "confirmPassword", label: "비밀번호 확인", type: "password", placeholder: "비밀번호 재입력", errorKey: "confirmPassword" },
+                { name: "name", label: "이름", placeholder: "이름을 입력해주세요" },
+                { name: "phone", label: "전화번호", placeholder: "휴대폰 번호 입력" },
+                { name: "businessNumber", label: "사업자등록번호", placeholder: "사업자등록번호를 입력해주세요" },
+            ].map(({ name, label, type = "text", placeholder, errorKey }) => (
+                <FieldGroup key={name}>
+                    <LabelRow>
+                        <Label>{label}</Label>
+                        {errorKey && errors[errorKey] && <ErrorText>{errors[errorKey]}</ErrorText>}
+                    </LabelRow>
+                    <Input
+                        name={name}
+                        type={type}
+                        value={form[name]}
+                        onChange={handleChange}
+                        placeholder={placeholder}
+                        invalid={errors[errorKey]}
+                    />
+                </FieldGroup>
+            ))}
 
             {/* 생년월일 */}
             <FieldGroup>
-                <LabelRow>
-                    <Label>생년월일</Label>
-                </LabelRow>
+                <LabelRow><Label>생년월일</Label></LabelRow>
                 <Flex>
-                    <Input
-                        name="birthYear"
-                        placeholder="년도"
-                        onChange={handleChange}
-                    />
-                    <Input
-                        name="birthMonth"
-                        placeholder="월"
-                        onChange={handleChange}
-                    />
-                    <Input
-                        name="birthDay"
-                        placeholder="일"
-                        onChange={handleChange}
-                    />
+                    <Input name="birthYear" placeholder="년도" onChange={handleChange} />
+                    <Input name="birthMonth" placeholder="월" onChange={handleChange} />
+                    <Input name="birthDay" placeholder="일" onChange={handleChange} />
                 </Flex>
             </FieldGroup>
 
-            {/* 사업자등록번호 */}
+            {/* 등록증 파일 */}
             <FieldGroup>
-                <LabelRow>
-                    <Label htmlFor="businessNumber">사업자등록번호</Label>
-                </LabelRow>
-                <Input
-                    name="businessNumber"
-                    value={form.businessNumber}
-                    onChange={handleChange}
-                    placeholder="사업자등록번호를 입력해주세요"
-                />
-            </FieldGroup>
-
-            {/* 사업자 등록증 업로드 */}
-            <FieldGroup>
-                <LabelRow>
-                    <Label htmlFor="businessFile">등록증 첨부</Label>
-                </LabelRow>
+                <LabelRow><Label>등록증 첨부</Label></LabelRow>
                 <Input type="file" onChange={handleFileChange} />
             </FieldGroup>
 
