@@ -7,7 +7,8 @@ import {
     FaSlidersH,
 } from "react-icons/fa";
 import { useState } from "react";
-import CalendarPopup from "./CalendarPopup";
+import CalendarBox from "./CalendarBox";
+import CommonButton from "./Button";
 
 const FilterContainer = styled.div`
     display: flex;
@@ -36,14 +37,15 @@ const FilterButton = styled.button`
 
 const Popup = styled.div`
     position: absolute;
-    top: 48px;
+    top: 60px;
     left: 0;
     background: white;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    padding: 20px;
+    padding: 16px 24px;
     z-index: 10;
-    width: 600px;
+    min-width: 280px;
+    max-width: 400px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -64,25 +66,28 @@ const PopupItem = styled.div`
 
 const ButtonRow = styled.div`
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
     gap: 10px;
     margin-top: 16px;
     width: 100%;
 `;
 
-const ActionButton = styled.button`
-    padding: 6px 12px;
-    border: none;
-    border-radius: 8px;
-    background-color: ${(props) => (props.reset ? "#eee" : "#FFA500")};
+const ActionButton = styled(CommonButton)`
+    background-color: ${(props) => (props.reset ? "#eee" : "#ffbc39")};
     color: ${(props) => (props.reset ? "#444" : "white")};
     font-size: 13px;
-    cursor: pointer;
-
-    &:hover {
-        opacity: 0.9;
-    }
+    font-weight: 500;
 `;
+
+const countButtonStyle = {
+    width: "32px",
+    height: "32px",
+    borderRadius: "50%",
+    border: "1px solid #ccc",
+    background: "#fff",
+    fontSize: "16px",
+    cursor: "pointer",
+};
 
 const FilterBar = () => {
     const filters = [
@@ -151,11 +156,23 @@ const FilterBar = () => {
 
         if (label === "날짜") {
             return (
-                <CalendarPopup
-                    selectedDate={selectedDate}
-                    setSelectedDate={setSelectedDate}
-                    onClose={() => setActivePopup(null)}
-                />
+                <Popup>
+                    <CalendarBox
+                        value={selectedDate}
+                        onChange={setSelectedDate}
+                    />
+                    <ButtonRow>
+                        <ActionButton
+                            reset
+                            onClick={() => setSelectedDate(null)}
+                        >
+                            초기화
+                        </ActionButton>
+                        <ActionButton onClick={() => setActivePopup(null)}>
+                            확인
+                        </ActionButton>
+                    </ButtonRow>
+                </Popup>
             );
         }
 
@@ -240,7 +257,7 @@ const FilterBar = () => {
                 "식기세척기",
             ];
             return (
-                <Popup style={{ width: "300px" }}>
+                <Popup style={{ minWidth: "300px" }}>
                     <div
                         style={{
                             display: "grid",
@@ -303,16 +320,6 @@ const FilterBar = () => {
             ))}
         </FilterContainer>
     );
-};
-
-const countButtonStyle = {
-    width: "32px",
-    height: "32px",
-    borderRadius: "50%",
-    border: "1px solid #ccc",
-    background: "#fff",
-    fontSize: "16px",
-    cursor: "pointer",
 };
 
 export default FilterBar;
