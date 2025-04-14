@@ -1,4 +1,3 @@
-// components/FilterBar.js
 import styled from "styled-components";
 import {
     FaMapMarkerAlt,
@@ -8,8 +7,9 @@ import {
     FaSlidersH,
 } from "react-icons/fa";
 import { useState } from "react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import Calendar from "react-calendar";
+import { addMonths } from "date-fns";
+import "react-calendar/dist/Calendar.css";
 
 const FilterContainer = styled.div`
     display: flex;
@@ -96,7 +96,7 @@ const FilterBar = () => {
     ];
 
     const [activePopup, setActivePopup] = useState(null);
-    const [selectedDate, setSelectedDate] = useState(null);
+    const [selectedDate, setSelectedDate] = useState(new Date());
 
     const renderPopup = (label) => {
         if (label === "지역") {
@@ -143,12 +143,14 @@ const FilterBar = () => {
         if (label === "날짜") {
             return (
                 <Popup>
-                    <DatePicker
-                        selected={selectedDate}
-                        onChange={(date) => setSelectedDate(date)}
-                        dateFormat="yyyy-MM-dd"
-                        inline
-                        minDate={new Date()}
+                    <Calendar
+                        onChange={setSelectedDate}
+                        value={selectedDate}
+                        locale="ko-KR"
+                        prev2Label={null} // << 제거
+                        next2Label={null} // >> 제거
+                        minDate={new Date()} // 오늘 이후만 선택 가능
+                        maxDate={addMonths(new Date(), 4)} // 4개월 이내까지만
                     />
                     <ButtonRow>
                         <ActionButton
