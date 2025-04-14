@@ -7,9 +7,7 @@ import {
     FaSlidersH,
 } from "react-icons/fa";
 import { useState } from "react";
-import Calendar from "react-calendar";
-import { addMonths } from "date-fns";
-import "react-calendar/dist/Calendar.css";
+import CalendarPopup from "./CalendarPopup";
 
 const FilterContainer = styled.div`
     display: flex;
@@ -86,16 +84,6 @@ const ActionButton = styled.button`
     }
 `;
 
-const countButtonStyle = {
-    width: "32px",
-    height: "32px",
-    borderRadius: "50%",
-    border: "1px solid #ccc",
-    background: "#fff",
-    fontSize: "16px",
-    cursor: "pointer",
-};
-
 const FilterBar = () => {
     const filters = [
         { icon: <FaMapMarkerAlt />, label: "지역" },
@@ -106,17 +94,17 @@ const FilterBar = () => {
     ];
 
     const [activePopup, setActivePopup] = useState(null);
-    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [selectedDate, setSelectedDate] = useState(null);
     const [guestCount, setGuestCount] = useState(1);
     const [priceRange, setPriceRange] = useState(50000);
     const [selectedFacilities, setSelectedFacilities] = useState([]);
 
     const toggleFacility = (item) => {
-        if (selectedFacilities.includes(item)) {
-            setSelectedFacilities((prev) => prev.filter((f) => f !== item));
-        } else {
-            setSelectedFacilities((prev) => [...prev, item]);
-        }
+        setSelectedFacilities((prev) =>
+            prev.includes(item)
+                ? prev.filter((f) => f !== item)
+                : [...prev, item]
+        );
     };
 
     const renderPopup = (label) => {
@@ -163,28 +151,11 @@ const FilterBar = () => {
 
         if (label === "날짜") {
             return (
-                <Popup>
-                    <Calendar
-                        onChange={setSelectedDate}
-                        value={selectedDate}
-                        locale="ko-KR"
-                        prev2Label={null} // << 제거
-                        next2Label={null} // >> 제거
-                        minDate={new Date()} // 오늘 이후만 선택 가능
-                        maxDate={addMonths(new Date(), 4)} // 4개월 이내까지만
-                    />
-                    <ButtonRow>
-                        <ActionButton
-                            reset
-                            onClick={() => setSelectedDate(null)}
-                        >
-                            초기화
-                        </ActionButton>
-                        <ActionButton onClick={() => setActivePopup(null)}>
-                            확인
-                        </ActionButton>
-                    </ButtonRow>
-                </Popup>
+                <CalendarPopup
+                    selectedDate={selectedDate}
+                    setSelectedDate={setSelectedDate}
+                    onClose={() => setActivePopup(null)}
+                />
             );
         }
 
@@ -214,7 +185,6 @@ const FilterBar = () => {
                             +
                         </button>
                     </div>
-
                     <ButtonRow>
                         <ActionButton reset onClick={() => setGuestCount(1)}>
                             초기화
@@ -269,7 +239,6 @@ const FilterBar = () => {
                 "냉장고",
                 "식기세척기",
             ];
-
             return (
                 <Popup style={{ width: "300px" }}>
                     <div
@@ -299,7 +268,6 @@ const FilterBar = () => {
                             </PopupItem>
                         ))}
                     </div>
-
                     <ButtonRow>
                         <ActionButton
                             reset
@@ -335,6 +303,16 @@ const FilterBar = () => {
             ))}
         </FilterContainer>
     );
+};
+
+const countButtonStyle = {
+    width: "32px",
+    height: "32px",
+    borderRadius: "50%",
+    border: "1px solid #ccc",
+    background: "#fff",
+    fontSize: "16px",
+    cursor: "pointer",
 };
 
 export default FilterBar;
