@@ -86,6 +86,16 @@ const ActionButton = styled.button`
     }
 `;
 
+const countButtonStyle = {
+    width: "32px",
+    height: "32px",
+    borderRadius: "50%",
+    border: "1px solid #ccc",
+    background: "#fff",
+    fontSize: "16px",
+    cursor: "pointer",
+};
+
 const FilterBar = () => {
     const filters = [
         { icon: <FaMapMarkerAlt />, label: "지역" },
@@ -97,6 +107,17 @@ const FilterBar = () => {
 
     const [activePopup, setActivePopup] = useState(null);
     const [selectedDate, setSelectedDate] = useState(new Date());
+    const [guestCount, setGuestCount] = useState(1);
+    const [priceRange, setPriceRange] = useState(50000);
+    const [selectedFacilities, setSelectedFacilities] = useState([]);
+
+    const toggleFacility = (item) => {
+        if (selectedFacilities.includes(item)) {
+            setSelectedFacilities((prev) => prev.filter((f) => f !== item));
+        } else {
+            setSelectedFacilities((prev) => [...prev, item]);
+        }
+    };
 
     const renderPopup = (label) => {
         if (label === "지역") {
@@ -156,6 +177,133 @@ const FilterBar = () => {
                         <ActionButton
                             reset
                             onClick={() => setSelectedDate(null)}
+                        >
+                            초기화
+                        </ActionButton>
+                        <ActionButton onClick={() => setActivePopup(null)}>
+                            확인
+                        </ActionButton>
+                    </ButtonRow>
+                </Popup>
+            );
+        }
+
+        if (label === "인원") {
+            return (
+                <Popup>
+                    <div
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "20px",
+                        }}
+                    >
+                        <button
+                            style={countButtonStyle}
+                            onClick={() =>
+                                setGuestCount(Math.max(1, guestCount - 1))
+                            }
+                        >
+                            -
+                        </button>
+                        <span style={{ fontSize: "16px" }}>{guestCount}명</span>
+                        <button
+                            style={countButtonStyle}
+                            onClick={() => setGuestCount(guestCount + 1)}
+                        >
+                            +
+                        </button>
+                    </div>
+
+                    <ButtonRow>
+                        <ActionButton reset onClick={() => setGuestCount(1)}>
+                            초기화
+                        </ActionButton>
+                        <ActionButton onClick={() => setActivePopup(null)}>
+                            확인
+                        </ActionButton>
+                    </ButtonRow>
+                </Popup>
+            );
+        }
+
+        if (label === "가격") {
+            return (
+                <Popup>
+                    <div style={{ fontSize: "14px", marginBottom: "12px" }}>
+                        최대 가격:{" "}
+                        <strong>{priceRange.toLocaleString()}원</strong>
+                    </div>
+                    <input
+                        type="range"
+                        min="10000"
+                        max="200000"
+                        step="10000"
+                        value={priceRange}
+                        onChange={(e) => setPriceRange(Number(e.target.value))}
+                        style={{ width: "100%" }}
+                    />
+                    <ButtonRow>
+                        <ActionButton
+                            reset
+                            onClick={() => setPriceRange(50000)}
+                        >
+                            초기화
+                        </ActionButton>
+                        <ActionButton onClick={() => setActivePopup(null)}>
+                            확인
+                        </ActionButton>
+                    </ButtonRow>
+                </Popup>
+            );
+        }
+
+        if (label === "필터") {
+            const facilities = [
+                "인덕션",
+                "오븐",
+                "가스레인지",
+                "제빙기",
+                "믹서기",
+                "에어프라이기",
+                "냉장고",
+                "식기세척기",
+            ];
+
+            return (
+                <Popup style={{ width: "300px" }}>
+                    <div
+                        style={{
+                            display: "grid",
+                            gridTemplateColumns: "repeat(3, 1fr)",
+                            gap: "12px",
+                        }}
+                    >
+                        {facilities.map((item, idx) => (
+                            <PopupItem
+                                key={idx}
+                                onClick={() => toggleFacility(item)}
+                                style={{
+                                    color: selectedFacilities.includes(item)
+                                        ? "#FF6600"
+                                        : "#000",
+                                    fontWeight: selectedFacilities.includes(
+                                        item
+                                    )
+                                        ? "bold"
+                                        : "normal",
+                                    backgroundColor: "transparent",
+                                }}
+                            >
+                                {item}
+                            </PopupItem>
+                        ))}
+                    </div>
+
+                    <ButtonRow>
+                        <ActionButton
+                            reset
+                            onClick={() => setSelectedFacilities([])}
                         >
                             초기화
                         </ActionButton>
