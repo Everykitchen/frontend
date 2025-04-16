@@ -1,7 +1,9 @@
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
 
 const Card = styled.div`
     display: flex;
+    cursor: pointer;
     border: 1px solid #ddd;
     border-radius: 12px;
     padding: 20px;
@@ -67,8 +69,12 @@ const Time = styled.div`
 `;
 
 const ReservationCard = ({ reservation }) => {
+    const navigate = useNavigate();
+
     return (
-        <Card>
+        <Card
+            onClick={() => navigate(`/mypage/reservations/${reservation.id}`)}
+        >
             <Image src={reservation.imageUrl} />
             <Info>
                 <TopInfo>
