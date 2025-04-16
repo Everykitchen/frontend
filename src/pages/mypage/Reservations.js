@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ReservationCard from "../../components/ReservationCard";
 import Sidebar from "../../components/UserSideBar";
 import styled from "styled-components";
+import reservationList from "../../assets/ReservationData.json";
 
 const Container = styled.div`
     display: flex;
@@ -34,33 +36,7 @@ const Tab = styled.div`
 
 const Reservation = () => {
     const [activeTab, setActiveTab] = useState("전체");
-
-    const reservationList = [
-        {
-            id: "1",
-            imageUrl: "이미지URL",
-            name: "파이브잇 쿠킹스튜디오샤랄라❤️",
-            location: "서울 은평구",
-            time: "2025.3.13 15:00 ~ 17:00 (4인)",
-            status: "진행중",
-        },
-        {
-            id: "2",
-            imageUrl: "이미지URL",
-            name: "마이키친 렌탈스튜디오",
-            location: "서울 강남구",
-            time: "2025.2.5 11:00 ~ 13:00 (2인)",
-            status: "완료",
-        },
-        {
-            id: "3",
-            imageUrl: "이미지URL",
-            name: "소셜키친 공유주방",
-            location: "서울 종로구",
-            time: "2025.4.1 14:00 ~ 16:00 (6인)",
-            status: "진행중",
-        },
-    ];
+    const navigate = useNavigate();
 
     const filterList =
         activeTab === "전체"
@@ -91,10 +67,14 @@ const Reservation = () => {
                 </TabMenu>
 
                 {filterList.map((reservation) => (
-                    <ReservationCard
+                    <div
                         key={reservation.id}
-                        reservation={reservation}
-                    />
+                        onClick={() =>
+                            navigate(`/mypage/reservations/${reservation.id}`)
+                        }
+                    >
+                        <ReservationCard reservation={reservation} />
+                    </div>
                 ))}
             </ContentWrapper>
         </Container>

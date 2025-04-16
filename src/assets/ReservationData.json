@@ -1,0 +1,80 @@
+[
+    {
+        "id": "1",
+        "imageUrl": "이미지URL",
+        "name": "파이브잇 쿠킹스튜디오샤랄라❤️",
+        "location": "서울 은평구",
+        "time": "2025.3.13 15:00 ~ 17:00 (4인)",
+        "status": "진행중",
+        "reservationNumber": "20250413001",
+        "userName": "문민선",
+        "kitchenPhone": "010-3333-4444",
+        "prepayment": "80,000원",
+        "paymentStatus": "결제 대기"
+    },
+    {
+        "id": "2",
+        "imageUrl": "이미지URL",
+        "name": "마이키친 렌탈스튜디오",
+        "location": "서울 강남구",
+        "time": "2025.2.5 11:00 ~ 13:00 (2인)",
+        "status": "완료",
+        "reservationNumber": "20250205002",
+        "userName": "김지은",
+        "kitchenPhone": "010-2222-2222",
+        "prepayment": "50,000원",
+        "paymentStatus": "결제 완료"
+    },
+    {
+        "id": "3",
+        "imageUrl": "이미지URL",
+        "name": "소셜키친 공유주방",
+        "location": "서울 종로구",
+        "time": "2025.4.1 14:00 ~ 16:00 (6인)",
+        "status": "진행중",
+        "reservationNumber": "20250401003",
+        "userName": "박수현",
+        "kitchenPhone": "010-1111-3333",
+        "prepayment": "100,000원",
+        "paymentStatus": "결제 대기"
+    },
+    {
+        "id": "4",
+        "imageUrl": "이미지URL",
+        "name": "온더테이블 쿠킹랩",
+        "location": "서울 마포구",
+        "time": "2025.4.10 10:00 ~ 12:00 (3인)",
+        "status": "완료",
+        "reservationNumber": "20250410004",
+        "userName": "정소영",
+        "kitchenPhone": "010-5555-7777",
+        "prepayment": "없음",
+        "paymentStatus": "결제 대기"
+    },
+    {
+        "id": "5",
+        "imageUrl": "이미지URL",
+        "name": "쉐어쿡 스튜디오",
+        "location": "서울 성동구",
+        "time": "2025.4.15 18:00 ~ 20:00 (2인)",
+        "status": "진행중",
+        "reservationNumber": "20250415005",
+        "userName": "이준혁",
+        "kitchenPhone": "010-4444-8888",
+        "prepayment": "70,000원",
+        "paymentStatus": "결제 대기"
+    },
+    {
+        "id": "6",
+        "imageUrl": "이미지URL",
+        "name": "쿡업하우스 공유주방",
+        "location": "서울 동작구",
+        "time": "2025.4.20 13:00 ~ 15:00 (5인)",
+        "status": "완료",
+        "reservationNumber": "20250420006",
+        "userName": "최지민",
+        "kitchenPhone": "010-9999-0000",
+        "prepayment": "90,000원",
+        "paymentStatus": "결제 완료"
+    }
+]

@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import Sidebar from "../../components/UserSideBar";
 import chatIcon from "../../assets/icons/chat.svg";
 import amountIcon from "../../assets/icons/amount.svg";
+import reservationList from "../../assets/ReservationData.json";
 
 const Container = styled.div`
     display: flex;
@@ -155,18 +156,7 @@ const ReservationDetail = () => {
     const { id } = useParams();
 
     // 더미 데이터 (실제 API 연결 예정)
-    const reservation = {
-        id: "19980719",
-        name: "파이브잇 쿠킹스튜디오",
-        address: "서울 은평구 거제동 135-2",
-        imageUrl:
-            "https://images.unsplash.com/photo-1600891964599-f61ba0e24092?auto=format&fit=crop&w=800&q=80",
-        time: "2025.3.13 15:00 ~ 17:00 (4인)",
-        status: "재료 정산 진행 중",
-        userName: "문민선",
-        phone: "010-3333-4444",
-        prepayment: "80,000원",
-    };
+    const reservation = reservationList.find((r) => r.id === id);
 
     return (
         <Container>
@@ -175,7 +165,7 @@ const ReservationDetail = () => {
                 <Title>상세 예약 내역</Title>
 
                 <Card>
-                    <PayButton>결제 대기</PayButton>
+                    <PayButton>{reservation.paymentStatus}</PayButton>
 
                     <Image src={reservation.imageUrl} />
                     <CardContent>
@@ -197,7 +187,9 @@ const ReservationDetail = () => {
                             </InfoRow>
                             <InfoRow>
                                 <InfoLabel>주방 연락처</InfoLabel>
-                                <InfoValue>{reservation.phone}</InfoValue>
+                                <InfoValue>
+                                    {reservation.kitchenPhone}
+                                </InfoValue>
                             </InfoRow>
                             <InfoRow>
                                 <InfoLabel>선결제</InfoLabel>
