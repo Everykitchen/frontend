@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import SideBar from "../components/UserSideBar";
 import profileImg from "../assets/jpg/profile1.jpg";
+import editIcon from "../assets/icons/editicon.svg";
 
 const Container = styled.div`
     display: flex;
@@ -29,21 +30,37 @@ const ProfileImage = styled.img`
     align-items: center;
 `;
 
-const ProfileInfo = styled.div``;
+const ProfileInfo = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 1;
+`;
+
+const EditIcon = styled.img`
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    margin-right: 10px;
+`;
 
 const UserName = styled.h2`
     font-size: 30px;
     font-weight: bold;
-    margin: 0px 0px 5px 0px;
+    margin-bottom: 10px;
 `;
 
 const InfoSection = styled.div`
-    margin-top: 20px;
+    margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 `;
 
 const InfoRow = styled.div`
     display: flex;
     align-items: center;
+    margin-bottom: 5px;
 `;
 
 const Label = styled.div`
@@ -79,17 +96,20 @@ const MyPage = () => {
                     <ProfileSection>
                         <ProfileImage src={profileImg} alt="프로필 이미지" />
                         <ProfileInfo>
-                            <UserName>문민선</UserName>
                             <div>
-                                <InfoRow>
-                                    <Data>이메일 :</Data>
-                                    <Data>munminsun@gmail.com</Data>
-                                </InfoRow>
-                                <InfoRow>
-                                    <Data>휴대폰 :</Data>
-                                    <Data>010-0000-0000</Data>
-                                </InfoRow>
+                                <UserName>문민선</UserName>
+                                <div>
+                                    <InfoRow>
+                                        <Data>이메일 :</Data>
+                                        <Data>munminsun@gmail.com</Data>
+                                    </InfoRow>
+                                    <InfoRow>
+                                        <Data>휴대폰 :</Data>
+                                        <Data>010-0000-0000</Data>
+                                    </InfoRow>
+                                </div>
                             </div>
+                            <EditIcon src={editIcon} alt="프로필 편집" />
                         </ProfileInfo>
                     </ProfileSection>
                     <InfoSection>
