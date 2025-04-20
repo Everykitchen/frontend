@@ -1,4 +1,3 @@
-// src/pages/signup/HostSignupPage.js
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import CommonButton from "../../components/Button";
@@ -129,7 +128,7 @@ const HostSignupPage = () => {
         }
 
         try {
-            // const res = await axios.post("/api/auth/send-verification-code", { email: form.email });
+            // const res = await axios.post("/api/auth/register/send-email-code", { email: form.email });
             // 인증 성공 시 backend에서 전송된 인증번호는 res.data.code일 수도 있음
             setServerCodeSent(true);
             setIsSendingCode(true);
@@ -147,9 +146,9 @@ const HostSignupPage = () => {
         }
 
         try {
-            // const res = await axios.post("/api/auth/verify-code", {
+            // const res = await axios.post("/api/auth/register/verify-email-code", {
             //     email: form.email,
-            //     code: form.code,
+            //     verificationCode: form.code,
             // });
 
             // if (res.status === 200) {
@@ -190,20 +189,18 @@ const HostSignupPage = () => {
             const requestBody = new FormData();
             requestBody.append("email", form.email);
             requestBody.append("password", form.password);
-            requestBody.append("name", form.name);
-            requestBody.append("phone", form.phone);
             requestBody.append(
                 "birthDate",
                 `${form.birthYear}-${form.birthMonth}-${form.birthDay}`
             );
-            requestBody.append("businessNumber", form.businessNumber);
-            requestBody.append("role", "HOST");
-
+            requestBody.append("name", form.name);
+            requestBody.append("phoneNumber", form.phone);
+            requestBody.append("businessRegistrationNumber", form.businessNumber);
             if (form.businessFile) {
                 requestBody.append("businessFile", form.businessFile);
             }
 
-            // const response = await axios.post('/api/auth/signup', requestBody);
+            // const response = await axios.post('/api/auth/host-signup', requestBody);
             // if (response.status === 200) alert("회원가입 완료!");
 
             console.log("보낼 데이터(FormData):", requestBody);

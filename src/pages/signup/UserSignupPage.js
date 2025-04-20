@@ -135,7 +135,7 @@ const UserSignupPage = () => {
 
         try {
             // 실제 요청
-            // await axios.post("/api/auth/send-verification-code", {
+            // await axios.post("/api/auth/register/send-email-code", {
             //     email: form.email,
             // });
 
@@ -159,9 +159,9 @@ const UserSignupPage = () => {
 
         try {
             // 실제 요청
-            // await axios.post("/api/auth/verify-code", {
+            // await axios.post("/api/auth/register/verify-email-code", {
             //     email: form.email,
-            //     code: form.code,
+            //     verificationCode: form.code,
             // });
 
             setIsEmailVerified(true);
@@ -206,10 +206,9 @@ const UserSignupPage = () => {
                 name: form.name,
                 phoneNumber: form.phone,
                 birthday: `${form.birthYear}-${form.birthMonth}-${form.birthDay}`,
-                role: "USER",
             };
 
-            // await axios.post("/api/auth/signup", requestBody);
+            // await axios.post("/api/auth/user-signup", requestBody);
             console.log("회원가입 요청:", requestBody);
             alert("회원가입 요청 완료");
         } catch (error) {
