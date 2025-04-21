@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const LoginContainer = styled.div`
     display: flex;
@@ -91,10 +92,35 @@ const SetLink = styled(Link)`
 function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+    const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("로그인 시도:", email, password); // 나중에 백이랑 연결 필요
+        setError("");
+
+        try {
+            const response = await axios.post(`/user/${email}`, {
+                email,
+                password,
+            });
+
+            if (response.status === 200) {
+                navigate("/main");
+            }
+        } catch (error) {
+            if (
+                error.response &&
+                error.response.data &&
+                error.response.data.result
+            ) {
+                const { resultCode, resultMessage } =
+                    error.response.data.result;
+                setError(resultMessage);
+            } else {
+                setError("서버 오류가 발생했습니다.");
+            }
+        }
     };
 
     return (
@@ -123,7 +149,7 @@ function Login() {
                             required
                         />
                         <LoginButton type="submit">Sign In</LoginButton>
-                        <LoginCheck>회원정보가 일치하지 않습니다.</LoginCheck>
+                        {error && <LoginCheck>{error}</LoginCheck>}
                     </LoginForm>
                 </LoginBox>
                 <LoginLinks>
