@@ -1,6 +1,9 @@
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import axios from "axios";
 import SideBar from "../components/UserSideBar";
-import profileImg from "../assets/jpg/profile1.jpg";
+import profileImg from "../assets/image/profile.png";
 import editIcon from "../assets/icons/editicon.svg";
 
 const Container = styled.div`
@@ -23,11 +26,11 @@ const ProfileSection = styled.div`
 `;
 
 const ProfileImage = styled.img`
-    width: 130px;
-    height: 130px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
-    border: 1px solid black;
     align-items: center;
+    object-fit: cover;
 `;
 
 const ProfileInfo = styled.div`
@@ -54,7 +57,7 @@ const InfoSection = styled.div`
     margin-top: 30px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 20px;
 `;
 
 const InfoRow = styled.div`
@@ -87,25 +90,73 @@ const Tag = styled.span`
     font-size: 14px;
 `;
 
+const LogoutWrapper = styled.div`
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 40px;
+`;
+
+const LogoutButton = styled.button`
+    background: #ff4d4f;
+    padding: 10px 24px;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    color: white;
+    font-size: 14px;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background-color: #e04345;
+    }
+`;
+
 const MyPage = () => {
+    const navigate = useNavigate();
+    const [userInfo, setUserInfo] = useState(null);
+
+    const handleLogout = () => {
+        localStorage.clear();
+        navigate("/login");
+    };
+
+    useEffect(() => {
+        const fetchUserInfo = async () => {
+            try {
+                const res = await axios.get("/api/auth/user/my-information");
+                setUserInfo(res.data);
+            } catch (err) {
+                console.error("사용자 정보 불러오기 실패", err);
+            }
+        };
+        fetchUserInfo();
+    }, []);
+
     return (
         <div>
             <Container>
                 <SideBar />
                 <Content>
                     <ProfileSection>
-                        <ProfileImage src={profileImg} alt="프로필 이미지" />
+                        <ProfileImage
+                            src={userInfo?.image || profileImg}
+                            alt="프로필 이미지"
+                        />
                         <ProfileInfo>
                             <div>
-                                <UserName>문민선</UserName>
+                                <UserName>
+                                    {userInfo?.name || "사용자명"}
+                                </UserName>
                                 <div>
                                     <InfoRow>
                                         <Data>이메일 :</Data>
-                                        <Data>munminsun@gmail.com</Data>
+                                        <Data>{userInfo?.email}</Data>
                                     </InfoRow>
                                     <InfoRow>
                                         <Data>휴대폰 :</Data>
-                                        <Data>010-0000-0000</Data>
+                                        <Data>{userInfo?.phoneNumber}</Data>
                                     </InfoRow>
                                 </div>
                             </div>
@@ -127,6 +178,11 @@ const MyPage = () => {
                                 <Tag>베이킹</Tag>
                             </TagContainer>
                         </InfoRow>
+                        <LogoutWrapper>
+                            <LogoutButton onClick={handleLogout}>
+                                로그아웃
+                            </LogoutButton>
+                        </LogoutWrapper>
                     </InfoSection>
                 </Content>
             </Container>
