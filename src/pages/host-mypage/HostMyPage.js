@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import SideBar from "../../components/UserSideBar";
+import HostSideBar from "../../components/HostSideBar";
 import profileImg from "../../assets/image/profile.png";
 import editIcon from "../../assets/icons/editicon.svg";
 import {
@@ -22,7 +22,7 @@ import {
     LogoutButton,
 } from "../../components/ProfileLayout";
 
-const MyPage = () => {
+const HostMyPage = () => {
     const navigate = useNavigate();
     const [userInfo, setUserInfo] = useState(null);
 
@@ -34,7 +34,7 @@ const MyPage = () => {
     useEffect(() => {
         const fetchUserInfo = async () => {
             try {
-                const res = await axios.get("/api/auth/user/my-information");
+                const res = await axios.get("/api/auth/host/my-information");
                 setUserInfo(res.data);
             } catch (err) {
                 console.error("사용자 정보 불러오기 실패", err);
@@ -46,7 +46,7 @@ const MyPage = () => {
     return (
         <div>
             <Container>
-                <SideBar />
+                <HostSideBar />
                 <Content>
                     <ProfileSection>
                         <ProfileImage
@@ -56,7 +56,7 @@ const MyPage = () => {
                         <ProfileInfo>
                             <div>
                                 <UserName>
-                                    {userInfo?.name || "사용자명"}
+                                    {userInfo?.name || "호스트명"}
                                 </UserName>
                                 <div>
                                     <InfoRow>
@@ -74,17 +74,17 @@ const MyPage = () => {
                     </ProfileSection>
                     <InfoSection>
                         <InfoRow>
-                            <Label>주로 활동하는 지역</Label>
+                            <Label>담당 공유주방 지역</Label>
                             <TagContainer>
-                                <Tag>서울시 서초구</Tag>
-                                <Tag>서울시 종로구</Tag>
+                                <Tag>서울시 마포구</Tag>
+                                <Tag>서울시 동작구</Tag>
                             </TagContainer>
                         </InfoRow>
                         <InfoRow>
-                            <Label>선호 활동</Label>
+                            <Label>운영 형태</Label>
                             <TagContainer>
-                                <Tag>쿠킹</Tag>
-                                <Tag>베이킹</Tag>
+                                <Tag>개별 운영</Tag>
+                                <Tag>공유 운영</Tag>
                             </TagContainer>
                         </InfoRow>
                         <LogoutWrapper>
@@ -99,4 +99,4 @@ const MyPage = () => {
     );
 };
 
-export default MyPage;
+export default HostMyPage;
