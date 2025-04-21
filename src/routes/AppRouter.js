@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import Main from "../pages/Main";
 import Login from "../pages/Login";
-import MyPage from "../pages/MyPage";
+import MyPage from "../pages/user-mypage/MyPage";
 import {
     Reservations,
     ReservationDetail,

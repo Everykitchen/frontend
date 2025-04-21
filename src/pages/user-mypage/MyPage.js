@@ -2,9 +2,9 @@ import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import SideBar from "../components/UserSideBar";
-import profileImg from "../assets/image/profile.png";
-import editIcon from "../assets/icons/editicon.svg";
+import SideBar from "../../components/UserSideBar";
+import profileImg from "../../assets/image/profile.png";
+import editIcon from "../../assets/icons/editicon.svg";
 
 const Container = styled.div`
     display: flex;
