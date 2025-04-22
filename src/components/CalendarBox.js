@@ -11,10 +11,29 @@ import CalendarBox from "./CalendarBox";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { addMonths } from "date-fns";
+import styled from "styled-components";
+
+const StyledCalendar = styled(Calendar)`
+  width: 100%;
+  border: none;
+  
+  .react-calendar__tile--now {
+    background: #fff5e6;
+  }
+  
+  .react-calendar__tile--active {
+    background: #ffbc39 !important;
+  }
+  
+  .react-calendar__tile:enabled:hover,
+  .react-calendar__tile:enabled:focus {
+    background-color: #ffe4b3;
+  }
+`;
 
 const CalendarBox = ({ value, onChange }) => {
     return (
-        <Calendar
+        <StyledCalendar
             onChange={onChange}
             value={value}
             minDate={new Date()}

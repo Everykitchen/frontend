@@ -87,18 +87,17 @@ const HostSignupPage = () => {
     const [errors, setErrors] = useState({});
     const [serverCodeSent, setServerCodeSent] = useState(false);
     const [isEmailVerified, setIsEmailVerified] = useState(false);
-    const [isSendingCode, setIsSendingCode] = useState(false);
-    const [timeLeft, setTimeLeft] = useState(0);
+    const [isVerified, setIsVerified] = useState(false);
+    const [verificationCode, setVerificationCode] = useState("");
+    const [timer, setTimer] = useState(null);
 
     useEffect(() => {
         let timer;
-        if (timeLeft > 0) {
-            timer = setTimeout(() => setTimeLeft((prev) => prev - 1), 1000);
-        } else {
-            setIsSendingCode(false);
+        if (timer) {
+            timer = setTimeout(() => setTimer((prev) => prev - 1), 1000);
         }
         return () => clearTimeout(timer);
-    }, [timeLeft]);
+    }, [timer]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -131,8 +130,8 @@ const HostSignupPage = () => {
             // const res = await axios.post("/api/auth/register/send-email-code", { email: form.email });
             // 인증 성공 시 backend에서 전송된 인증번호는 res.data.code일 수도 있음
             setServerCodeSent(true);
-            setIsSendingCode(true);
-            setTimeLeft(60);
+            setIsEmailVerified(true);
+            setTimer(60);
             alert("인증번호가 전송되었습니다.");
         } catch (error) {
             alert("인증번호 전송 실패");
@@ -153,8 +152,7 @@ const HostSignupPage = () => {
 
             // if (res.status === 200) {
             setIsEmailVerified(true);
-            setIsSendingCode(false);
-            setTimeLeft(0);
+            setTimer(0);
             alert("이메일 인증 성공");
             // }
         } catch (error) {
@@ -232,16 +230,16 @@ const HostSignupPage = () => {
                         value={form.email}
                         onChange={handleChange}
                         placeholder="example@example.com"
-                        disabled={isEmailVerified || timeLeft > 0}
+                        disabled={isEmailVerified || timer > 0}
                         invalid={errors.email}
                     />
                     <CommonButton
                         type="button"
                         onClick={handleSendCode}
-                        disabled={timeLeft > 0 || isEmailVerified}
+                        disabled={timer > 0 || isEmailVerified}
                     >
-                        {timeLeft > 0
-                            ? `재전송 ${formatTime(timeLeft)}`
+                        {timer > 0
+                            ? `재전송 ${formatTime(timer)}`
                             : "인증번호 전송"}
                     </CommonButton>
                 </InlineFlex>

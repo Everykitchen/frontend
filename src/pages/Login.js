@@ -100,26 +100,18 @@ function Login() {
         setError("");
 
         try {
-            const response = await axios.post(`/user/${email}`, {
+            const response = await axios.post("/api/auth/login", {
                 email,
                 password,
             });
 
-            if (response.status === 200) {
-                navigate("/main");
+            if (response.data.resultCode === "SUCCESS") {
+                navigate("/");
+            } else {
+                setError("이메일 또는 비밀번호가 올바르지 않습니다.");
             }
         } catch (error) {
-            if (
-                error.response &&
-                error.response.data &&
-                error.response.data.result
-            ) {
-                const { resultCode, resultMessage } =
-                    error.response.data.result;
-                setError(resultMessage);
-            } else {
-                setError("서버 오류가 발생했습니다.");
-            }
+            setError("로그인 중 오류가 발생했습니다.");
         }
     };
 

@@ -1,8 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import Main from "../pages/Main";
 import Login from "../pages/Login";
-import MyPage from "../pages/MyPage";
-import { Reservations } from "../pages/mypage/index";
 import KitchenDetailPage from "../pages/kitchenDetail/KitchenDetailPage";
 import SignupChoicePage from "../pages/signup/SignupChoicePage";
 import UserSignupPage from "../pages/signup/UserSignupPage";
