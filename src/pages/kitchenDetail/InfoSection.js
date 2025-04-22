@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import mapPlaceholder from "../../assets/jpg/map.jpg";
 import starIcon from "../../assets/icons/starIcon.svg";
@@ -20,6 +20,7 @@ const TabNav = styled.div`
     display: flex;
     gap: 24px;
     margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
 `;
 
 const TabItem = styled.button`
@@ -30,22 +31,29 @@ const TabItem = styled.button`
     cursor: pointer;
     color: ${(props) => (props.active ? "black" : "#aaa")};
     border-bottom: ${(props) => (props.active ? "3px solid #ffbc39" : "none")};
+    padding: 8px 0;
+    margin-bottom: -1px;
 `;
 
 const SectionTitle = styled.h2`
-    font-size: 22px;
+    font-size: 20px;
     font-weight: bold;
-    margin: 50px 0 16px;
+    margin: 80px 0 20px;
     text-align: left;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #ddd;
 `;
 
 const Box = styled.div`
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    padding: 20px;
+    padding: 20px 0;
     margin-bottom: 24px;
-    background-color: #fff;
     text-align: left;
+
+    &:not(:last-child) {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 40px;
+        margin-bottom: 40px;
+    }
 `;
 
 const MapImage = styled.img`
@@ -65,6 +73,7 @@ const InfoTable = styled.table`
         border: 1px solid #ddd;
         padding: 10px;
         line-height: 1.3;
+        font-size: 14px;
     }
 
     td:first-child {
@@ -90,77 +99,245 @@ const StarIcon = styled.img`
     margin-right: 4px;
 `;
 
+const EmptyStarIcon = styled(StarIcon)`
+    filter: grayscale(100%) opacity(50%);
+`;
+
 const Paragraph = styled.p`
     line-height: 1.7;
     margin-bottom: 12px;
 `;
 
+const CategoryTitle = styled.h3`
+    font-size: 18px;
+    font-weight: bold;
+    margin: 32px 0 16px;
+    color: #FFBC39;
+`;
+
 const StrongText = styled.strong`
     font-weight: bold;
     display: inline-block;
-    margin-bottom: 10px;
+    margin-bottom: 24px;
+    font-size: 16px;
 `;
 
-const InfoSection = ({ selectedTab, setSelectedTab, sections }) => {
+const FacilityHeader = styled.div`
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    background: #fcfcfc;
+    border-radius: 8px 8px 0 0;
+
+    div, h4 {
+        flex: 1;
+        color: #333;
+        font-size: 14px;
+        font-weight: 600;
+        text-align: center;
+        position: relative;
+
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 80%;
+            height: 1px;
+            background-color: #d2d2d2;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+    }
+
+    padding-bottom: 24px;
+`;
+
+const FacilityItem = styled.div`
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    background: #fcfcfc;
+
+    div, h4 {
+        flex: 1;
+        font-size: 14px;
+        font-weight: 500;
+        text-align: center;
+        color: #333;
+    }
+
+    &:last-child {
+        padding-bottom: 30px;
+    }
+`;
+
+const FacilityContainer = styled.div`
+    margin-top: 16px;
+    background: #fcfcfc;
+    border-radius: 8px;
+    border: 1px solid #d2d2d2;
+    overflow: hidden;
+`;
+
+const IngredientHeader = styled.div`
+    display: flex;
+    padding: 16px;
+    background: #fcfcfc;
+    padding-bottom: 24px;
+
+    div {
+        flex: 1;
+        color: #333;
+        font-size: 14px;
+        font-weight: 600;
+        text-align: center;
+        position: relative;
+        
+        &:first-child {
+            flex: 1;
+            text-align: center;
+        }
+        
+        &:last-child {
+            text-align: center;
+        }
+
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 80%;
+            height: 1px;
+            background-color: #d2d2d2;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        &:not(:last-child)::before {
+            content: none;
+        }
+    }
+`;
+
+const IngredientItem = styled.div`
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    background: #fcfcfc;
+
+    div {
+        flex: 1;
+        color: #333;
+        font-size: 14px;
+        text-align: center;
+        
+        &:first-child {
+            flex: 1;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        &:last-child {
+            text-align: center;
+            font-weight: 500;
+        }
+    }
+
+    &:last-child {
+        padding-bottom: 30px;
+    }
+`;
+
+const IngredientContainer = styled(FacilityContainer)`
+    margin-top: 0;
+`;
+
+const ToolGrid = styled.div`
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+`;
+
+const ToolItem = styled.div`
+    padding: 12px 20px;
+    background: rgba(255, 188, 57, 0.15);
+    border-radius: 30px;
+    font-size: 14px;
+    color: #333;
+`;
+
+const PaginationContainer = styled.div`
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 24px;
+`;
+
+const PageButton = styled.button`
+    padding: 8px 12px;
+    border: 1px solid ${props => props.active ? '#ffbc39' : '#ddd'};
+    background-color: ${props => props.active ? '#ffbc39' : 'white'};
+    color: ${props => props.active ? 'white' : '#333'};
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: ${props => props.active ? 'bold' : 'normal'};
+
+    &:hover {
+        background-color: ${props => props.active ? '#ffbc39' : '#f5f5f5'};
+    }
+`;
+
+const InfoSection = ({ selectedTab, setSelectedTab, sections, kitchenData }) => {
     const REVIEWS_PER_PAGE = 3;
     const [currentPage, setCurrentPage] = useState(1);
+    const totalPages = Math.ceil(kitchenData.reviews.length / REVIEWS_PER_PAGE);
+    const [scrolling, setScrolling] = useState(false);
 
-    const reviews = [
-        {
-            name: "박세연",
-            stars: 5,
-            content:
-                "공간이 정말 깔끔하고 정돈돼 있어서 기분 좋게 이용했어요. 친구들이랑 생일 파티했는데 조리부터 식사까지 너무 편하고 좋았습니다. 재방문 의사 있어요!",
-        },
-        {
-            name: "김도윤",
-            stars: 4,
-            content:
-                "적당한 인원 수에 딱 맞는 크기, 그리고 조용한 분위기가 좋아요. 청결 상태도 만족스럽고, 재료도 넉넉해서 요리에 집중할 수 있었어요.",
-        },
-        {
-            name: "이하은",
-            stars: 5,
-            content:
-                "기본 재료가 다양하고 품질도 좋아서 베이킹에 최적화된 공간이었어요. 디저트 클래스 열기에 완벽한 장소입니다. 다음엔 촬영도 해보고 싶어요!",
-        },
-        {
-            name: "장민재",
-            stars: 5,
-            content:
-                "호스트 분도 친절하고, 위치도 찾아가기 쉬웠어요. 주방기구 종류가 많아서 요리 초보자도 편하게 쓸 수 있어요!",
-        },
-        {
-            name: "이수정",
-            stars: 4,
-            content:
-                "조리 공간이 넓고 자연광이 들어와서 사진 찍기에도 정말 좋아요. 재료가 신선해서 만족했습니다.",
-        },
-    ];
-
-    // 스크롤 시 탭 자동 활성화
     useEffect(() => {
         const observer = new IntersectionObserver(
             (entries) => {
-                const visible = entries.find((entry) => entry.isIntersecting);
-                if (visible && visible.target.dataset.tab) {
-                    setSelectedTab(visible.target.dataset.tab);
+                if (!scrolling) {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            const tab = entry.target.dataset.tab;
+                            if (tab) {
+                                setSelectedTab(tab);
+                            }
+                        }
+                    });
                 }
             },
             {
-                rootMargin: "-40% 0px -55% 0px",
-                threshold: 0.1,
+                rootMargin: "-20% 0px -70% 0px",
+                threshold: 0
             }
         );
 
-        Object.keys(sections).forEach((key) => {
-            if (sections[key].current) {
-                observer.observe(sections[key].current);
+        Object.values(sections).forEach((sectionRef) => {
+            if (sectionRef.current) {
+                observer.observe(sectionRef.current);
             }
         });
 
         return () => observer.disconnect();
-    }, [sections, setSelectedTab]);
+    }, [sections, setSelectedTab, scrolling]);
+
+    const handleTabClick = (tab) => {
+        setScrolling(true);
+        setSelectedTab(tab);
+        sections[tab].current?.scrollIntoView({ behavior: "smooth" });
+        setTimeout(() => {
+            setScrolling(false);
+        }, 1000);
+    };
+
+    const handlePageClick = (page) => {
+        setCurrentPage(page);
+        sections["후기"].current?.scrollIntoView({ behavior: "smooth" });
+    };
 
     return (
         <Container>
@@ -170,12 +347,7 @@ const InfoSection = ({ selectedTab, setSelectedTab, sections }) => {
                         <TabItem
                             key={tab}
                             active={selectedTab === tab}
-                            onClick={() => {
-                                setSelectedTab(tab);
-                                sections[tab].current?.scrollIntoView({
-                                    behavior: "smooth",
-                                });
-                            }}
+                            onClick={() => handleTabClick(tab)}
                         >
                             {tab}
                         </TabItem>
@@ -187,34 +359,29 @@ const InfoSection = ({ selectedTab, setSelectedTab, sections }) => {
             <SectionTitle ref={sections["공간정보"]} data-tab="공간정보">
                 공간정보
             </SectionTitle>
-            <Paragraph>
-                이국적인 이태원의 중심 상업지역에 위치한 ‘오버지 쿠킹스튜디오’는
-                요리를 사랑하는 모든 이들의 요리 공간입니다. 따뜻한 조명 아래,
-                현대적이면서도 감성적인 분위기가 물씬 풍기는 공간으로, 각종
-                클래스나 모임에도 적합하게 설계되어 있습니다.
-            </Paragraph>
+            <Paragraph>{kitchenData.description}</Paragraph>
             <MapImage src={mapPlaceholder} alt="지도 API 자리" />
             <InfoTable>
                 <tbody>
                     <tr>
                         <td>위치</td>
-                        <td>서울특별시 은평구 응암동 123-4</td>
+                        <td>{kitchenData.location}</td>
                     </tr>
                     <tr>
                         <td>면적</td>
-                        <td>약 30평 (99㎡)</td>
+                        <td>{kitchenData.size}m²</td>
                     </tr>
                     <tr>
                         <td>기준 인원</td>
-                        <td>4명</td>
+                        <td>{kitchenData.baseClientNumber}명</td>
                     </tr>
                     <tr>
                         <td>최대 인원</td>
-                        <td>10명</td>
+                        <td>{kitchenData.maxClientNumber}명</td>
                     </tr>
                     <tr>
                         <td>영업 시간</td>
-                        <td>매일 10:00 ~ 22:00</td>
+                        <td>{kitchenData.businessHours}</td>
                     </tr>
                 </tbody>
             </InfoTable>
@@ -224,122 +391,106 @@ const InfoSection = ({ selectedTab, setSelectedTab, sections }) => {
                 시설정보
             </SectionTitle>
             <Box>
-                <StrongText>조리대</StrongText>
-                <Paragraph>
-                    고급 대리석 상판을 갖춘 이케아 조리대 1개(3.2m)와 넉넉한
-                    작업 공간을 제공하는 대리석 작업대 1개(2m)가 마련되어 있어
-                    다양한 조리 활동이 가능합니다.
-                </Paragraph>
+                <StrongText>주방 시설</StrongText>
+                <FacilityContainer>
+                    <FacilityHeader>
+                        <h4>시설명</h4>
+                        <div>수량</div>
+                        <div>상세설명</div>
+                    </FacilityHeader>
+                    {kitchenData.kitchenFacility.map((facility, index) => (
+                        <FacilityItem key={index}>
+                            <h4>{facility.facilityName}</h4>
+                            <div>{facility.amount}개</div>
+                            <div>{facility.detail}</div>
+                        </FacilityItem>
+                    ))}
+                </FacilityContainer>
             </Box>
             <Box>
-                <StrongText>인덕션</StrongText>
-                <Paragraph>
-                    삼성 3구 인덕션은 고화력으로 조리가 빠르며, 안전 센서가
-                    탑재되어 초보자도 쉽게 사용할 수 있습니다.
-                </Paragraph>
+                <StrongText>구비 도구</StrongText>
+                <ToolGrid>
+                    {kitchenData.cookingTool
+                        .filter(tool => tool.check)
+                        .map((tool, index) => (
+                            <ToolItem key={index}>
+                                {tool.toolName}
+                            </ToolItem>
+                        ))}
+                </ToolGrid>
             </Box>
             <Box>
-                <StrongText>조리도구</StrongText>
-                <Paragraph>
-                    이동식 테이블, 휘핑볼, 타올, 계량컵, 전자저울, 온도계,
-                    스패출라 등 다양한 도구가 완비되어 있으며, 위생적으로
-                    관리되고 있습니다.
-                </Paragraph>
-            </Box>
-            <Box>
-                <StrongText>구비품목</StrongText>
-                <Paragraph>
-                    위생장갑, 키친타올, 종이호일, 물티슈 등 소모품도 충분히
-                    구비되어 있어 사용 중 불편함이 없습니다.
-                </Paragraph>
+                <StrongText>제공 물품</StrongText>
+                <ToolGrid>
+                    {kitchenData.providedItem
+                        .filter(item => item.check)
+                        .map((item, index) => (
+                            <ToolItem key={index}>
+                                {item.itemName}
+                            </ToolItem>
+                        ))}
+                </ToolGrid>
             </Box>
 
             {/* 재료정보 */}
             <SectionTitle ref={sections["재료정보"]} data-tab="재료정보">
                 재료정보
             </SectionTitle>
-            <Box>
-                <StrongText>기본 재료 (1kg)</StrongText>
-                <Paragraph>
-                    밀가루, 설탕, 소금, 베이킹파우더, 드라이이스트, 초밀가루 등
-                    다양한 기본 재료가 준비되어 있어 베이킹이나 요리에 필요한
-                    모든 재료를 갖추고 있습니다.
-                </Paragraph>
-            </Box>
-            <Box>
-                <StrongText>추가 재료 (10g)</StrongText>
-                <Paragraph>
-                    코코넛분말, 커피, 말차가루, 크리미트, 분당, 초코칩, 견과류
-                    등 고급 재료들도 소분 포장으로 제공되며, 사용 후 정산
-                    가능합니다.
-                </Paragraph>
-            </Box>
-            <Box>
-                <StrongText>포장 재료</StrongText>
-                <Paragraph>
-                    딸기잼, 블루베리잼, 견과류, 바닐라익스트랙, 마쉬멜로우,
-                    바닐라빈 등 다양한 데코레이션과 포장재도 준비되어 있어
-                    완성도 높은 결과물을 만들 수 있습니다.
-                </Paragraph>
-            </Box>
+            {kitchenData.ingredientCategories.map((category, index) => (
+                <Box key={index}>
+                    <CategoryTitle>{category.categoryName}</CategoryTitle>
+                    <IngredientContainer>
+                        <IngredientHeader>
+                            <div>재료명</div>
+                            <div>기준 단위</div>
+                            <div>금액</div>
+                        </IngredientHeader>
+                        {category.ingredients.map((ingredient, idx) => (
+                            <IngredientItem key={idx}>
+                                <div>{ingredient.name}</div>
+                                <div>{ingredient.baseUnit}</div>
+                                <div>{ingredient.price.toLocaleString()}원</div>
+                            </IngredientItem>
+                        ))}
+                    </IngredientContainer>
+                </Box>
+            ))}
 
             {/* 후기 */}
             <SectionTitle ref={sections["후기"]} data-tab="후기">
-                후기
+                후기 ({kitchenData.reviewCount})
             </SectionTitle>
-            {reviews
-                .slice(
-                    (currentPage - 1) * REVIEWS_PER_PAGE,
-                    currentPage * REVIEWS_PER_PAGE
-                )
-                .map((review, idx) => (
-                    <ReviewCard key={idx}>
+            {kitchenData.reviews
+                .slice((currentPage - 1) * REVIEWS_PER_PAGE, currentPage * REVIEWS_PER_PAGE)
+                .map((review, index) => (
+                    <ReviewCard key={index}>
                         <div>
                             <strong>{review.name}</strong>
-                            <div
-                                style={{
-                                    display: "inline-flex",
-                                    marginLeft: 8,
-                                }}
-                            >
-                                {[...Array(review.stars)].map((_, i) => (
-                                    <StarIcon key={i} src={starIcon} />
+                            <div style={{ marginTop: 4, display: 'flex' }}>
+                                {[...Array(5)].map((_, i) => (
+                                    i < review.star ? 
+                                        <StarIcon key={i} src={starIcon} alt="star" /> : 
+                                        <EmptyStarIcon key={i} src={starIcon} alt="empty star" />
                                 ))}
                             </div>
                         </div>
-                        <Paragraph>{review.content}</Paragraph>
+                        <div>{review.review}</div>
                     </ReviewCard>
                 ))}
-            <div style={{ display: "flex", gap: "12px", marginTop: 16 }}>
-                <button
-                    onClick={() =>
-                        setCurrentPage((prev) => Math.max(prev - 1, 1))
-                    }
-                    disabled={currentPage === 1}
-                >
-                    이전
-                </button>
-                <span>
-                    {currentPage} /{" "}
-                    {Math.ceil(reviews.length / REVIEWS_PER_PAGE)}
-                </span>
-                <button
-                    onClick={() =>
-                        setCurrentPage((prev) =>
-                            Math.min(
-                                prev + 1,
-                                Math.ceil(reviews.length / REVIEWS_PER_PAGE)
-                            )
-                        )
-                    }
-                    disabled={
-                        currentPage ===
-                        Math.ceil(reviews.length / REVIEWS_PER_PAGE)
-                    }
-                >
-                    다음
-                </button>
-            </div>
+            
+            {totalPages > 1 && (
+                <PaginationContainer>
+                    {[...Array(totalPages)].map((_, i) => (
+                        <PageButton
+                            key={i + 1}
+                            active={currentPage === i + 1}
+                            onClick={() => handlePageClick(i + 1)}
+                        >
+                            {i + 1}
+                        </PageButton>
+                    ))}
+                </PaginationContainer>
+            )}
         </Container>
     );
 };
