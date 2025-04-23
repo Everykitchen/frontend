@@ -5,6 +5,8 @@ import KitchenDetailPage from "../pages/kitchenDetail/KitchenDetailPage";
 import SignupChoicePage from "../pages/signup/SignupChoicePage";
 import UserSignupPage from "../pages/signup/UserSignupPage";
 import HostSignupPage from "../pages/signup/HostSignupPage";
+import HostReservations from "../pages/host-mypage/hostReservations";
+import HostReservationDetail from "../pages/host-mypage/HostReservationDetail";
 
 import MyPage from "../pages/user-mypage/MyPage";
 import {
@@ -31,6 +33,8 @@ const AppRouter = () => {
             />
             <Route path="/mypage/reviews" element={<Reviews />} />
             <Route path="/host-mypage" element={<HostMyPage />} />
+            <Route path="/host-mypage/reservations" element={<HostReservations />} />
+            <Route path="/host-mypage/reservations/:id" element={<HostReservationDetail />} />
         </Routes>
     );
 };
