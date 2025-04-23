@@ -16,7 +16,7 @@ const HostSidebar = () => {
         { path: "/host-mypage/kitchen-management", label: "주방 관리" },
         { path: "/host-mypage/chats", label: "채팅 내역" },
         { divider: true },
-        { path: "/host-mypage/profile", label: "회원 정보 수정" },
+        { path: "/host-mypage", label: "회원 정보 수정" },
     ];
 
     return (
