@@ -10,6 +10,7 @@ import HostReservations from "../pages/host-mypage/hostReservations";
 import HostReservationDetail from "../pages/host-mypage/HostReservationDetail";
 import HostSales from "../pages/host-mypage/HostSales";
 
+import ProtectedRoute from "./ProtectedRoute";
 import {
     MyPage,
     Reservations,
@@ -31,29 +32,89 @@ const AppRouter = () => {
             <Route path="/signup" element={<SignupChoicePage />} />
             <Route path="/signup/user" element={<UserSignupPage />} />
             <Route path="/signup/host" element={<HostSignupPage />} />
-            <Route path="/mypage" element={<MyPage />} />
-            <Route path="/mypage/reservations" element={<Reservations />} />
+
+            <Route
+                path="/mypage"
+                element={
+                    <ProtectedRoute allowedType="USER">
+                        <MyPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/mypage/reservations"
+                element={
+                    <ProtectedRoute allowedType="USER">
+                        <Reservations />
+                    </ProtectedRoute>
+                }
+            />
             <Route
                 path="/mypage/reservations/:id"
-                element={<ReservationDetail />}
+                element={
+                    <ProtectedRoute allowedType="USER">
+                        <ReservationDetail />
+                    </ProtectedRoute>
+                }
             />
-            <Route path="/mypage/reviews" element={<Reviews />} />
-            <Route path="/host-mypage" element={<HostMyPage />} />
+            <Route
+                path="/mypage/reviews"
+                element={
+                    <ProtectedRoute allowedType="USER">
+                        <Reviews />
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/host-mypage"
+                element={
+                    <ProtectedRoute allowedType="HOST">
+                        <HostMyPage />
+                    </ProtectedRoute>
+                }
+            />
             <Route
                 path="/host-mypage/kitchen-management"
-                element={<KitchenManage />}
+                element={
+                    <ProtectedRoute allowedType="HOST">
+                        <KitchenManage />
+                    </ProtectedRoute>
+                }
             />
-            <Route path="/host-mypage/kitchen-form" element={<KitchenForm />} />
-            <Route path="/kitchen-detail" element={<KitchenDetailPage />} />
+            <Route
+                path="/host-mypage/kitchen-form"
+                element={
+                    <ProtectedRoute allowedType="HOST">
+                        <KitchenForm />
+                    </ProtectedRoute>
+                }
+            />
             <Route
                 path="/host-mypage/reservations"
-                element={<HostReservations />}
+                element={
+                    <ProtectedRoute allowedType="HOST">
+                        <HostReservations />
+                    </ProtectedRoute>
+                }
             />
             <Route
                 path="/host-mypage/reservations/:id"
-                element={<HostReservationDetail />}
+                element={
+                    <ProtectedRoute allowedType="HOST">
+                        <HostReservationDetail />
+                    </ProtectedRoute>
+                }
             />
-            <Route path="/host-mypage/sales" element={<HostSales />} />
+            <Route
+                path="/host-mypage/sales"
+                element={
+                    <ProtectedRoute allowedType="HOST">
+                        <HostSales />
+                    </ProtectedRoute>
+                }
+            />
+            <Route path="/kitchen-detail" element={<KitchenDetailPage />} />
         </Routes>
     );
 };

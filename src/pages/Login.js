@@ -92,6 +92,7 @@ const SetLink = styled(Link)`
 function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [userType, setUserType] = useState("USER");
     const [error, setError] = useState("");
     const navigate = useNavigate();
 
@@ -100,18 +101,36 @@ function Login() {
         setError("");
 
         try {
-            const response = await axios.post("/api/auth/login", {
-                email,
-                password,
-            });
+            const response = await axios.post(
+                "http://localhost:8080/api/auth/login",
+                {
+                    email,
+                    password,
+                    userType,
+                }
+            );
 
-            if (response.data.resultCode === "SUCCESS") {
+            const { accessToken, refreshToken } = response.data;
+
+            if (accessToken) {
+                localStorage.setItem("token", accessToken);
+                localStorage.setItem("refreshToken", refreshToken);
                 navigate("/");
             } else {
-                setError("이메일 또는 비밀번호가 올바르지 않습니다.");
+                setError(
+                    "이메일, 비밀번호 또는 계정 유형이 올바르지 않습니다."
+                );
             }
         } catch (error) {
-            setError("로그인 중 오류가 발생했습니다.");
+            if (
+                error.response &&
+                error.response.status === 401 &&
+                error.response.data.message === "WRONG_USER_TYPE"
+            ) {
+                setError("선택한 로그인 유형과 계정 유형이 일치하지 않습니다.");
+            } else {
+                setError("로그인 중 오류가 발생했습니다.");
+            }
         }
     };
 
@@ -119,11 +138,20 @@ function Login() {
         <div>
             <LoginContainer>
                 <UserTypeToggle>
-                    <ToggleButton className="host-btn">HOST</ToggleButton>
-                    <ToggleButton className="user-btn active">
+                    <ToggleButton
+                        className={userType === "HOST" ? "active" : ""}
+                        onClick={() => setUserType("HOST")}
+                    >
+                        HOST
+                    </ToggleButton>
+                    <ToggleButton
+                        className={userType === "USER" ? "active" : ""}
+                        onClick={() => setUserType("USER")}
+                    >
                         USER
                     </ToggleButton>
                 </UserTypeToggle>
+
                 <LoginBox>
                     <LoginForm onSubmit={handleSubmit}>
                         <Label>이메일</Label>
@@ -139,11 +167,13 @@ function Login() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
+                            autoComplete="current-password"
                         />
                         <LoginButton type="submit">Sign In</LoginButton>
                         {error && <LoginCheck>{error}</LoginCheck>}
                     </LoginForm>
                 </LoginBox>
+
                 <LoginLinks>
                     <SetLink to="/signup">회원가입</SetLink>
                     <SetLink to="/forgot-password">비밀번호 찾기</SetLink>

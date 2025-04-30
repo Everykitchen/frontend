@@ -2,6 +2,8 @@ import AppRouter from "./routes/AppRouter";
 import NavBar from "./components/NavBar";
 import styled from "styled-components";
 import GlobalStyle from "./components/GlobalStyle";
+import { jwtDecode } from "jwt-decode";
+import { useEffect } from "react";
 
 const AppContainer = styled.div`
     display: flex;
@@ -23,6 +25,25 @@ const Content = styled.div`
 `;
 
 function App() {
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+
+        if (token) {
+            try {
+                const decoded = jwtDecode(token);
+                const userType = decoded.role; // "USER" 또는 "HOST"
+                if (userType) {
+                    localStorage.setItem("userType", userType);
+                }
+            } catch (error) {
+                console.error("JWT 디코딩 실패:", error);
+                localStorage.removeItem("token");
+                localStorage.removeItem("userType");
+                localStorage.removeItem("refreshToken");
+            }
+        }
+    }, []);
+
     return (
         <AppContainer>
             <GlobalStyle />
