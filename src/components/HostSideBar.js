@@ -11,13 +11,25 @@ const HostSidebar = () => {
 
     const menuItems = [
         { path: "/host-mypage/reservations", label: "예약 관리" },
-        { path: "/host-mypage/sales", label: "매출관리" },
+        { path: "/host-mypage/sales", label: "매출 관리" },
         { divider: true },
         { path: "/host-mypage/kitchen-management", label: "주방 관리" },
         { path: "/host-mypage/chats", label: "채팅 내역" },
         { divider: true },
-        { path: "/host-mypage/profile", label: "회원 정보 수정" },
+        { path: "/host-mypage", label: "회원 정보 수정" },
     ];
+
+    const isMenuActive = (path) => {
+        // 정확한 경로 매칭
+        if (location.pathname === path) return true;
+        
+        // 예약 상세 페이지 경로 체크 (/host-mypage/reservations/:id)
+        if (path === "/host-mypage/reservations" && location.pathname.startsWith("/host-mypage/reservations/")) {
+            return true;
+        }
+        
+        return false;
+    };
 
     return (
         <SidebarContainer>
@@ -28,7 +40,7 @@ const HostSidebar = () => {
                     if (item.divider) {
                         return <Divider key={`divider-${index}`} />;
                     }
-                    const isActive = location.pathname === item.path;
+                    const isActive = isMenuActive(item.path);
                     return (
                         <MenuItemWrapper key={item.path}>
                             <MenuItem active={isActive} onClick={() => navigate(item.path)}>
