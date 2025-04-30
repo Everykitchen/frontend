@@ -8,6 +8,7 @@ import HostSignupPage from "../pages/signup/HostSignupPage";
 import HostReservations from "../pages/host-mypage/hostReservations";
 import HostReservationDetail from "../pages/host-mypage/HostReservationDetail";
 import HostSales from "../pages/host-mypage/HostSales";
+import ChatHistory from "../pages/host-mypage/ChatHistory";
 
 import MyPage from "../pages/user-mypage/MyPage";
 import {
@@ -37,6 +38,7 @@ const AppRouter = () => {
             <Route path="/host-mypage/reservations" element={<HostReservations />} />
             <Route path="/host-mypage/reservations/:id" element={<HostReservationDetail />} />
             <Route path="/host-mypage/sales" element={<HostSales />} />
+            <Route path="/host-mypage/chats" element={<ChatHistory />} />
         </Routes>
     );
 };
