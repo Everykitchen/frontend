@@ -19,7 +19,7 @@ import {
     TagContainer,
     Tag,
     LogoutWrapper,
-    LogoutButton,
+    LogoutActionButton,
 } from "../../components/ProfileLayout";
 import styled from "styled-components";
 
@@ -94,7 +94,7 @@ const HostMyPage = () => {
         name: "호스트명",
         email: "aaa@naver.com",
         phoneNumber: "010-1111-1111",
-        image: profileImg
+        image: profileImg,
     });
     const [isEditing, setIsEditing] = useState(false);
     const [phoneNumber, setPhoneNumber] = useState("010-1111-1111");
@@ -131,7 +131,9 @@ const HostMyPage = () => {
     const handleSubmit = async () => {
         try {
             if (!validatePhoneNumber(phoneNumber)) {
-                setError("전화번호 형식이 올바르지 않습니다. (예: 010-1234-5678)");
+                setError(
+                    "전화번호 형식이 올바르지 않습니다. (예: 010-1234-5678)"
+                );
                 return;
             }
 
@@ -141,17 +143,23 @@ const HostMyPage = () => {
             }
             formData.append("phoneNumber", phoneNumber);
 
-            const response = await axios.put("/api/auth/edit/my-information", formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
+            const response = await axios.put(
+                "/api/auth/edit/my-information",
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
 
             if (response.status === 200) {
                 setUserInfo({
                     ...userInfo,
                     phoneNumber,
-                    image: selectedImage ? URL.createObjectURL(selectedImage) : userInfo.image,
+                    image: selectedImage
+                        ? URL.createObjectURL(selectedImage)
+                        : userInfo.image,
                 });
                 setIsEditing(false);
                 setError("");
@@ -183,7 +191,7 @@ const HostMyPage = () => {
                 setUserInfo({
                     ...res.data,
                     email: "aaa@naver.com",
-                    phoneNumber: "010-1111-1111"
+                    phoneNumber: "010-1111-1111",
                 });
                 setPhoneNumber("010-1111-1111");
                 setPreviewImage(res.data.image || profileImg);
@@ -205,7 +213,11 @@ const HostMyPage = () => {
                     <ProfileSection>
                         <div>
                             <ProfileImage
-                                src={isEditing ? previewImage : (userInfo?.image || profileImg)}
+                                src={
+                                    isEditing
+                                        ? previewImage
+                                        : userInfo?.image || profileImg
+                                }
                                 alt="프로필 이미지"
                             />
                             {isEditing && (
@@ -215,9 +227,13 @@ const HostMyPage = () => {
                                         accept="image/*"
                                         onChange={handleImageChange}
                                         ref={fileInputRef}
-                                        style={{ display: 'none' }}
+                                        style={{ display: "none" }}
                                     />
-                                    <ChangeImageButton onClick={() => fileInputRef.current.click()}>
+                                    <ChangeImageButton
+                                        onClick={() =>
+                                            fileInputRef.current.click()
+                                        }
+                                    >
                                         이미지 변경
                                     </ChangeImageButton>
                                 </ImageInput>
@@ -239,27 +255,38 @@ const HostMyPage = () => {
                                             <Input
                                                 type="text"
                                                 value={phoneNumber}
-                                                onChange={(e) => setPhoneNumber(e.target.value)}
+                                                onChange={(e) =>
+                                                    setPhoneNumber(
+                                                        e.target.value
+                                                    )
+                                                }
                                                 placeholder="010-1234-5678"
                                             />
                                         ) : (
                                             <Data>{userInfo?.phoneNumber}</Data>
                                         )}
                                     </EditableInfoRow>
-                                    {error && <ErrorMessage>{error}</ErrorMessage>}
+                                    {error && (
+                                        <ErrorMessage>{error}</ErrorMessage>
+                                    )}
                                 </div>
                             </div>
                             {isEditing ? (
                                 <ButtonGroup>
                                     <Button onClick={handleSubmit}>저장</Button>
-                                    <Button className="cancel" onClick={handleCancel}>취소</Button>
+                                    <Button
+                                        className="cancel"
+                                        onClick={handleCancel}
+                                    >
+                                        취소
+                                    </Button>
                                 </ButtonGroup>
                             ) : (
-                                <StyledEditIcon 
-                                    src={editIcon} 
-                                    alt="프로필 편집" 
+                                <StyledEditIcon
+                                    src={editIcon}
+                                    alt="프로필 편집"
                                     onClick={handleEditClick}
-                                    style={{ cursor: 'pointer' }}
+                                    style={{ cursor: "pointer" }}
                                 />
                             )}
                         </ProfileInfo>
@@ -280,9 +307,7 @@ const HostMyPage = () => {
                             </TagContainer>
                         </InfoRow>
                         <LogoutWrapper>
-                            <LogoutButton onClick={handleLogout}>
-                                로그아웃
-                            </LogoutButton>
+                            <LogoutActionButton />
                         </LogoutWrapper>
                     </InfoSection>
                 </Content>

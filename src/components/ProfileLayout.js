@@ -1,4 +1,6 @@
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export const Container = styled.div`
     display: flex;
@@ -106,3 +108,33 @@ export const LogoutButton = styled.button`
         background-color: #e04345;
     }
 `;
+
+export const LogoutActionButton = () => {
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        const accessToken = localStorage.getItem("token");
+
+        try {
+            await axios.post("/api/auth/logout", null, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+            });
+        } catch (error) {
+            console.error("서버 로그아웃 실패:", error);
+        }
+
+        localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("userType");
+
+        window.location.href = "/login";
+    };
+
+    return (
+        <LogoutWrapper>
+            <LogoutButton onClick={handleLogout}>로그아웃</LogoutButton>
+        </LogoutWrapper>
+    );
+};

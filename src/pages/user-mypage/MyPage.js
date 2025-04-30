@@ -19,17 +19,12 @@ import {
     TagContainer,
     Tag,
     LogoutWrapper,
-    LogoutButton,
+    LogoutActionButton,
 } from "../../components/ProfileLayout";
 
 const MyPage = () => {
     const navigate = useNavigate();
     const [userInfo, setUserInfo] = useState(null);
-
-    const handleLogout = () => {
-        localStorage.clear();
-        navigate("/login");
-    };
 
     useEffect(() => {
         const fetchUserInfo = async () => {
@@ -88,9 +83,7 @@ const MyPage = () => {
                             </TagContainer>
                         </InfoRow>
                         <LogoutWrapper>
-                            <LogoutButton onClick={handleLogout}>
-                                로그아웃
-                            </LogoutButton>
+                            <LogoutActionButton />
                         </LogoutWrapper>
                     </InfoSection>
                 </Content>
