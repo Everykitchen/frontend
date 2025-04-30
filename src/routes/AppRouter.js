@@ -5,32 +5,41 @@ import KitchenDetailPage from "../pages/kitchenDetail/KitchenDetailPage";
 import SignupChoicePage from "../pages/signup/SignupChoicePage";
 import UserSignupPage from "../pages/signup/UserSignupPage";
 import HostSignupPage from "../pages/signup/HostSignupPage";
-
-import MyPage from "../pages/user-mypage/MyPage";
 import {
+    MyPage,
     Reservations,
     ReservationDetail,
     Reviews,
 } from "../pages/user-mypage/MyPageIndex";
-import HostMyPage from "../pages/host-mypage/HostMyPage";
+
+import {
+    HostMyPage,
+    KitchenManage,
+} from "../pages/host-mypage/HostMyPageIndex";
+import KitchenForm from "../pages/host-mypage/kitchen/KitchenForm";
 
 const AppRouter = () => {
     return (
         <Routes>
             <Route path="/" element={<Main />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/mypage" element={<MyPage />} />
-            <Route path="/mypage/reservations" element={<Reservations />} />
-            <Route path="/kitchen-detail" element={<KitchenDetailPage />} />
             <Route path="/signup" element={<SignupChoicePage />} />
             <Route path="/signup/user" element={<UserSignupPage />} />
             <Route path="/signup/host" element={<HostSignupPage />} />
+            <Route path="/mypage" element={<MyPage />} />
+            <Route path="/mypage/reservations" element={<Reservations />} />
             <Route
                 path="/mypage/reservations/:id"
                 element={<ReservationDetail />}
             />
             <Route path="/mypage/reviews" element={<Reviews />} />
             <Route path="/host-mypage" element={<HostMyPage />} />
+            <Route
+                path="/host-mypage/kitchen-management"
+                element={<KitchenManage />}
+            />
+            <Route path="/host-mypage/kitchen-form" element={<KitchenForm />} />
+            <Route path="/kitchen-detail" element={<KitchenDetailPage />} />
         </Routes>
     );
 };
