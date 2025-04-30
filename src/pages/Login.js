@@ -101,14 +101,11 @@ function Login() {
         setError("");
 
         try {
-            const response = await axios.post(
-                "http://localhost:8080/api/auth/login",
-                {
-                    email,
-                    password,
-                    userType,
-                }
-            );
+            const response = await axios.post("/api/auth/login", {
+                email,
+                password,
+                userType,
+            });
 
             const { accessToken, refreshToken } = response.data;
 
