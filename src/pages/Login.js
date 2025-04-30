@@ -112,7 +112,7 @@ function Login() {
             if (accessToken) {
                 localStorage.setItem("token", accessToken);
                 localStorage.setItem("refreshToken", refreshToken);
-                navigate("/");
+                window.location.href = "/";
             } else {
                 setError(
                     "이메일, 비밀번호 또는 계정 유형이 올바르지 않습니다."
