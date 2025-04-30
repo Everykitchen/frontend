@@ -7,7 +7,7 @@ import orangeCircle from "../assets/icons/orangeDot.svg";
 const SidebarContainer = styled.div`
     width: 240px;
     background-color: white;
-    border-right: 1px solid "#B8B8B8";
+    border-right: 1px solid #ddd;
     padding: 40px 30px;
 `;
 
@@ -110,6 +110,13 @@ const UserSidebar = () => {
 
 export default UserSidebar;
 
-
-export {SidebarContainer,Title, Underline, MenuList, MenuItemWrapper, 
-    MenuItem, OrangeCircle, Divider};
+export {
+    SidebarContainer,
+    Title,
+    Underline,
+    MenuList,
+    MenuItemWrapper,
+    MenuItem,
+    OrangeCircle,
+    Divider,
+};
