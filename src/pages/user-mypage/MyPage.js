@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../api/axiosInstance";
 import SideBar from "../../components/UserSideBar";
 import profileImg from "../../assets/image/profile.png";
 import editIcon from "../../assets/icons/editicon.svg";
@@ -23,14 +23,13 @@ import {
 } from "../../components/ProfileLayout";
 
 const MyPage = () => {
-    const navigate = useNavigate();
     const [userInfo, setUserInfo] = useState(null);
 
     useEffect(() => {
         const fetchUserInfo = async () => {
             try {
-                const res = await axios.get("/api/auth/user/my-information");
-                setUserInfo(res.data);
+                const response = await api.get("/api/auth/user/my-information");
+                setUserInfo(response.data);
             } catch (err) {
                 console.error("사용자 정보 불러오기 실패", err);
             }

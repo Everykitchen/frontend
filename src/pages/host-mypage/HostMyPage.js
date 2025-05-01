@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
-import axios from "axios";
+import api from "../../api/axiosInstance";
 import HostSideBar from "../../components/HostSideBar";
 import profileImg from "../../assets/image/profile.png";
 import editIcon from "../../assets/icons/editicon.svg";
@@ -91,22 +91,18 @@ const EditableInfoRow = styled(InfoRow)`
 const HostMyPage = () => {
     const navigate = useNavigate();
     const [userInfo, setUserInfo] = useState({
-        name: "호스트명",
-        email: "aaa@naver.com",
-        phoneNumber: "010-1111-1111",
+        name: "",
+        email: "",
+        phoneNumber: "",
         image: profileImg,
     });
+
     const [isEditing, setIsEditing] = useState(false);
     const [phoneNumber, setPhoneNumber] = useState("010-1111-1111");
     const [selectedImage, setSelectedImage] = useState(null);
     const [previewImage, setPreviewImage] = useState(profileImg);
     const [error, setError] = useState("");
     const fileInputRef = useRef(null);
-
-    const handleLogout = () => {
-        localStorage.clear();
-        navigate("/login");
-    };
 
     const validatePhoneNumber = (number) => {
         const phoneRegex = /^010-\d{4}-\d{4}$/;
@@ -143,7 +139,7 @@ const HostMyPage = () => {
             }
             formData.append("phoneNumber", phoneNumber);
 
-            const response = await axios.put(
+            const response = await api.put(
                 "/api/auth/edit/my-information",
                 formData,
                 {
@@ -187,14 +183,18 @@ const HostMyPage = () => {
     useEffect(() => {
         const fetchUserInfo = async () => {
             try {
-                const res = await axios.get("/api/auth/host/my-information");
+                const response = await api.get("/api/auth/host/my-information");
+                const data = response.data;
+
                 setUserInfo({
-                    ...res.data,
-                    email: "aaa@naver.com",
-                    phoneNumber: "010-1111-1111",
+                    name: data.name || "",
+                    email: data.email || "",
+                    phoneNumber: data.phoneNumber || "",
+                    image: data.image || profileImg,
                 });
-                setPhoneNumber("010-1111-1111");
-                setPreviewImage(res.data.image || profileImg);
+
+                setPhoneNumber(data.phoneNumber || "");
+                setPreviewImage(data.image || profileImg);
             } catch (err) {
                 console.error("사용자 정보 불러오기 실패", err);
                 if (err.response?.status === 401) {
@@ -202,6 +202,7 @@ const HostMyPage = () => {
                 }
             }
         };
+
         fetchUserInfo();
     }, [navigate]);
 
