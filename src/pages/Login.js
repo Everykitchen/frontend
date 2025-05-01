@@ -2,6 +2,7 @@ import styled from "styled-components";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 const LoginContainer = styled.div`
     display: flex;
@@ -92,9 +93,8 @@ const SetLink = styled(Link)`
 function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [userType, setUserType] = useState("USER");
+    const [role, setRole] = useState("USER");
     const [error, setError] = useState("");
-    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -104,30 +104,29 @@ function Login() {
             const response = await axios.post("/api/auth/login", {
                 email,
                 password,
-                userType,
             });
 
             const { accessToken, refreshToken } = response.data;
 
             if (accessToken) {
+                const decoded = jwtDecode(accessToken);
+                const tokenRole = decoded?.role;
+
+                if (tokenRole !== role) {
+                    setError(
+                        "선택한 로그인 유형과 계정 유형이 일치하지 않습니다."
+                    );
+                    return;
+                }
+
                 localStorage.setItem("token", accessToken);
                 localStorage.setItem("refreshToken", refreshToken);
                 window.location.href = "/";
             } else {
-                setError(
-                    "이메일, 비밀번호 또는 계정 유형이 올바르지 않습니다."
-                );
+                setError("이메일 또는 비밀번호가 올바르지 않습니다.");
             }
         } catch (error) {
-            if (
-                error.response &&
-                error.response.status === 401 &&
-                error.response.data.message === "WRONG_USER_TYPE"
-            ) {
-                setError("선택한 로그인 유형과 계정 유형이 일치하지 않습니다.");
-            } else {
-                setError("로그인 중 오류가 발생했습니다.");
-            }
+            setError("로그인 중 오류가 발생했습니다.");
         }
     };
 
@@ -136,14 +135,14 @@ function Login() {
             <LoginContainer>
                 <UserTypeToggle>
                     <ToggleButton
-                        className={userType === "HOST" ? "active" : ""}
-                        onClick={() => setUserType("HOST")}
+                        className={role === "HOST" ? "active" : ""}
+                        onClick={() => setRole("HOST")}
                     >
                         HOST
                     </ToggleButton>
                     <ToggleButton
-                        className={userType === "USER" ? "active" : ""}
-                        onClick={() => setUserType("USER")}
+                        className={role === "USER" ? "active" : ""}
+                        onClick={() => setRole("USER")}
                     >
                         USER
                     </ToggleButton>

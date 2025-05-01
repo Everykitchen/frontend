@@ -31,14 +31,14 @@ function App() {
         if (token) {
             try {
                 const decoded = jwtDecode(token);
-                const userType = decoded.role; // "USER" 또는 "HOST"
-                if (userType) {
-                    localStorage.setItem("userType", userType);
+                const role = decoded.role; // "USER" 또는 "HOST"
+                if (role) {
+                    localStorage.setItem("role", role);
                 }
             } catch (error) {
                 console.error("JWT 디코딩 실패:", error);
                 localStorage.removeItem("token");
-                localStorage.removeItem("userType");
+                localStorage.removeItem("role");
                 localStorage.removeItem("refreshToken");
             }
         }
