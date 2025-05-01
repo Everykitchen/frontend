@@ -9,7 +9,7 @@ import HostReservations from "../pages/host-mypage/hostReservations";
 import HostReservationDetail from "../pages/host-mypage/HostReservationDetail";
 import HostSales from "../pages/host-mypage/HostSales";
 import ChatHistory from "../pages/host-mypage/ChatHistory";
-
+import ChattingRoom from "../pages/host-mypage/ChattingRoom";
 import MyPage from "../pages/user-mypage/MyPage";
 import {
     Reservations,
@@ -17,6 +17,8 @@ import {
     Reviews,
 } from "../pages/user-mypage/MyPageIndex";
 import HostMyPage from "../pages/host-mypage/HostMyPage";
+import UserChatHistory from "../pages/user-mypage/ChatHistory";
+import UserChattingRoom from "../pages/user-mypage/ChattingRoom";
 
 const AppRouter = () => {
     return (
@@ -39,6 +41,9 @@ const AppRouter = () => {
             <Route path="/host-mypage/reservations/:id" element={<HostReservationDetail />} />
             <Route path="/host-mypage/sales" element={<HostSales />} />
             <Route path="/host-mypage/chats" element={<ChatHistory />} />
+            <Route path="/host-mypage/chats/:id" element={<ChattingRoom />} />
+            <Route path="/mypage/chats" element={<UserChatHistory />} />
+            <Route path="/mypage/chats/:id" element={<UserChattingRoom />} />
         </Routes>
     );
 };

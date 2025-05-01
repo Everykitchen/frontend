@@ -28,6 +28,11 @@ const HostSidebar = () => {
             return true;
         }
         
+        // 채팅방 경로 체크 (/host-mypage/chats/:id)
+        if (path === "/host-mypage/chats" && location.pathname.startsWith("/host-mypage/chats/")) {
+            return true;
+        }
+        
         return false;
     };
 

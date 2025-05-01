@@ -77,6 +77,18 @@ const UserSidebar = () => {
         { path: "/mypage", label: "회원 정보 수정" },
     ];
 
+    const isMenuActive = (path) => {
+        // 정확한 경로 매칭
+        if (location.pathname === path) return true;
+        
+        // 채팅방 경로 체크 (/mypage/chats/:id)
+        if (path === "/mypage/chats" && location.pathname.startsWith("/mypage/chats/")) {
+            return true;
+        }
+        
+        return false;
+    };
+
     return (
         <SidebarContainer>
             <Title>마이페이지</Title>
@@ -86,7 +98,7 @@ const UserSidebar = () => {
                     if (item.divider) {
                         return <Divider key={`divider-${index}`} />;
                     }
-                    const isActive = location.pathname === item.path;
+                    const isActive = isMenuActive(item.path);
                     return (
                         <MenuItemWrapper key={item.path}>
                             <MenuItem

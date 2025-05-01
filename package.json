@@ -7,7 +7,7 @@
         "@testing-library/jest-dom": "^6.6.3",
         "@testing-library/react": "^16.2.0",
         "@testing-library/user-event": "^13.5.0",
-        "axios": "^1.8.4",
+        "axios": "^1.9.0",
         "date-fns": "^4.1.0",
         "react": "^19.1.0",
         "react-calendar": "^5.1.0",
@@ -17,6 +17,7 @@
         "react-router-dom": "^7.4.1",
         "react-scripts": "^5.0.1",
         "recharts": "^2.15.3",
+        "socket.io-client": "^4.8.1",
         "styled-components": "^6.1.17",
         "styled-reset": "^4.5.2",
         "web-vitals": "^2.1.4"
