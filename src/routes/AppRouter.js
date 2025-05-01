@@ -9,6 +9,8 @@ import HostSignupPage from "../pages/signup/HostSignupPage";
 import HostReservations from "../pages/host-mypage/hostReservations";
 import HostReservationDetail from "../pages/host-mypage/HostReservationDetail";
 import HostSales from "../pages/host-mypage/HostSales";
+import ChatHistory from "../pages/host-mypage/ChatHistory";
+import ChattingRoom from "../pages/host-mypage/ChattingRoom";
 
 import ProtectedRoute from "./ProtectedRoute";
 import {
@@ -17,6 +19,8 @@ import {
     ReservationDetail,
     Reviews,
 } from "../pages/user-mypage/MyPageIndex";
+import UserChatHistory from "../pages/user-mypage/ChatHistory";
+import UserChattingRoom from "../pages/user-mypage/ChattingRoom";
 
 import {
     HostMyPage,
@@ -57,6 +61,15 @@ const AppRouter = () => {
                     </ProtectedRoute>
                 }
             />
+            <Route path="/mypage/reviews" element={<Reviews />} />
+            <Route path="/host-mypage" element={<HostMyPage />} />
+            <Route path="/host-mypage/reservations" element={<HostReservations />} />
+            <Route path="/host-mypage/reservations/:id" element={<HostReservationDetail />} />
+            <Route path="/host-mypage/sales" element={<HostSales />} />
+            <Route path="/host-mypage/chats" element={<ChatHistory />} />
+            <Route path="/host-mypage/chats/:id" element={<ChattingRoom />} />
+            <Route path="/mypage/chats" element={<UserChatHistory />} />
+            <Route path="/mypage/chats/:id" element={<UserChattingRoom />} />
             <Route
                 path="/mypage/reviews"
                 element={
