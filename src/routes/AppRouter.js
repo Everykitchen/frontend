@@ -11,7 +11,6 @@ import HostReservationDetail from "../pages/host-mypage/HostReservationDetail";
 import HostSales from "../pages/host-mypage/HostSales";
 import ChatHistory from "../pages/host-mypage/ChatHistory";
 import ChattingRoom from "../pages/host-mypage/ChattingRoom";
-import MyPage from "../pages/user-mypage/MyPage";
 
 import ProtectedRoute from "./ProtectedRoute";
 import {
@@ -20,7 +19,6 @@ import {
     ReservationDetail,
     Reviews,
 } from "../pages/user-mypage/MyPageIndex";
-import HostMyPage from "../pages/host-mypage/HostMyPage";
 import UserChatHistory from "../pages/user-mypage/ChatHistory";
 import UserChattingRoom from "../pages/user-mypage/ChattingRoom";
 
