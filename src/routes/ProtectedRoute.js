@@ -1,8 +1,8 @@
 import { Navigate } from "react-router-dom";
 
-const ProtectedRoute = ({ children, allowedType }) => {
+const ProtectedRoute = ({ children, allowedRole }) => {
     const token = localStorage.getItem("token");
-    const userType = localStorage.getItem("userType");
+    const role = localStorage.getItem("role");
 
     // 로그인 안 한 경우 로그인 페이지로 이동
     if (!token) {
@@ -10,7 +10,7 @@ const ProtectedRoute = ({ children, allowedType }) => {
     }
 
     // 권한이 없는 사용자 타입이면 메인으로 보내기 (혹은 403 페이지)
-    if (allowedType && userType !== allowedType) {
+    if (allowedRole && role !== allowedRole) {
         return <Navigate to="/" replace />;
     }
 

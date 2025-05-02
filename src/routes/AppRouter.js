@@ -40,7 +40,7 @@ const AppRouter = () => {
             <Route
                 path="/mypage"
                 element={
-                    <ProtectedRoute allowedType="USER">
+                    <ProtectedRoute allowedRole="USER">
                         <MyPage />
                     </ProtectedRoute>
                 }
@@ -48,7 +48,7 @@ const AppRouter = () => {
             <Route
                 path="/mypage/reservations"
                 element={
-                    <ProtectedRoute allowedType="USER">
+                    <ProtectedRoute allowedRole="USER">
                         <Reservations />
                     </ProtectedRoute>
                 }
@@ -56,33 +56,47 @@ const AppRouter = () => {
             <Route
                 path="/mypage/reservations/:id"
                 element={
-                    <ProtectedRoute allowedType="USER">
+                    <ProtectedRoute allowedRole="USER">
                         <ReservationDetail />
                     </ProtectedRoute>
                 }
             />
-            <Route path="/mypage/reviews" element={<Reviews />} />
-            <Route path="/host-mypage" element={<HostMyPage />} />
-            <Route path="/host-mypage/reservations" element={<HostReservations />} />
-            <Route path="/host-mypage/reservations/:id" element={<HostReservationDetail />} />
-            <Route path="/host-mypage/sales" element={<HostSales />} />
-            <Route path="/host-mypage/chats" element={<ChatHistory />} />
-            <Route path="/host-mypage/chats/:id" element={<ChattingRoom />} />
-            <Route path="/mypage/chats" element={<UserChatHistory />} />
-            <Route path="/mypage/chats/:id" element={<UserChattingRoom />} />
             <Route
                 path="/mypage/reviews"
                 element={
-                    <ProtectedRoute allowedType="USER">
+                    <ProtectedRoute allowedRole="USER">
                         <Reviews />
                     </ProtectedRoute>
                 }
             />
-
+            <Route
+                path="/mypage/chats"
+                element={
+                    <ProtectedRoute allowedRole="USER">
+                        <UserChatHistory />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/mypage/chats/:id"
+                element={
+                    <ProtectedRoute allowedRole="USER">
+                        <UserChattingRoom />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/mypage/reviews"
+                element={
+                    <ProtectedRoute allowedRole="USER">
+                        <Reviews />
+                    </ProtectedRoute>
+                }
+            />
             <Route
                 path="/host-mypage"
                 element={
-                    <ProtectedRoute allowedType="HOST">
+                    <ProtectedRoute allowedRole="HOST">
                         <HostMyPage />
                     </ProtectedRoute>
                 }
@@ -90,7 +104,7 @@ const AppRouter = () => {
             <Route
                 path="/host-mypage/kitchen-management"
                 element={
-                    <ProtectedRoute allowedType="HOST">
+                    <ProtectedRoute allowedRole="HOST">
                         <KitchenManage />
                     </ProtectedRoute>
                 }
@@ -98,7 +112,7 @@ const AppRouter = () => {
             <Route
                 path="/host-mypage/kitchen-form"
                 element={
-                    <ProtectedRoute allowedType="HOST">
+                    <ProtectedRoute allowedRole="HOST">
                         <KitchenForm />
                     </ProtectedRoute>
                 }
@@ -106,7 +120,7 @@ const AppRouter = () => {
             <Route
                 path="/host-mypage/reservations"
                 element={
-                    <ProtectedRoute allowedType="HOST">
+                    <ProtectedRoute allowedRole="HOST">
                         <HostReservations />
                     </ProtectedRoute>
                 }
@@ -114,7 +128,7 @@ const AppRouter = () => {
             <Route
                 path="/host-mypage/reservations/:id"
                 element={
-                    <ProtectedRoute allowedType="HOST">
+                    <ProtectedRoute allowedRole="HOST">
                         <HostReservationDetail />
                     </ProtectedRoute>
                 }
@@ -122,8 +136,24 @@ const AppRouter = () => {
             <Route
                 path="/host-mypage/sales"
                 element={
-                    <ProtectedRoute allowedType="HOST">
+                    <ProtectedRoute allowedRole="HOST">
                         <HostSales />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/host-mypage/chats"
+                element={
+                    <ProtectedRoute allowedRole="HOST">
+                        <ChatHistory />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/host-mypage/chats/:id"
+                element={
+                    <ProtectedRoute allowedRole="HOST">
+                        <ChattingRoom />
                     </ProtectedRoute>
                 }
             />
