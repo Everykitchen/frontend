@@ -7,6 +7,7 @@ import StepSupply from "./StepSupply";
 import StepIngredient from "./StepIngredient";
 import HostSideBar from "../../../components/HostSideBar";
 import styled from "styled-components";
+import api from "../../../api/axiosInstance";
 
 const Wrapper = styled.div`
     display: flex;
@@ -48,28 +49,92 @@ const KitchenForm = () => {
 
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
-        name: "",
-        address: "",
-        prices: {},
-        accountNumber: "",
-        bank: "",
-        facilities: [],
-        tools: [],
-        supplies: [],
+        kitchenName: "",
+        description: "",
+        phoneNumber: "",
+        location: "",
+        latitude: null,
+        longitude: null,
+        size: "",
+        baseClientNumber: "",
+        maxClientNumber: "",
+        minReservationTime: "",
+        openTime: "09:00",
+        closeTime: "21:00",
+        category: "",
+        imageList: [],
+        account: {
+            accountNumber: "",
+            bankName: "",
+        },
         ingredients: [],
+        extraIngredients: [],
+        kitchenFacility: [],
+        cookingTool: [],
+        providedItem: [],
+        prices: {},
     });
 
     useEffect(() => {
         if (isEdit && editData) {
-            setFormData({ ...editData });
+            setFormData({
+                ...editData,
+                imageList: editData.images || [],
+            });
         }
     }, [isEdit, editData]);
 
     const nextStep = () => setStep((prev) => prev + 1);
     const prevStep = () => setStep((prev) => prev - 1);
 
-    const handleSubmit = () => {
-        navigate("/host-mypage/kitchen-management");
+    const mapFormDataToRequestBody = (data) => ({
+        kitchenName: data.kitchenName,
+        images: data.imageList,
+        description: data.description,
+        phoneNumber: data.phoneNumber,
+        location: data.location,
+        latitude: parseFloat(data.latitude),
+        longitude: parseFloat(data.longitude),
+        size: parseFloat(data.size),
+        baseClientNumber: parseInt(data.baseClientNumber, 10),
+        maxClientNumber: parseInt(data.maxClientNumber, 10),
+        minReservationTime: parseInt(data.minReservationTime, 10),
+        openTime: data.openTime,
+        closeTime: data.closeTime,
+        category: data.category,
+        accountNumber: data.account.accountNumber,
+        bankName: data.account.bankName,
+        ingredients: data.ingredients,
+        extraIngredients: data.extraIngredients,
+        kitchenFacility: data.kitchenFacility,
+        cookingTool: data.cookingTool,
+        providedItem: data.providedItem,
+        defaultPrice: Object.entries(data.prices || {}).map(([day, price]) => ({
+            week: day.toUpperCase(),
+            price: Number(price),
+        })),
+    });
+
+    const handleSubmitKitchen = async () => {
+        const payload = mapFormDataToRequestBody(formData);
+
+        try {
+            const response = isEdit
+                ? await api.put(`/api/host/kitchen/${formData.id}`, payload)
+                : await api.post("/api/host/kitchen", payload);
+
+            if (response.status === 200 || response.status === 201) {
+                alert(
+                    "주방이 성공적으로 " +
+                        (isEdit ? "수정" : "등록") +
+                        "되었습니다."
+                );
+                navigate("/host-mypage/kitchen-management");
+            }
+        } catch (err) {
+            console.error("제출 실패", err);
+            alert("제출 중 오류가 발생했습니다.");
+        }
     };
 
     const renderStep = () => {
@@ -115,7 +180,7 @@ const KitchenForm = () => {
                         formData={formData}
                         setFormData={setFormData}
                         prevStep={prevStep}
-                        handleSubmit={handleSubmit}
+                        handleSubmitKitchen={handleSubmitKitchen}
                     />
                 );
             default:

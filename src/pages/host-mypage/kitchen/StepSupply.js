@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 
 const Container = styled.div`
@@ -12,7 +12,6 @@ const SectionTitle = styled.h3`
     font-weight: bold;
     margin-bottom: 16px;
     padding-bottom: 6px;
-    border-bottom: 2px solid #f0ad4e;
 `;
 
 const Table = styled.table`
@@ -24,15 +23,14 @@ const Table = styled.table`
     td {
         border: 1px solid #eee;
         padding: 12px 8px;
-        text-align: left;
+        text-align: center;
     }
-`;
 
-const Input = styled.input`
-    padding: 6px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    width: 100%;
+    th {
+        background-color: #fdfaf5;
+        font-size: 14px;
+        font-weight: 600;
+    }
 `;
 
 const AddButton = styled.button`
@@ -46,11 +44,26 @@ const AddButton = styled.button`
     float: right;
 `;
 
+const DeleteButton = styled.button`
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+`;
+
+const Input = styled.input`
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+`;
+
 const ButtonContainer = styled.div`
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     margin-top: 30px;
-    gap: 10px;
 `;
 
 const NavButton = styled.button`
@@ -64,50 +77,86 @@ const NavButton = styled.button`
 `;
 
 const StepSupply = ({ formData, setFormData, nextStep, prevStep }) => {
-    const [items, setItems] = useState([
-        "위생장갑",
-        "앞치마",
-        "키친타올",
-        "종이용품",
-        "컵",
-        "지퍼백",
-        "물티슈",
-        "주방세제 / 수세미 / 행주",
-        "쓰레기봉투",
-    ]);
+    const [supplies, setSupplies] = useState(
+        formData.providedItem.length > 0
+            ? formData.providedItem
+            : [{ itemName: "", check: true }]
+    );
 
-    const handleAddItem = () => {
-        setItems([...items, ""]);
+    useEffect(() => {
+        setFormData((prev) => ({
+            ...prev,
+            providedItem: supplies.filter((s) => s.check && s.itemName?.trim()),
+        }));
+    }, [supplies]);
+
+    const handleAddSupply = () => {
+        setSupplies((prev) => [...prev, { itemName: "", check: true }]);
     };
 
-    const handleItemChange = (index, value) => {
-        const newItems = [...items];
-        newItems[index] = value;
-        setItems(newItems);
+    const handleDeleteSupply = (index) => {
+        const updated = [...supplies];
+        updated.splice(index, 1);
+        setSupplies(updated);
+    };
+
+    const handleSupplyChange = (index, field, value) => {
+        const updated = [...supplies];
+        if (field === "check") {
+            updated[index][field] = value.target.checked;
+        } else {
+            updated[index][field] = value;
+        }
+        setSupplies(updated);
     };
 
     return (
         <Container>
             <SectionTitle>
                 보유하신 구비 품목들에 체크해주세요.
-                <AddButton onClick={handleAddItem}>+ 항목추가</AddButton>
+                <AddButton onClick={handleAddSupply}>+ 항목추가</AddButton>
             </SectionTitle>
 
             <Table>
+                <thead>
+                    <tr>
+                        <th>보유</th>
+                        <th>품목명</th>
+                        <th>삭제</th>
+                    </tr>
+                </thead>
                 <tbody>
-                    {items.map((item, index) => (
+                    {supplies.map((supply, index) => (
                         <tr key={index}>
-                            <td style={{ width: "30px" }}>
-                                <input type="checkbox" id={`supply-${index}`} />
+                            <td>
+                                <input
+                                    type="checkbox"
+                                    checked={supply.check}
+                                    onChange={(e) =>
+                                        handleSupplyChange(index, "check", e)
+                                    }
+                                />
                             </td>
                             <td>
                                 <Input
                                     type="text"
-                                    value={item}
+                                    placeholder="예: 위생장갑"
+                                    value={supply.itemName}
                                     onChange={(e) =>
-                                        handleItemChange(index, e.target.value)
+                                        handleSupplyChange(
+                                            index,
+                                            "itemName",
+                                            e.target.value
+                                        )
                                     }
                                 />
+                            </td>
+                            <td>
+                                <DeleteButton
+                                    onClick={() => handleDeleteSupply(index)}
+                                >
+                                    삭제
+                                </DeleteButton>
                             </td>
                         </tr>
                     ))}
@@ -116,7 +165,7 @@ const StepSupply = ({ formData, setFormData, nextStep, prevStep }) => {
 
             <ButtonContainer>
                 <NavButton onClick={prevStep}>이전</NavButton>
-                <NavButton onClick={nextStep}>완료</NavButton>
+                <NavButton onClick={nextStep}>다음</NavButton>
             </ButtonContainer>
         </Container>
     );

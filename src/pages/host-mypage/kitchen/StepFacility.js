@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 
 const Container = styled.div`
@@ -11,7 +12,6 @@ const SectionTitle = styled.h3`
     font-weight: bold;
     margin-bottom: 16px;
     padding-bottom: 6px;
-    border-bottom: 2px solid #f0ad4e;
 `;
 
 const Table = styled.table`
@@ -31,6 +31,17 @@ const Table = styled.table`
         font-size: 14px;
         font-weight: 600;
     }
+    th:nth-child(1) {
+        width: 20%;
+    }
+
+    td:nth-child(2),
+    td:nth-child(4) {
+        width: 6%;
+    }
+    th:nth-child(3) {
+        width: 40%;
+    }
 `;
 
 const AddButton = styled.button`
@@ -44,6 +55,15 @@ const AddButton = styled.button`
     float: right;
 `;
 
+const DeleteButton = styled.button`
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+`;
+
 const Input = styled.input`
     padding: 6px;
     border: 1px solid #ccc;
@@ -53,7 +73,7 @@ const Input = styled.input`
 
 const ButtonContainer = styled.div`
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     margin-top: 30px;
 `;
 
@@ -68,46 +88,143 @@ const NavButton = styled.button`
 `;
 
 const StepFacility = ({ formData, setFormData, nextStep, prevStep }) => {
-    const facilities = [
-        { type: "인덕션", quantity: 2, detail: "길이 1.5m" },
-        { type: "오븐", quantity: 2, detail: "2단 오븐, 230도 설정 가능" },
-        { type: "조리대", quantity: 2, detail: "길이 1.5m" },
-    ];
+    const [facilityStates, setFacilityStates] = useState(
+        formData.kitchenFacility.length > 0
+            ? formData.kitchenFacility.map((f) => ({
+                  type: f.facilityType,
+                  checked: true,
+                  quantity: f.count,
+                  detail: f.description,
+              }))
+            : [
+                  {
+                      type: "인덕션",
+                      checked: true,
+                      quantity: 1,
+                      detail: "예: SK매직 인덕션, 4구",
+                  },
+                  {
+                      type: "오븐",
+                      checked: true,
+                      quantity: 1,
+                      detail: "예: LG 오븐, 230도 가능",
+                  },
+                  {
+                      type: "조리대",
+                      checked: true,
+                      quantity: 1,
+                      detail: "예: 1800X900 조리대",
+                  },
+              ]
+    );
+
+    useEffect(() => {
+        const facilitiesToSave = facilityStates
+            .filter((f) => f.checked && f.type)
+            .map((f) => ({
+                facilityType: f.type,
+                count: f.quantity,
+                description: f.detail,
+            }));
+        setFormData((prev) => ({
+            ...prev,
+            kitchenFacility: facilitiesToSave,
+        }));
+    }, [facilityStates]);
+
+    const handleCheckboxChange = (index) => {
+        const updated = [...facilityStates];
+        updated[index].checked = !updated[index].checked;
+        setFacilityStates(updated);
+    };
+
+    const handleInputChange = (index, field, value) => {
+        const updated = [...facilityStates];
+        updated[index][field] =
+            field === "quantity" ? parseInt(value, 10) : value;
+        setFacilityStates(updated);
+    };
+
+    const handleAddFacility = () => {
+        const newFacility = {
+            type: "",
+            checked: true,
+            quantity: 1,
+            detail: "",
+        };
+        setFacilityStates((prev) => [...prev, newFacility]);
+    };
+
+    const handleDeleteFacility = (index) => {
+        const updated = [...facilityStates];
+        updated.splice(index, 1);
+        setFacilityStates(updated);
+    };
 
     return (
         <Container>
             <SectionTitle>
                 보유하신 주방 설비에 대한 정보를 작성해주세요.
-                <AddButton>+ 항목추가</AddButton>
+                <AddButton onClick={handleAddFacility}>+ 항목추가</AddButton>
             </SectionTitle>
 
             <Table>
                 <thead>
                     <tr>
                         <th>종류</th>
-                        <th>보유 여부</th>
                         <th>수량</th>
                         <th>상세 설명</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    {facilities.map((facility, index) => (
+                    {facilityStates.map((facility, index) => (
                         <tr key={index}>
-                            <td>{facility.type}</td>
                             <td>
-                                <input type="checkbox" />
+                                <Input
+                                    type="text"
+                                    value={facility.type}
+                                    onChange={(e) =>
+                                        handleInputChange(
+                                            index,
+                                            "type",
+                                            e.target.value
+                                        )
+                                    }
+                                />
                             </td>
                             <td>
                                 <Input
                                     type="number"
                                     value={facility.quantity}
+                                    onChange={(e) =>
+                                        handleInputChange(
+                                            index,
+                                            "quantity",
+                                            e.target.value
+                                        )
+                                    }
                                 />
                             </td>
                             <td>
                                 <Input
                                     type="text"
-                                    defaultValue={facility.detail}
+                                    value={facility.detail}
+                                    onChange={(e) =>
+                                        handleInputChange(
+                                            index,
+                                            "detail",
+                                            e.target.value
+                                        )
+                                    }
                                 />
+                            </td>
+                            <td>
+                                <DeleteButton
+                                    onClick={() => handleDeleteFacility(index)}
+                                >
+                                    삭제
+                                </DeleteButton>
                             </td>
                         </tr>
                     ))}

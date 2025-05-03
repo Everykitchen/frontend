@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 
 const Container = styled.div`
@@ -12,7 +12,6 @@ const SectionTitle = styled.h3`
     font-weight: bold;
     margin-bottom: 16px;
     padding-bottom: 6px;
-    border-bottom: 2px solid #f0ad4e;
 `;
 
 const Table = styled.table`
@@ -24,7 +23,7 @@ const Table = styled.table`
     td {
         border: 1px solid #eee;
         padding: 12px 8px;
-        text-align: left;
+        text-align: center;
     }
 
     th {
@@ -45,6 +44,15 @@ const AddButton = styled.button`
     float: right;
 `;
 
+const DeleteButton = styled.button`
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+`;
+
 const Input = styled.input`
     padding: 6px;
     border: 1px solid #ccc;
@@ -54,9 +62,8 @@ const Input = styled.input`
 
 const ButtonContainer = styled.div`
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     margin-top: 30px;
-    gap: 10px;
 `;
 
 const NavButton = styled.button`
@@ -69,41 +76,39 @@ const NavButton = styled.button`
     cursor: pointer;
 `;
 
-const CheckboxLabel = styled.label`
-    margin-left: 8px;
-`;
+const StepTool = ({ formData, setFormData, nextStep, prevStep }) => {
+    const [tools, setTools] = useState(
+        formData.cookingTool.length > 0
+            ? formData.cookingTool
+            : [{ toolName: "", check: true }]
+    );
 
-const StepFacility = ({ formData, setFormData, nextStep, prevStep }) => {
-    const [tools, setTools] = useState([
-        "도마",
-        "전자레인지",
-        "칼 세트",
-        "냄비 / 후라이팬",
-        "체(쌀용)",
-        "임시볼(소/중/대)",
-        "거품기",
-        "주걱",
-        "푸드프로세서",
-        "핸드믹서",
-        "반죽기",
-        "온도계",
-        "마들렌 틀",
-        "휘낭시에 틀",
-        "타르트 틀",
-        "머핀 틀",
-        "돔형판",
-    ]);
+    useEffect(() => {
+        setFormData((prev) => ({
+            ...prev,
+            cookingTool: tools.filter((tool) => tool.check && tool.toolName),
+        }));
+    }, [tools]);
 
     const handleAddTool = () => {
-        setTools([...tools, ""]);
+        setTools((prev) => [...prev, { toolName: "", check: true }]);
     };
 
-    const handleToolChange = (index, value) => {
-        const newTools = [...tools];
-        newTools[index] = value;
-        setTools(newTools);
+    const handleDeleteTool = (index) => {
+        const updated = [...tools];
+        updated.splice(index, 1);
+        setTools(updated);
     };
 
+    const handleToolChange = (index, field, value) => {
+        const updated = [...tools];
+        if (field === "check") {
+            updated[index][field] = value.target.checked;
+        } else {
+            updated[index][field] = value;
+        }
+        setTools(updated);
+    };
     return (
         <Container>
             <SectionTitle>
@@ -112,20 +117,45 @@ const StepFacility = ({ formData, setFormData, nextStep, prevStep }) => {
             </SectionTitle>
 
             <Table>
+                <thead>
+                    <tr>
+                        <th>보유</th>
+                        <th>도구명</th>
+                        <th>삭제</th>
+                    </tr>
+                </thead>
                 <tbody>
                     {tools.map((tool, index) => (
                         <tr key={index}>
-                            <td style={{ width: "30px" }}>
-                                <input type="checkbox" id={`tool-${index}`} />
+                            <td>
+                                <input
+                                    type="checkbox"
+                                    checked={tool.check}
+                                    onChange={(e) =>
+                                        handleToolChange(index, "check", e)
+                                    }
+                                />
                             </td>
                             <td>
                                 <Input
                                     type="text"
-                                    value={tool}
+                                    placeholder="예: 도마"
+                                    value={tool.toolName}
                                     onChange={(e) =>
-                                        handleToolChange(index, e.target.value)
+                                        handleToolChange(
+                                            index,
+                                            "toolName",
+                                            e.target.value
+                                        )
                                     }
                                 />
+                            </td>
+                            <td>
+                                <DeleteButton
+                                    onClick={() => handleDeleteTool(index)}
+                                >
+                                    삭제
+                                </DeleteButton>
                             </td>
                         </tr>
                     ))}
@@ -140,4 +170,4 @@ const StepFacility = ({ formData, setFormData, nextStep, prevStep }) => {
     );
 };
 
-export default StepFacility;
+export default StepTool;

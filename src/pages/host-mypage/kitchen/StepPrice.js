@@ -1,6 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styled from "styled-components";
-import axios from "axios";
 
 const Container = styled.div`
     padding: 40px;
@@ -33,9 +32,9 @@ const FileInput = styled.input`
 `;
 
 const TextArea = styled.textarea`
-    width: 100%; // 부모 기준으로 너비 고정
-    min-height: 120px; // 초기 높이
-    resize: vertical; // 세로(height)만 조절 가능
+    width: 100%;
+    min-height: 120px;
+    resize: vertical;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 6px;
@@ -58,7 +57,6 @@ const ToggleButton = styled.button`
     font-size: 14px;
     cursor: pointer;
     font-weight: 500;
-
     &:hover {
         border-color: #999;
     }
@@ -80,13 +78,11 @@ const Table = styled.table`
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
-
     th,
     td {
         text-align: center;
         padding: 6px 12px;
     }
-
     th {
         font-size: 14px;
         font-weight: bold;
@@ -98,7 +94,6 @@ const BankRow = styled.div`
     display: flex;
     gap: 10px;
     margin-top: 10px;
-
     input,
     select {
         flex: 1;
@@ -107,7 +102,6 @@ const BankRow = styled.div`
         border-radius: 6px;
         height: 40px;
     }
-
     select {
         min-width: 100px;
         max-width: 200px;
@@ -161,50 +155,40 @@ const PreviewText = styled.div`
 `;
 
 const StepPrice = ({ formData, setFormData, nextStep }) => {
-    const [category, setCategory] = useState("");
-    const [imageUrls, setImageUrls] = useState(formData.imageUrls || []);
+    const [category, setCategory] = useState(formData.category || "");
+    const [imageUrls, setImageUrls] = useState(formData.imageList || []);
     const [representativeImage, setRepresentativeImage] = useState(
-        formData.representativeImageUrl || ""
+        imageUrls[0] || ""
     );
 
+    useEffect(() => {
+        setFormData((prev) => ({
+            ...prev,
+            category,
+            imageList: imageUrls,
+        }));
+    }, [category, imageUrls]);
+
     const handlePriceChange = (day, value) => {
-        setFormData({
-            ...formData,
+        setFormData((prev) => ({
+            ...prev,
             prices: {
-                ...formData.prices,
+                ...prev.prices,
                 [day]: value,
             },
-        });
+        }));
     };
 
-    const handleImageUpload = async (files) => {
+    const handleImageUpload = (files) => {
         const uploadedUrls = [];
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
-
-            // ⚠️ 실제 업로드 API는 주석처리하고, 브라우저 URL을 사용
             const localUrl = URL.createObjectURL(file);
             uploadedUrls.push(localUrl);
-
-            // const formData = new FormData();
-            // formData.append("file", file);
-            // try {
-            //     const res = await axios.post("/api/upload/image", formData);
-            //     uploadedUrls.push(res.data); // 실제 URL
-            // } catch (err) {
-            //     console.error("이미지 업로드 실패", err);
-            // }
         }
-
         setImageUrls((prev) => [...prev, ...uploadedUrls]);
-
-        // 대표 이미지가 없을 경우, 첫 번째로 자동 설정
-        if (!representativeImage && uploadedUrls.length > 0) {
+        if (uploadedUrls.length > 0) {
             setRepresentativeImage(uploadedUrls[0]);
-            setFormData((prev) => ({
-                ...prev,
-                representativeImageUrl: uploadedUrls[0],
-            }));
         }
     };
 
@@ -214,9 +198,23 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                 <Label>주방명</Label>
                 <Input
                     placeholder="예: 파이브잇 쿠킹스튜디오"
-                    value={formData.name || ""}
+                    value={formData.kitchenName || ""}
                     onChange={(e) =>
-                        setFormData({ ...formData, name: e.target.value })
+                        setFormData({
+                            ...formData,
+                            kitchenName: e.target.value,
+                        })
+                    }
+                />
+                <Label>전화번호</Label>
+                <Input
+                    placeholder="010-0000-0000"
+                    value={formData.phoneNumber || ""}
+                    onChange={(e) =>
+                        setFormData({
+                            ...formData,
+                            phoneNumber: e.target.value,
+                        })
                     }
                 />
                 <Label>분류</Label>
@@ -244,13 +242,7 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                             <ImageBox
                                 key={index}
                                 selected={representativeImage === url}
-                                onClick={() => {
-                                    setRepresentativeImage(url);
-                                    setFormData((prev) => ({
-                                        ...prev,
-                                        representativeImageUrl: url,
-                                    }));
-                                }}
+                                onClick={() => setRepresentativeImage(url)}
                             >
                                 <PreviewImage
                                     src={url}
@@ -287,6 +279,20 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                         setFormData({ ...formData, location: e.target.value })
                     }
                 />
+                <Label>위도</Label>
+                <Input
+                    value={formData.latitude || ""}
+                    onChange={(e) =>
+                        setFormData({ ...formData, latitude: e.target.value })
+                    }
+                />
+                <Label>경도</Label>
+                <Input
+                    value={formData.longitude || ""}
+                    onChange={(e) =>
+                        setFormData({ ...formData, longitude: e.target.value })
+                    }
+                />
                 <Label>면적</Label>
                 <Input
                     value={formData.size || ""}
@@ -314,23 +320,35 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                         })
                     }
                 />
-                <Label>영업 시간</Label>
+                <Label>오픈 시간</Label>
                 <Input
-                    value={formData.businessHours || ""}
+                    type="time"
+                    value={formData.openTime || ""}
                     onChange={(e) =>
                         setFormData({
                             ...formData,
-                            businessHours: e.target.value,
+                            openTime: e.target.value,
                         })
                     }
                 />
-                <Label>최소 예약시간</Label>
+                <Label>마감 시간</Label>
                 <Input
-                    value={formData.minimumTime || ""}
+                    type="time"
+                    value={formData.closeTime || ""}
                     onChange={(e) =>
                         setFormData({
                             ...formData,
-                            minimumTime: e.target.value,
+                            closeTime: e.target.value,
+                        })
+                    }
+                />
+                <Label>최소 예약시간(분)</Label>
+                <Input
+                    value={formData.minReservationTime || ""}
+                    onChange={(e) =>
+                        setFormData({
+                            ...formData,
+                            minReservationTime: e.target.value,
                         })
                     }
                 />
@@ -355,7 +373,7 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                                 (day) => (
                                     <td key={day}>
                                         <Input
-                                            value={formData.prices[day] || ""}
+                                            value={formData.prices?.[day] || ""}
                                             onChange={(e) =>
                                                 handlePriceChange(
                                                     day,
@@ -369,11 +387,10 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                         </tr>
                     </tbody>
                 </Table>
-
                 <Label>공휴일</Label>
                 <Input
                     placeholder="공휴일 금액"
-                    value={formData.prices["공휴일"] || ""}
+                    value={formData.prices?.["공휴일"] || ""}
                     onChange={(e) =>
                         handlePriceChange("공휴일", e.target.value)
                     }
@@ -385,48 +402,60 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                 <BankRow>
                     <Input
                         placeholder="계좌번호"
-                        value={formData.accountNumber || ""}
+                        value={formData.account?.accountNumber || ""}
                         onChange={(e) =>
                             setFormData({
                                 ...formData,
-                                accountNumber: e.target.value,
+                                account: {
+                                    ...formData.account,
+                                    accountNumber: e.target.value,
+                                },
                             })
                         }
                     />
                     <Input
                         placeholder="예금주명"
-                        value={formData.accountHolder || ""}
+                        value={formData.account?.accountHolder || ""}
                         onChange={(e) =>
                             setFormData({
                                 ...formData,
-                                accountHolder: e.target.value,
+                                account: {
+                                    ...formData.account,
+                                    accountHolder: e.target.value,
+                                },
                             })
                         }
                     />
                     <Select
-                        value={formData.bank || ""}
+                        value={formData.account?.bankName || ""}
                         onChange={(e) =>
-                            setFormData({ ...formData, bank: e.target.value })
+                            setFormData({
+                                ...formData,
+                                account: {
+                                    ...formData.account,
+                                    bankName: e.target.value,
+                                },
+                            })
                         }
                     >
                         <option value="">은행 선택</option>
-                        <option value="신한">신한은행</option>
-                        <option value="국민">국민은행</option>
-                        <option value="우리">우리은행</option>
-                        <option value="하나">하나은행</option>
+                        <option value="신한은행">신한은행</option>
+                        <option value="국민은행">국민은행</option>
+                        <option value="우리은행">우리은행</option>
+                        <option value="하나은행">하나은행</option>
                         <option value="농협">농협</option>
-                        <option value="기업">IBK기업은행</option>
-                        <option value="카카오">카카오뱅크</option>
+                        <option value="IBK기업은행">IBK기업은행</option>
+                        <option value="카카오뱅크">카카오뱅크</option>
                         <option value="케이뱅크">케이뱅크</option>
-                        <option value="토스">토스뱅크</option>
-                        <option value="SC제일">SC제일은행</option>
-                        <option value="씨티">한국씨티은행</option>
-                        <option value="대구">대구은행</option>
-                        <option value="부산">부산은행</option>
-                        <option value="경남">경남은행</option>
-                        <option value="전북">전북은행</option>
-                        <option value="광주">광주은행</option>
-                        <option value="수협">수협은행</option>
+                        <option value="토스뱅크">토스뱅크</option>
+                        <option value="SC제일은행">SC제일은행</option>
+                        <option value="한국씨티은행">한국씨티은행</option>
+                        <option value="대구은행">대구은행</option>
+                        <option value="부산은행">부산은행</option>
+                        <option value="경남은행">경남은행</option>
+                        <option value="전북은행">전북은행</option>
+                        <option value="광주은행">광주은행</option>
+                        <option value="수협은행">수협은행</option>
                     </Select>
                 </BankRow>
             </Section>
