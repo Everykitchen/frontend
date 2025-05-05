@@ -27,7 +27,6 @@ import {
     KitchenManage,
 } from "../pages/host-mypage/HostMyPageIndex";
 import KitchenForm from "../pages/host-mypage/kitchen/KitchenForm";
-
 const AppRouter = () => {
     return (
         <Routes>
