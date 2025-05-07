@@ -72,7 +72,7 @@ const UserSidebar = () => {
         { path: "/mypage/chats", label: "채팅 내역" },
         { divider: true },
         { path: "/mypage/reviews", label: "후기 관리" },
-        { path: "/mypage/favorites", label: "찜 목록" },
+        { path: "/mypage/likes", label: "찜 목록" },
         { divider: true },
         { path: "/mypage", label: "회원 정보 수정" },
     ];
@@ -80,12 +80,15 @@ const UserSidebar = () => {
     const isMenuActive = (path) => {
         // 정확한 경로 매칭
         if (location.pathname === path) return true;
-        
+
         // 채팅방 경로 체크 (/mypage/chats/:id)
-        if (path === "/mypage/chats" && location.pathname.startsWith("/mypage/chats/")) {
+        if (
+            path === "/mypage/chats" &&
+            location.pathname.startsWith("/mypage/chats/")
+        ) {
             return true;
         }
-        
+
         return false;
     };
 

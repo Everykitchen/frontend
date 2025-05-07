@@ -18,6 +18,7 @@ import {
     Reservations,
     ReservationDetail,
     Reviews,
+    Likes,
 } from "../pages/user-mypage/MyPageIndex";
 import UserChatHistory from "../pages/user-mypage/ChatHistory";
 import UserChattingRoom from "../pages/user-mypage/ChattingRoom";
@@ -62,14 +63,6 @@ const AppRouter = () => {
                 }
             />
             <Route
-                path="/mypage/reviews"
-                element={
-                    <ProtectedRoute allowedRole="USER">
-                        <Reviews />
-                    </ProtectedRoute>
-                }
-            />
-            <Route
                 path="/mypage/chats"
                 element={
                     <ProtectedRoute allowedRole="USER">
@@ -93,6 +86,15 @@ const AppRouter = () => {
                     </ProtectedRoute>
                 }
             />
+            <Route
+                path="/mypage/likes"
+                element={
+                    <ProtectedRoute allowedRole="USER">
+                        <Likes />
+                    </ProtectedRoute>
+                }
+            />
+
             <Route
                 path="/host-mypage"
                 element={
