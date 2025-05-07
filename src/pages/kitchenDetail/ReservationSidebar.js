@@ -20,6 +20,7 @@ const RightSection = styled.div`
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  margin-right: 20px;
 `;
 
 const ScrollableContent = styled.div`

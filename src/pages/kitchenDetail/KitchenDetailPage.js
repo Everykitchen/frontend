@@ -10,7 +10,7 @@ import kitchenImage1 from "../../assets/jpg/kitchen1.jpg";
 const Container = styled.div`
     display: flex;
     flex-direction: column;
-    padding: 40px 80px;
+    padding: 40px 0px;
 `;
 
 const ContentWrapper = styled.div`
@@ -241,8 +241,6 @@ const KitchenDetailPage = ({ kitchen = tempKitchenData }) => {
             });
     };
 
-    const averageRating = (kitchen.reviews.reduce((acc, curr) => acc + curr.star, 0) / kitchen.reviews.length).toFixed(1);
-
     return (
         <Container>
             <ImageGallery images={kitchen.images} />
@@ -250,32 +248,12 @@ const KitchenDetailPage = ({ kitchen = tempKitchenData }) => {
 
             <ContentWrapper>
                 <LeftSection>
-                    <div style={{ marginBottom: 16 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "80px" }}>
-                            <KitchenName>{kitchen.kitchenName}</KitchenName>
-                            <ShareButton onClick={handleShare}>
-                                <img src={shareIcon} alt="공유" style={{ width: 20, height: 20 }} />
-                            </ShareButton>
-                        </div>
-                    </div>
-                    <div style={{ margin: "8px 0", lineHeight: "1.4" }}>
-                        <div>{kitchen.location}</div>
-                        <div>{kitchen.defaultPrice[0].price.toLocaleString()}원 ~ / 1시간</div>
-                        <div style={{ marginTop: 5, fontSize: 14, color: "#555" }}>
-                            <img src={starIcon} alt="별점" style={{ width: 14, marginRight: 4 }} />
-                            {kitchen.reviews.length > 0 ? 
-                                `${averageRating} | ` 
-                                : ''
-                            }
-                            후기 ({kitchen.reviewCount})
-                        </div>
-                    </div>
-
                     <InfoSection
                         selectedTab={selectedTab}
                         setSelectedTab={setSelectedTab}
                         sections={sections}
                         kitchenData={kitchen}
+                        onShare={handleShare}
                     />
                 </LeftSection>
 
