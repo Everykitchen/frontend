@@ -9,6 +9,7 @@ const Wrapper = styled.div`
     padding: 16px 20px;
     margin-bottom: 12px;
     background-color: #fff;
+    cursor: pointer;
 `;
 
 const Info = styled.div`

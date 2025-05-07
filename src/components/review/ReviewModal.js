@@ -1,4 +1,4 @@
-import styled, { css } from "styled-components";
+import styled from "styled-components";
 
 const ModalOverlay = styled.div`
     position: fixed;
@@ -15,89 +15,129 @@ const ModalOverlay = styled.div`
 
 const ModalContent = styled.div`
     background: white;
-    padding: 30px;
-    border-radius: 12px;
-    width: 500px;
+    padding: 50px 40px;
+    border-radius: 16px;
+    width: 460px;
     max-width: 90%;
     position: relative;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 `;
 
 const CloseButton = styled.button`
     position: absolute;
-    top: 16px;
-    right: 16px;
+    top: 20px;
+    right: 20px;
     background: none;
     border: none;
-    font-size: 20px;
+    font-size: 24px;
     cursor: pointer;
 `;
 
-const ModalTitle = styled.h2`
-    font-size: 24px;
-    font-weight: bold;
+const Title = styled.h2`
+    font-size: 26px;
+    font-weight: 700;
     margin-bottom: 6px;
 `;
 
-const ModalSub = styled.p`
+const Subtitle = styled.p`
     font-size: 14px;
     color: #ff6b00;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
 `;
 
 const StudioName = styled.h3`
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 10px;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 16px;
 `;
 
-const TimeText = styled.p`
-    font-size: 14px;
-    margin-bottom: 8px;
-`;
-
-const Label = styled.label`
-    font-size: 14px;
-    font-weight: bold;
-`;
-
-const TextArea = styled.textarea`
-    resize: none;
-    height: 100px;
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    font-size: 14px;
-    width: 100%;
-`;
-
-const StarContainer = styled.div`
+const InfoSplitSection = styled.div`
     display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 30px;
+`;
+
+const Left = styled.div`
+    flex: 1;
+`;
+
+const StudioImage = styled.img`
+    width: 100%;
+    height: 150px;
+    object-fit: covr;
+    border-radius: 10px;
+`;
+
+const Right = styled.div`
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    text-align: left;
+`;
+
+const StudioDate = styled.p`
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 12px;
+    padding-left: 4px;
+`;
+
+const RatingNumber = styled.p`
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 6px auto;
+    padding-left: 4px;
+`;
+
+const Stars = styled.div`
+    display: flex;
+    justify-content: flex-left;
     gap: 6px;
 `;
 
 const Star = styled.span`
     font-size: 24px;
-    color: #ccc;
+    color: ${(props) => (props.active ? "#ffbc39" : "#ccc")};
     cursor: pointer;
+`;
 
-    ${(props) =>
-        props.active &&
-        css`
-            color: #ffbc39;
-        `}
+const Label = styled.label`
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+`;
+
+const TextArea = styled.textarea`
+    width: 100%;
+    height: 150px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 14px;
+    resize: none;
+    margin-bottom: 24px;
+    ::placeholder {
+        color: #bbb;
+    }
 `;
 
 const SubmitButton = styled.button`
-    margin-top: 16px;
-    padding: 10px;
-    background-color: #ffbc39;
-    border: none;
-    border-radius: 6px;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 14px;
     width: 100%;
+    padding: 14px 0;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: #ffbc39;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    &:hover {
+        background-color: #f0a500;
+    }
 `;
 
 const ReviewModal = ({
@@ -112,38 +152,46 @@ const ReviewModal = ({
     return (
         <ModalOverlay onClick={onClose}>
             <ModalContent onClick={(e) => e.stopPropagation()}>
-                <CloseButton onClick={onClose}>&times;</CloseButton>
-                <ModalTitle>후기 작성</ModalTitle>
-                <ModalSub>주방에 대한 별점과 후기를 남겨주세요.</ModalSub>
+                <CloseButton onClick={onClose}>×</CloseButton>
+                <Title>후기 작성</Title>
+                <Subtitle>주방에 대한 별점과 후기를 남겨주세요.</Subtitle>
+
                 <StudioName>{review?.name}</StudioName>
-                <TimeText>
-                    {review?.date} <br /> {review?.time}
-                </TimeText>
-                <p
-                    style={{
-                        fontWeight: "bold",
-                        fontSize: "24px",
-                        margin: "12px 0 6px",
-                    }}
-                >
-                    {rating}
-                </p>
-                <StarContainer>
-                    {[1, 2, 3, 4, 5].map((num) => (
-                        <Star
-                            key={num}
-                            active={num <= rating}
-                            onClick={() => setRating(num)}
-                        >
-                            ★
-                        </Star>
-                    ))}
-                </StarContainer>
-                <Label style={{ marginTop: "20px" }}>후기 작성</Label>
+
+                <InfoSplitSection>
+                    <Left>
+                        <StudioImage
+                            src={review?.image || "/default-kitchen.jpg"}
+                            alt="studio"
+                        />
+                    </Left>
+                    <Right>
+                        <div>
+                            <StudioDate>
+                                {review?.date} <br />
+                                {review?.time}
+                            </StudioDate>
+                            <RatingNumber>{rating}</RatingNumber>
+                            <Stars>
+                                {[1, 2, 3, 4, 5].map((num) => (
+                                    <Star
+                                        key={num}
+                                        active={num <= rating}
+                                        onClick={() => setRating(num)}
+                                    >
+                                        ★
+                                    </Star>
+                                ))}
+                            </Stars>
+                        </div>
+                    </Right>
+                </InfoSplitSection>
+
+                <Label>후기 작성</Label>
                 <TextArea
+                    placeholder="후기를 입력해주세요"
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
-                    placeholder="후기를 입력해주세요"
                 />
                 <SubmitButton onClick={handleSubmit}>작성 완료</SubmitButton>
             </ModalContent>

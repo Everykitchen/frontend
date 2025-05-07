@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import Sidebar from "../../components/UserSideBar";
-import PendingReview from "../../components/review/PendingReview";
+import PendingReview from "../../components/review/ReviewPending";
 import ReviewCard from "../../components/review/ReviewCard";
 import ReviewModal from "../../components/review/ReviewModal";
 import { useState } from "react";
@@ -21,7 +21,6 @@ const Title = styled.h2`
     font-weight: bold;
     margin-bottom: 40px;
     color: #222;
-    border-bottom: 2px solid #ffbc39;
     padding-bottom: 8px;
 `;
 
