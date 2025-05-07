@@ -121,7 +121,10 @@ function Login() {
 
                 localStorage.setItem("token", accessToken);
                 localStorage.setItem("refreshToken", refreshToken);
-                window.location.href = "/";
+                localStorage.setItem("role", tokenRole);
+
+                window.location.href =
+                    tokenRole === "HOST" ? "/host-mypage" : "/";
             } else {
                 setError("이메일 또는 비밀번호가 올바르지 않습니다.");
             }
