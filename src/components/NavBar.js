@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Logo from "./Logo";
 
 import mapIcon from "../assets/icons/mapIcon.svg";
@@ -72,6 +72,18 @@ const IconImg = styled.img`
 `;
 
 const Navbar = () => {
+    const navigate = useNavigate();
+
+    const handleMypageClick = (e) => {
+        e.preventDefault();
+        const role = localStorage.getItem("role");
+        if (role === "HOST") {
+            navigate("/host-mypage");
+        } else {
+            navigate("/mypage");
+        }
+    };
+
     return (
         <HeaderWrapper>
             <Logo />
@@ -89,7 +101,7 @@ const Navbar = () => {
                 <IconLink to="/favorites">
                     <IconImg src={heartIcon} alt="찜" width={"20px"} height={"20px"} />
                 </IconLink>
-                <IconLink to="/mypage">
+                <IconLink to="#" onClick={handleMypageClick}>
                     <IconImg src={userIcon} alt="마이페이지" width={"17px"} height={"17px"} />
                 </IconLink>
             </IconSection>
