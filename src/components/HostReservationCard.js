@@ -1,5 +1,4 @@
 import styled from "styled-components";
-import kitchenImage from "../assets/jpg/kitchen1.jpg";
 
 const Card = styled.div`
     border: 1px solid #E0E0E0;
@@ -45,19 +44,25 @@ const ReservationNumber = styled.div`
 `;
 
 const KitchenName = styled.div`
-    font-size: 18px;
-    font-weight: bold;
+    font-size: 20px;
+    font-weight: 700;
 `;
 
 const UserName = styled.div`
     color: #000;
-    font-size: 20px;
-    font-weight: 500;
+    font-size: 18px;
+    font-weight: 600;
 `;
 
 const DateTime = styled.div`
     color: #333;
     font-size: 14px;
+`;
+
+const Location = styled.div`
+    color: #888;
+    font-size: 13px;
+    margin-bottom: 4px;
 `;
 
 const Status = styled.div`
@@ -74,11 +79,12 @@ const Status = styled.div`
 const HostReservationCard = ({ reservation, onClick }) => {
     return (
         <Card onClick={onClick}>
-            <KitchenImage src={kitchenImage} alt="주방 이미지" />
+            <KitchenImage src={reservation.imageUrl} alt="주방 이미지" />
             <ContentWrapper>
                 <ReservationInfo>
                     <ReservationNumber>예약번호 {reservation.id}</ReservationNumber>
                     <KitchenName>{reservation.kitchenName}</KitchenName>
+                    <Location>{reservation.location}</Location>
                     <UserName>{reservation.userName} 님</UserName>
                     <DateTime>{reservation.date} {reservation.time} ({reservation.people}인)</DateTime>
                 </ReservationInfo>

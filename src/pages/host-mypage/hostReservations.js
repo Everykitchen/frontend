@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import HostSideBar from "../../components/HostSideBar";
 import HostReservationCard from "../../components/HostReservationCard";
 import styled from "styled-components";
+import axios from "../../api/axiosInstance";
 
 const Container = styled.div`
     display: flex;
@@ -62,125 +63,55 @@ const PageButton = styled.button`
     }
 `;
 
-// 임시 데이터
-const tempReservations = [
-    {
-        id: 19980719,
-        userName: "김철수",
-        date: "2025.3.13",
-        time: "15:00 ~ 17:00",
-        status: "진행중",
-        kitchenName: "파이브잇 쿠킹스튜디오",
-        people: 4
-    },
-    {
-        id: 19980720,
-        userName: "이영희",
-        date: "2025.3.13",
-        time: "10:00 ~ 12:00",
-        status: "진행중",
-        kitchenName: "파이브잇 쿠킹스튜디오",
-        people: 2
-    },
-    {
-        id: 19980721,
-        userName: "박지민",
-        date: "2025.3.14",
-        time: "13:00 ~ 15:00",
-        status: "진행중",
-        kitchenName: "파이브잇 쿠킹스튜디오",
-        people: 3
-    },
-    {
-        id: 19980722,
-        userName: "최수진",
-        date: "2025.3.14",
-        time: "16:00 ~ 18:00",
-        status: "진행중",
-        kitchenName: "파이브잇 쿠킹스튜디오",
-        people: 5
-    },
-    {
-        id: 19980723,
-        userName: "정민우",
-        date: "2025.3.15",
-        time: "11:00 ~ 13:00",
-        status: "진행중",
-        kitchenName: "파이브잇 쿠킹스튜디오",
-        people: 2
-    },
-    {
-        id: 19980724,
-        userName: "강다희",
-        date: "2025.3.12",
-        time: "14:00 ~ 16:00",
-        status: "완료",
-        kitchenName: "파이브잇 쿠킹스튜디오",
-        people: 4
-    },
-    {
-        id: 19980725,
-        userName: "송민석",
-        date: "2025.3.12",
-        time: "17:00 ~ 19:00",
-        status: "완료",
-        kitchenName: "파이브잇 쿠킹스튜디오",
-        people: 3
-    },
-    {
-        id: 19980726,
-        userName: "임서연",
-        date: "2025.3.11",
-        time: "10:00 ~ 12:00",
-        status: "완료",
-        kitchenName: "파이브잇 쿠킹스튜디오",
-        people: 6
-    },
-    {
-        id: 19980727,
-        userName: "한주원",
-        date: "2025.3.11",
-        time: "13:00 ~ 15:00",
-        status: "완료",
-        kitchenName: "파이브잇 쿠킹스튜디오",
-        people: 2
-    },
-    {
-        id: 19980728,
-        userName: "오지현",
-        date: "2025.3.11",
-        time: "16:00 ~ 18:00",
-        status: "완료",
-        kitchenName: "파이브잇 쿠킹스튜디오",
-        people: 4
-    }
-];
+// status 변환 함수
+const getStatusLabel = (status) => {
+    if (status === "RESERVED" || status === "PENDING_PAYMENT") return "진행중";
+    if (status === "COMPLETED_PAYMENT") return "완료";
+    return status;
+};
 
 const HostReservations = () => {
     const [activeTab, setActiveTab] = useState("전체");
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 5;
+    const [reservations, setReservations] = useState([]);
+    const [totalPages, setTotalPages] = useState(1);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const itemsPerPage = 10;
     const navigate = useNavigate();
 
-    // 진행중인 예약을 먼저 보여주기 위해 정렬
-    const sortedReservations = [...tempReservations].sort((a, b) => {
-        if (a.status === "진행중" && b.status !== "진행중") return -1;
-        if (a.status !== "진행중" && b.status === "진행중") return 1;
-        return 0;
-    });
+    // API 호출
+    useEffect(() => {
+        const fetchReservations = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const res = await axios.get(`/api/host/reservation?page=${currentPage - 1}&size=${itemsPerPage}`);
+                setReservations(res.data.content || []);
+                setTotalPages(res.data.totalPages || 1);
+            } catch (err) {
+                setError("예약 내역을 불러오지 못했습니다.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchReservations();
+    }, [currentPage]);
 
+    // 탭 필터링
     const filteredList =
         activeTab === "전체"
-            ? sortedReservations
-            : sortedReservations.filter((item) => 
-                activeTab === "완료" ? item.status === "완료" : item.status === "진행중"
+            ? reservations
+            : reservations.filter((item) =>
+                activeTab === "완료"
+                    ? getStatusLabel(item.status) === "완료"
+                    : getStatusLabel(item.status) === "진행중"
             );
 
+    const currentItems = filteredList;
+
     // 페이지네이션 계산
-    const totalPages = Math.ceil(filteredList.length / itemsPerPage);
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = filteredList.slice(indexOfFirstItem, indexOfLastItem);
+    // API에서 이미 페이징된 데이터를 주므로, currentItems = filteredList
 
     // 페이지 변경 핸들러
     const handlePageChange = (pageNumber) => {
@@ -208,26 +139,39 @@ const HostReservations = () => {
                         >
                             {tab} (
                             {tab === "전체"
-                                ? tempReservations.length
-                                : tempReservations.filter(
-                                      (item) => 
-                                        tab === "완료" ? item.status === "완료" : item.status === "진행중"
+                                ? reservations.length
+                                : reservations.filter(
+                                      (item) =>
+                                        tab === "완료"
+                                            ? getStatusLabel(item.status) === "완료"
+                                            : getStatusLabel(item.status) === "진행중"
                                   ).length}
                             )
                         </Tab>
                     ))}
                 </TabMenu>
-
+                {loading && <div>로딩 중...</div>}
+                {error && <div style={{ color: 'red' }}>{error}</div>}
+                {!loading && !error && currentItems.length === 0 && <div>내역이 없습니다.</div>}
                 {currentItems.map((reservation) => (
                     <HostReservationCard
-                        key={reservation.id}
-                        reservation={reservation}
+                        key={reservation.reservationId}
+                        reservation={{
+                            id: reservation.reservationId,
+                            kitchenName: reservation.kitchenName,
+                            imageUrl: reservation.imageUrl,
+                            location: reservation.location,
+                            date: reservation.date,
+                            time: `${reservation.startTime} ~ ${reservation.endTime}`,
+                            people: reservation.clientNumber,
+                            userName: reservation.clientName,
+                            status: getStatusLabel(reservation.status),
+                        }}
                         onClick={() =>
-                            navigate(`/host-mypage/reservations/${reservation.id}`)
+                            navigate(`/host-mypage/reservations/${reservation.reservationId}`)
                         }
                     />
                 ))}
-
                 {totalPages > 1 && (
                     <Pagination>
                         <PageButton
