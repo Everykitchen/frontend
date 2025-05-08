@@ -4,8 +4,9 @@ import Login from "../pages/Login";
 import KitchenDetailPage from "../pages/kitchenDetail/KitchenDetailPage";
 import SignupChoicePage from "../pages/signup/SignupChoicePage";
 import UserSignupPage from "../pages/signup/UserSignupPage";
+import UserSignupSuccess from "../pages/signup/UserSignupSuccess";
 import HostSignupPage from "../pages/signup/HostSignupPage";
-
+import HostSignupSuccess from "../pages/signup/HostSignupSuccess";
 import HostReservations from "../pages/host-mypage/hostReservations";
 import HostReservationDetail from "../pages/host-mypage/HostReservationDetail";
 import HostSales from "../pages/host-mypage/HostSales";
@@ -35,7 +36,9 @@ const AppRouter = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignupChoicePage />} />
             <Route path="/signup/user" element={<UserSignupPage />} />
+            <Route path="/signup/user/success" element={<UserSignupSuccess />} />
             <Route path="/signup/host" element={<HostSignupPage />} />
+            <Route path="/signup/host/success" element={<HostSignupSuccess />} />
 
             <Route
                 path="/mypage"
@@ -158,7 +161,7 @@ const AppRouter = () => {
                     </ProtectedRoute>
                 }
             />
-            <Route path="/kitchen-detail" element={<KitchenDetailPage />} />
+            <Route path="/kitchen-detail/:id" element={<KitchenDetailPage />} />
         </Routes>
     );
 };

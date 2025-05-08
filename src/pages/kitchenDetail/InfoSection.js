@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import mapPlaceholder from "../../assets/jpg/map.jpg";
 import starIcon from "../../assets/icons/starIcon.svg";
+import shareIcon from "../../assets/icons/shareIcon.svg";
 
 const Container = styled.div`
     max-width: 1000px;
@@ -290,7 +291,48 @@ const PageButton = styled.button`
     }
 `;
 
-const InfoSection = ({ selectedTab, setSelectedTab, sections, kitchenData }) => {
+const TopInfoWrapper = styled.div`
+  margin-bottom: 16px;
+`;
+const TopRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 80px;
+`;
+const KitchenName = styled.h1`
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 100%;
+  letter-spacing: -0.64px;
+`;
+const ShareButton = styled.button`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #f5f5f5;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  &:hover {
+    background-color: #ebebeb;
+  }
+`;
+const KitchenInfoLine = styled.div`
+  margin: 8px 0;
+  line-height: 1.4;
+`;
+const StarLine = styled.div`
+  margin-top: 5px;
+  font-size: 14px;
+  color: #555;
+  display: flex;
+  align-items: center;
+`;
+
+const InfoSection = ({ selectedTab, setSelectedTab, sections, kitchenData, onShare }) => {
     const REVIEWS_PER_PAGE = 3;
     const [currentPage, setCurrentPage] = useState(1);
     const totalPages = Math.ceil(kitchenData.reviews.length / REVIEWS_PER_PAGE);
@@ -339,8 +381,28 @@ const InfoSection = ({ selectedTab, setSelectedTab, sections, kitchenData }) => 
         sections["후기"].current?.scrollIntoView({ behavior: "smooth" });
     };
 
+    // 별점 평균 계산
+    const averageRating = (kitchenData.reviews.reduce((acc, curr) => acc + curr.star, 0) / kitchenData.reviews.length).toFixed(1);
+
     return (
         <Container>
+            {/* 상단 주방 정보 영역 */}
+            <TopInfoWrapper>
+                <TopRow>
+                    <KitchenName>{kitchenData.kitchenName}</KitchenName>
+                    <ShareButton onClick={onShare}>
+                        <img src={shareIcon} alt="공유" style={{ width: 20, height: 20 }} />
+                    </ShareButton>
+                </TopRow>
+                <KitchenInfoLine>{kitchenData.location}</KitchenInfoLine>
+                <KitchenInfoLine>{kitchenData.defaultPrice[0].price.toLocaleString()}원 ~ / 1시간</KitchenInfoLine>
+                <StarLine>
+                    <img src={starIcon} alt="별점" style={{ width: 14, marginRight: 4 }} />
+                    {kitchenData.reviews.length > 0 ? `${averageRating} | ` : ''}
+                    후기 ({kitchenData.reviewCount})
+                </StarLine>
+            </TopInfoWrapper>
+
             <StickyTabNav>
                 <TabNav>
                     {Object.keys(sections).map((tab) => (
@@ -381,7 +443,7 @@ const InfoSection = ({ selectedTab, setSelectedTab, sections, kitchenData }) => 
                     </tr>
                     <tr>
                         <td>영업 시간</td>
-                        <td>{kitchenData.businessHours}</td>
+                        <td>{kitchenData.openTime} - {kitchenData.closeTime}</td>
                     </tr>
                 </tbody>
             </InfoTable>
@@ -414,7 +476,7 @@ const InfoSection = ({ selectedTab, setSelectedTab, sections, kitchenData }) => 
                         .filter(tool => tool.check)
                         .map((tool, index) => (
                             <ToolItem key={index}>
-                                {tool.toolName}
+                                {tool.name}
                             </ToolItem>
                         ))}
                 </ToolGrid>
@@ -426,7 +488,7 @@ const InfoSection = ({ selectedTab, setSelectedTab, sections, kitchenData }) => 
                         .filter(item => item.check)
                         .map((item, index) => (
                             <ToolItem key={index}>
-                                {item.itemName}
+                                {item.name}
                             </ToolItem>
                         ))}
                 </ToolGrid>
@@ -436,25 +498,52 @@ const InfoSection = ({ selectedTab, setSelectedTab, sections, kitchenData }) => 
             <SectionTitle ref={sections["재료정보"]} data-tab="재료정보">
                 재료정보
             </SectionTitle>
-            {kitchenData.ingredientCategories.map((category, index) => (
-                <Box key={index}>
-                    <CategoryTitle>{category.categoryName}</CategoryTitle>
-                    <IngredientContainer>
-                        <IngredientHeader>
-                            <div>재료명</div>
-                            <div>기준 단위</div>
-                            <div>금액</div>
-                        </IngredientHeader>
-                        {category.ingredients.map((ingredient, idx) => (
-                            <IngredientItem key={idx}>
-                                <div>{ingredient.name}</div>
-                                <div>{ingredient.baseUnit}</div>
-                                <div>{ingredient.price.toLocaleString()}원</div>
-                            </IngredientItem>
-                        ))}
-                    </IngredientContainer>
-                </Box>
-            ))}
+            <Box>
+                <CategoryTitle>기본재료</CategoryTitle>
+                <IngredientContainer>
+                    <IngredientHeader>
+                        <div>재료명</div>
+                        <div>기준 단위</div>
+                        <div>금액</div>
+                    </IngredientHeader>
+                    {kitchenData.ingredients && kitchenData.ingredients.filter(ingredient => !ingredient.additional).length > 0 ? (
+                        kitchenData.ingredients
+                            .filter(ingredient => !ingredient.additional)
+                            .map((ingredient, idx) => (
+                                <IngredientItem key={idx}>
+                                    <div>{ingredient.name}</div>
+                                    <div>{ingredient.baseUnit}</div>
+                                    <div>{ingredient.price.toLocaleString()}원</div>
+                                </IngredientItem>
+                            ))
+                    ) : (
+                        <div style={{ padding: 16, color: '#888', textAlign: 'center' }}>등록된 기본재료가 없습니다.</div>
+                    )}
+                </IngredientContainer>
+            </Box>
+            <Box>
+                <CategoryTitle>추가재료</CategoryTitle>
+                <IngredientContainer>
+                    <IngredientHeader>
+                        <div>재료명</div>
+                        <div>기준 단위</div>
+                        <div>금액</div>
+                    </IngredientHeader>
+                    {kitchenData.ingredients && kitchenData.ingredients.filter(ingredient => ingredient.additional).length > 0 ? (
+                        kitchenData.ingredients
+                            .filter(ingredient => ingredient.additional)
+                            .map((ingredient, idx) => (
+                                <IngredientItem key={idx}>
+                                    <div>{ingredient.name}</div>
+                                    <div>{ingredient.baseUnit}</div>
+                                    <div>{ingredient.price.toLocaleString()}원</div>
+                                </IngredientItem>
+                            ))
+                    ) : (
+                        <div style={{ padding: 16, color: '#888', textAlign: 'center' }}>등록된 추가재료가 없습니다.</div>
+                    )}
+                </IngredientContainer>
+            </Box>
 
             {/* 후기 */}
             <SectionTitle ref={sections["후기"]} data-tab="후기">
