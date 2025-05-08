@@ -63,9 +63,8 @@ const Reservation = () => {
 
     const statusMap = {
         전체: null,
-        예약완료: "RESERVED",
-        정산대기: "PENDING_PAYMENT",
-        정산완료: "COMPLETED_PAYMENT",
+        진행중: ["RESERVED", "PENDING_PAYMENT"],
+        완료: ["COMPLETED_PAYMENT"],
     };
 
     useEffect(() => {
@@ -84,10 +83,10 @@ const Reservation = () => {
     }, []);
 
     const filteredList = statusMap[activeTab]
-        ? reservationList.filter((item) => item.status === statusMap[activeTab])
+        ? reservationList.filter((item) =>
+              statusMap[activeTab].includes(item.status)
+          )
         : reservationList;
-
-    console.log(reservationList);
 
     return (
         <Container>
@@ -95,7 +94,7 @@ const Reservation = () => {
             <ContentWrapper>
                 <Title>예약 내역</Title>
                 <TabMenu>
-                    {["전체", "예약완료", "정산대기", "정산완료"].map((tab) => (
+                    {["전체", "진행중", "완료"].map((tab) => (
                         <Tab
                             key={tab}
                             active={activeTab === tab}
@@ -103,8 +102,8 @@ const Reservation = () => {
                         >
                             {tab} (
                             {statusMap[tab]
-                                ? reservationList.filter(
-                                      (item) => item.status === statusMap[tab]
+                                ? reservationList.filter((item) =>
+                                      statusMap[tab].includes(item.status)
                                   ).length
                                 : reservationList.length}
                             )
