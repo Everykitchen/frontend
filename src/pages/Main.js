@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 import axios from "axios";
+import api from "../api/axiosInstance";
 import FilterBar from "../components/FilterBar";
 import StoreCard from "../components/StoreCard";
 
@@ -43,39 +44,52 @@ const MainPage = () => {
 
     const fetchStores = async (pageNum = 0) => {
         try {
-            const response = await axios.get("/api/common/kitchen", {
-                params: {
-                    location: "",
-                    date: "",
-                    count: "",
-                    price: "",
-                    page: pageNum,
-                    size: 10,
-                },
-            });
+            const [storeRes, likedIds] = await Promise.all([
+                axios.get("/api/common/kitchen", {
+                    params: {
+                        location: "",
+                        date: "",
+                        count: "",
+                        price: "",
+                        page: pageNum,
+                        size: 10,
+                    },
+                }),
+            ]);
 
-            const kitchens = response.data?.content || [];
+            const kitchens = storeRes.data?.content || [];
 
             const transformed = kitchens.map((kitchen) => ({
                 id: kitchen.id,
-                imageUrl:
-                    kitchen.image || "https://via.placeholder.com/240x160",
-                location: kitchen.location || "위치 정보 없음",
-                name: kitchen.kitchenName || "이름 없음",
+                imageUrl: kitchen.image,
+                location: kitchen.location,
+                name: kitchen.kitchenName,
                 price: kitchen.defaultPrice
                     ? `${kitchen.defaultPrice.toLocaleString()}원~`
                     : "가격 정보 없음",
-                time: "1시간", // API에서 제공되면 교체
+                time: "1시간",
                 tags: kitchen.tag
                     ? [kitchen.tag === "KITCHEN" ? "쿠킹" : "베이킹"]
                     : [],
+                isLiked: kitchen.isLiked ?? false,
+                review: kitchen.avgStar || 0,
+                reviewCount: kitchen.reviewCount || 0,
             }));
 
             setStoreList(transformed);
-            setTotalPages(response.data.totalPages || 1);
+            setTotalPages(storeRes.data.totalPages || 1);
         } catch (err) {
             console.error("주방 목록 불러오기 실패", err);
         }
+    };
+
+    // 찜 토글 시 상태 반영
+    const handleLikeToggle = (id, isNowLiked) => {
+        setStoreList((prev) =>
+            prev.map((store) =>
+                store.id === id ? { ...store, isLiked: isNowLiked } : store
+            )
+        );
     };
 
     useEffect(() => {
@@ -87,7 +101,11 @@ const MainPage = () => {
             <FilterBar />
             <StoreList>
                 {storeList.map((store) => (
-                    <StoreCard key={store.id} store={store} />
+                    <StoreCard
+                        key={store.id}
+                        store={store}
+                        onLikeToggle={handleLikeToggle}
+                    />
                 ))}
             </StoreList>
 

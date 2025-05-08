@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import Main from "../pages/Main";
 import Login from "../pages/Login";
 import KitchenDetailPage from "../pages/kitchenDetail/KitchenDetailPage";
@@ -29,16 +29,25 @@ import {
     KitchenManage,
 } from "../pages/host-mypage/HostMyPageIndex";
 import KitchenForm from "../pages/host-mypage/kitchen/KitchenForm";
+
 const AppRouter = () => {
+    const location = useLocation();
+
     return (
-        <Routes>
+        <Routes key={location.pathname} location={location}>
             <Route path="/" element={<Main />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignupChoicePage />} />
             <Route path="/signup/user" element={<UserSignupPage />} />
-            <Route path="/signup/user/success" element={<UserSignupSuccess />} />
+            <Route
+                path="/signup/user/success"
+                element={<UserSignupSuccess />}
+            />
             <Route path="/signup/host" element={<HostSignupPage />} />
-            <Route path="/signup/host/success" element={<HostSignupSuccess />} />
+            <Route
+                path="/signup/host/success"
+                element={<HostSignupSuccess />}
+            />
 
             <Route
                 path="/mypage"
