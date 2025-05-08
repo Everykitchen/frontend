@@ -35,7 +35,13 @@ const TopInfo = styled.div`
 
 const StatusBadge = styled.div`
     background-color: ${(props) =>
-        props.status === "진행중" ? "#FFA500" : "#888"};
+        props.status === "RESERVED"
+            ? "#ffbc39"
+            : props.status === "PENDING_PAYMENT"
+            ? "#4da6ff"
+            : props.status === "COMPLETED_PAYMENT"
+            ? "#5cb85c"
+            : "#888"};
     color: white;
     border-radius: 6px;
     padding: 6px 12px;
@@ -71,23 +77,41 @@ const Time = styled.div`
 const ReservationCard = ({ reservation }) => {
     const navigate = useNavigate();
 
+    const mapStatusToLabel = (status) => {
+        switch (status) {
+            case "RESERVED":
+                return "예약완료";
+            case "PENDING_PAYMENT":
+                return "정산대기";
+            case "COMPLETED_PAYMENT":
+                return "정산완료";
+            default:
+                return "알수없음";
+        }
+    };
+
     return (
         <Card
-            onClick={() => navigate(`/mypage/reservations/${reservation.id}`)}
+            onClick={() =>
+                navigate(`/mypage/reservations/${reservation.reservationId}`)
+            }
         >
-            <Image src={reservation.imageUrl} />
+            <Image src={reservation.kitchenImageUrl} alt="kitchen" />
             <Info>
                 <TopInfo>
-                    <Name>{reservation.name}</Name>
+                    <Name>{reservation.kitchenName}</Name>
                     <StatusBadge status={reservation.status}>
-                        {reservation.status}
+                        {mapStatusToLabel(reservation.status)}
                     </StatusBadge>
                 </TopInfo>
                 <ReservationNumber>
-                    예약 번호 {reservation.id}
+                    예약 번호 {reservation.reservationId}
                 </ReservationNumber>
-                <Location>{reservation.location}</Location>
-                <Time>{reservation.time}</Time>
+                <Location>{reservation.kitchenLocation}</Location>
+                <Time>
+                    {reservation.reservationDate} /{" "}
+                    {reservation.reservationTime}
+                </Time>
             </Info>
         </Card>
     );

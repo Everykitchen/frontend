@@ -3,7 +3,8 @@ import { useParams } from "react-router-dom";
 import Sidebar from "../../components/UserSideBar";
 import chatIcon from "../../assets/icons/chat.svg";
 import amountIcon from "../../assets/icons/amount.svg";
-import reservationList from "../../assets/ReservationData.json";
+import { useEffect, useState } from "react";
+import api from "../../api/axiosInstance";
 
 const Container = styled.div`
     display: flex;
@@ -151,12 +152,37 @@ const PayButton = styled.div`
     font-weight: bold;
     z-index: 1;
 `;
-
 const ReservationDetail = () => {
     const { id } = useParams();
+    const [reservation, setReservation] = useState(null);
 
-    // 더미 데이터 (실제 API 연결 예정)
-    const reservation = reservationList.find((r) => r.id === id);
+    useEffect(() => {
+        const fetchDetail = async () => {
+            try {
+                const response = await api.get(`/api/user/reservation/${id}`);
+                setReservation(response.data);
+            } catch (error) {
+                console.error("예약 상세 정보 로드 실패:", error);
+            }
+        };
+
+        fetchDetail();
+    }, [id]);
+
+    if (!reservation) return <div>로딩 중...</div>;
+
+    const mapStatusToLabel = (status) => {
+        switch (status) {
+            case "RESERVED":
+                return "예약완료";
+            case "PENDING_PAYMENT":
+                return "정산대기";
+            case "COMPLETED_PAYMENT":
+                return "정산완료";
+            default:
+                return "알수없음";
+        }
+    };
 
     return (
         <Container>
@@ -165,35 +191,48 @@ const ReservationDetail = () => {
                 <Title>상세 예약 내역</Title>
 
                 <Card>
-                    <PayButton>{reservation.paymentStatus}</PayButton>
+                    <PayButton>
+                        {mapStatusToLabel(reservation.status)}
+                    </PayButton>
 
-                    <Image src={reservation.imageUrl} />
+                    <Image
+                        src={reservation.kitchenImageUrl}
+                        alt="주방 이미지"
+                    />
                     <CardContent>
                         <StudioInfo>
-                            <StudioName>{reservation.name}</StudioName>
-                            <Location>{reservation.address}</Location>
-                            <Time>{reservation.time}</Time>
-                            <StatusText>{reservation.status}</StatusText>
+                            <StudioName>{reservation.kitchenName}</StudioName>
+                            <Location>{reservation.kitchenLocation}</Location>
+                            <Time>
+                                {reservation.reservationDate} /{" "}
+                                {reservation.reservationTime}
+                            </Time>
+                            <StatusText>
+                                {mapStatusToLabel(reservation.status)}
+                            </StatusText>
                         </StudioInfo>
 
                         <InfoBox>
                             <InfoRow>
                                 <InfoLabel>예약 번호</InfoLabel>
-                                <InfoValue>{reservation.id}</InfoValue>
-                            </InfoRow>
-                            <InfoRow>
-                                <InfoLabel>예약자 성함</InfoLabel>
-                                <InfoValue>{reservation.userName}</InfoValue>
-                            </InfoRow>
-                            <InfoRow>
-                                <InfoLabel>주방 연락처</InfoLabel>
                                 <InfoValue>
-                                    {reservation.kitchenPhone}
+                                    {reservation.reservationId}
                                 </InfoValue>
                             </InfoRow>
                             <InfoRow>
+                                <InfoLabel>예약자 성함</InfoLabel>
+                                <InfoValue>{reservation.hostName}</InfoValue>
+                            </InfoRow>
+                            <InfoRow>
+                                <InfoLabel>주방 연락처</InfoLabel>
+                                <InfoValue>{reservation.hostPhone}</InfoValue>
+                            </InfoRow>
+                            <InfoRow>
                                 <InfoLabel>선결제</InfoLabel>
-                                <InfoValue>{reservation.prepayment}</InfoValue>
+                                <InfoValue>
+                                    {reservation.prepaidAmount.toLocaleString()}
+                                    원
+                                </InfoValue>
                             </InfoRow>
                         </InfoBox>
 

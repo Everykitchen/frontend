@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ReservationCard from "../../components/ReservationCard";
 import Sidebar from "../../components/UserSideBar";
 import styled from "styled-components";
-import reservationList from "../../assets/ReservationData.json";
+import api from "../../api/axiosInstance";
 
 const Container = styled.div`
     display: flex;
@@ -34,14 +34,60 @@ const Tab = styled.div`
     border-bottom: ${(props) => (props.active ? "2px solid black" : "none")};
 `;
 
+const CardWrapper = styled.div`
+    margin-bottom: 20px;
+    padding: 4px;
+    border-radius: 12px;
+    border-left: 6px solid
+        ${(props) =>
+            props.status === "RESERVED"
+                ? "#ffbc39"
+                : props.status === "PENDING_PAYMENT"
+                ? "#4da6ff"
+                : props.status === "COMPLETED_PAYMENT"
+                ? "#5cb85c"
+                : "#ccc"};
+    background-color: #fdfdfd;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+
+    &:hover {
+        background-color: #f9f9f9;
+    }
+`;
+
 const Reservation = () => {
     const [activeTab, setActiveTab] = useState("전체");
+    const [reservationList, setReservationList] = useState([]);
     const navigate = useNavigate();
 
-    const filterList =
-        activeTab === "전체"
-            ? reservationList
-            : reservationList.filter((item) => item.status === activeTab);
+    const statusMap = {
+        전체: null,
+        예약완료: "RESERVED",
+        정산대기: "PENDING_PAYMENT",
+        정산완료: "COMPLETED_PAYMENT",
+    };
+
+    useEffect(() => {
+        const fetchReservations = async () => {
+            try {
+                const response = await api.get(
+                    "/api/user/reservation?page=0&size=100"
+                );
+                setReservationList(response.data.content);
+            } catch (error) {
+                console.error("예약 목록 불러오기 실패:", error);
+            }
+        };
+
+        fetchReservations();
+    }, []);
+
+    const filteredList = statusMap[activeTab]
+        ? reservationList.filter((item) => item.status === statusMap[activeTab])
+        : reservationList;
+
+    console.log(reservationList);
 
     return (
         <Container>
@@ -49,32 +95,35 @@ const Reservation = () => {
             <ContentWrapper>
                 <Title>예약 내역</Title>
                 <TabMenu>
-                    {["전체", "진행중", "완료"].map((tab) => (
+                    {["전체", "예약완료", "정산대기", "정산완료"].map((tab) => (
                         <Tab
                             key={tab}
                             active={activeTab === tab}
                             onClick={() => setActiveTab(tab)}
                         >
                             {tab} (
-                            {tab === "전체"
-                                ? reservationList.length
-                                : reservationList.filter(
-                                      (item) => item.status === tab
-                                  ).length}
+                            {statusMap[tab]
+                                ? reservationList.filter(
+                                      (item) => item.status === statusMap[tab]
+                                  ).length
+                                : reservationList.length}
                             )
                         </Tab>
                     ))}
                 </TabMenu>
 
-                {filterList.map((reservation) => (
-                    <div
-                        key={reservation.id}
+                {filteredList.map((reservation) => (
+                    <CardWrapper
+                        key={reservation.reservationId}
+                        status={reservation.status}
                         onClick={() =>
-                            navigate(`/mypage/reservations/${reservation.id}`)
+                            navigate(
+                                `/mypage/reservations/${reservation.reservationId}`
+                            )
                         }
                     >
                         <ReservationCard reservation={reservation} />
-                    </div>
+                    </CardWrapper>
                 ))}
             </ContentWrapper>
         </Container>
