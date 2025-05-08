@@ -239,7 +239,7 @@ const UserSignupPage = () => {
                 // 비밀번호, 이메일 중복, 인증 필요, 인증 시간 초과 등
                 if (msg.includes("비밀번호")) {
                     setErrors((prev) => ({ ...prev, password: msg }));
-                } else if (msg.includes("중복된 이메일")) {
+                } else if (msg.includes("이미 등록된")) {
                     setErrors((prev) => ({ ...prev, email: msg }));
                 } else if (msg.includes("이메일 인증")) {
                     setErrors((prev) => ({ ...prev, code: msg }));

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import CommonButton from "../../components/Button";
-// import axios from "axios"; // 나중에 연동 시 주석 해제
+import axios from "../../api/axiosInstance";
+import { useNavigate } from "react-router-dom";
 
 const FormContainer = styled.div`
     max-width: 500px;
@@ -85,24 +86,22 @@ const HostSignupPage = () => {
     });
 
     const [errors, setErrors] = useState({});
-    const [serverCodeSent, setServerCodeSent] = useState(false);
     const [isEmailVerified, setIsEmailVerified] = useState(false);
-    const [isVerified, setIsVerified] = useState(false);
-    const [verificationCode, setVerificationCode] = useState("");
-    const [timer, setTimer] = useState(null);
+    const [isSendingCode, setIsSendingCode] = useState(false);
+    const [timeLeft, setTimeLeft] = useState(0);
+    const navigate = useNavigate();
 
     useEffect(() => {
         let timer;
-        if (timer) {
-            timer = setTimeout(() => setTimer((prev) => prev - 1), 1000);
+        if (timeLeft > 0) {
+            timer = setTimeout(() => setTimeLeft((prev) => prev - 1), 1000);
         }
         return () => clearTimeout(timer);
-    }, [timer]);
+    }, [timeLeft]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setForm((prev) => ({ ...prev, [name]: value }));
-
         if (errors[name]) {
             setErrors((prev) => {
                 const updated = { ...prev };
@@ -118,65 +117,64 @@ const HostSignupPage = () => {
 
     const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email);
     const isStrongPassword = (pw) =>
-        /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+{}[\]:;<>,.?/~`|\\-]).{8,20}$/.test(pw);
+        /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?/~`|\\-]).{8,20}$/.test(pw);
 
     const handleSendCode = async () => {
         if (!isValidEmail(form.email)) {
             setErrors((prev) => ({ ...prev, email: "올바른 형식이 아닙니다." }));
             return;
         }
-
         try {
-            // const res = await axios.post("/api/auth/register/send-email-code", { email: form.email });
-            // 인증 성공 시 backend에서 전송된 인증번호는 res.data.code일 수도 있음
-            setServerCodeSent(true);
-            setIsEmailVerified(true);
-            setTimer(60);
-            alert("인증번호가 전송되었습니다.");
+            await axios.post("/api/auth/register/send-email-code", {
+                email: form.email,
+            });
+            setIsSendingCode(true);
+            setTimeLeft(60);
+            alert("인증번호가 이메일로 전송되었습니다.");
         } catch (error) {
-            alert("인증번호 전송 실패");
+            const msg = error?.response?.data?.result?.resultMessage;
+            if (msg) {
+                setErrors((prev) => ({ ...prev, email: msg }));
+            } else {
+                alert("인증번호 전송 실패");
+            }
         }
     };
 
     const handleVerifyCode = async () => {
-        if (!serverCodeSent) {
-            alert("먼저 인증번호를 요청해주세요.");
+        if (!form.code) {
+            setErrors((prev) => ({ ...prev, code: "인증번호를 입력해주세요." }));
             return;
         }
-
         try {
-            // const res = await axios.post("/api/auth/register/verify-email-code", {
-            //     email: form.email,
-            //     verificationCode: form.code,
-            // });
-
-            // if (res.status === 200) {
+            await axios.post("/api/auth/register/verify-email-code", {
+                email: form.email,
+                verificationCode: form.code,
+            });
             setIsEmailVerified(true);
-            setTimer(0);
+            setIsSendingCode(false);
+            setTimeLeft(0);
             alert("이메일 인증 성공");
-            // }
         } catch (error) {
-            alert("인증번호가 일치하지 않습니다.");
+            const msg = error?.response?.data?.result?.resultMessage;
+            if (msg) {
+                setErrors((prev) => ({ ...prev, code: msg }));
+            } else {
+                setErrors((prev) => ({ ...prev, code: "인증 실패" }));
+            }
         }
     };
 
     const validate = () => {
         const newErrors = {};
-
         if (!isValidEmail(form.email))
             newErrors.email = "올바른 형식이 아닙니다.";
-
         if (!isStrongPassword(form.password))
             newErrors.password = "영문, 숫자, 특수문자 포함 8~20자";
-
         if (form.password !== form.confirmPassword)
             newErrors.confirmPassword = "비밀번호가 일치하지 않습니다.";
-
-        if (!isEmailVerified)
-            newErrors.code = "이메일 인증이 필요합니다.";
-
+        if (!isEmailVerified) newErrors.code = "이메일 인증이 필요합니다.";
         setErrors(newErrors);
-
         if (Object.keys(newErrors).length === 0) {
             submitForm();
         }
@@ -187,24 +185,42 @@ const HostSignupPage = () => {
             const requestBody = new FormData();
             requestBody.append("email", form.email);
             requestBody.append("password", form.password);
-            requestBody.append(
-                "birthDate",
-                `${form.birthYear}-${form.birthMonth}-${form.birthDay}`
-            );
             requestBody.append("name", form.name);
+            requestBody.append(
+                "birthday",
+                `${form.birthYear}-${form.birthMonth.padStart(2, '0')}-${form.birthDay.padStart(2, '0')}`
+            );
             requestBody.append("phoneNumber", form.phone);
             requestBody.append("businessRegistrationNumber", form.businessNumber);
             if (form.businessFile) {
                 requestBody.append("businessFile", form.businessFile);
             }
-
-            // const response = await axios.post('/api/auth/host-signup', requestBody);
-            // if (response.status === 200) alert("회원가입 완료!");
-
-            console.log("보낼 데이터(FormData):", requestBody);
-            alert("회원가입 요청 완료");
+            const response = await axios.post('/api/auth/host-signup', requestBody, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            if (response.status === 200) {
+                navigate("/signup/host/success");
+            }
         } catch (error) {
-            alert("회원가입 중 오류 발생");
+            const msg = error?.response?.data?.result?.resultMessage;
+            if (msg) {
+                if (msg.includes("비밀번호")) {
+                    setErrors((prev) => ({ ...prev, password: msg }));
+                } else if (msg.includes("이미 등록된")) {
+                    setErrors((prev) => ({ ...prev, email: msg }));
+                } else if (msg.includes("이메일 인증")) {
+                    setErrors((prev) => ({ ...prev, code: msg }));
+                } else if (msg.includes("시간 초과")) {
+                    setErrors((prev) => ({ ...prev, code: msg }));
+                } else {
+                    alert(msg);
+                }
+            } else {
+                alert("회원가입 중 오류 발생");
+            }
+            console.error(error);
         }
     };
 
@@ -230,16 +246,16 @@ const HostSignupPage = () => {
                         value={form.email}
                         onChange={handleChange}
                         placeholder="example@example.com"
-                        disabled={isEmailVerified || timer > 0}
+                        disabled={isEmailVerified || isSendingCode || timeLeft > 0}
                         invalid={errors.email}
                     />
                     <CommonButton
                         type="button"
                         onClick={handleSendCode}
-                        disabled={timer > 0 || isEmailVerified}
+                        disabled={timeLeft > 0 || isEmailVerified || isSendingCode}
                     >
-                        {timer > 0
-                            ? `재전송 ${formatTime(timer)}`
+                        {timeLeft > 0
+                            ? `재전송 ${formatTime(timeLeft)}`
                             : "인증번호 전송"}
                     </CommonButton>
                 </InlineFlex>
@@ -270,7 +286,7 @@ const HostSignupPage = () => {
             </FieldGroup>
 
             {/* 나머지 입력필드 */}
-            {[
+            {[ 
                 { name: "password", label: "비밀번호", type: "password", placeholder: "문자, 숫자, 특수문자 포함 8~20자", errorKey: "password" },
                 { name: "confirmPassword", label: "비밀번호 확인", type: "password", placeholder: "비밀번호 재입력", errorKey: "confirmPassword" },
                 { name: "name", label: "이름", placeholder: "이름을 입력해주세요" },
