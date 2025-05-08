@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import kitchenImage from "../assets/jpg/kitchen1.jpg";
 
 const Card = styled.div`
     border: 1px solid #E0E0E0;
@@ -8,7 +9,7 @@ const Card = styled.div`
     cursor: pointer;
     background: #fcfcfc;
     display: flex;
-    gap: 20px;
+    gap: 30px;
 
     &:hover {
         background: #FAFAFA;
@@ -16,8 +17,8 @@ const Card = styled.div`
 `;
 
 const KitchenImage = styled.img`
-    width: 240px;
-    height: 160px;
+    width: 300px;
+    height: 200px;
     object-fit: cover;
     border-radius: 8px;
     flex-shrink: 0;
@@ -77,9 +78,17 @@ const Status = styled.div`
 `;
 
 const HostReservationCard = ({ reservation, onClick }) => {
+    // 이미지 에러 핸들러: 로드 실패 시 기본 이미지로 대체
+    const handleImgError = (e) => {
+        e.target.src = kitchenImage;
+    };
     return (
         <Card onClick={onClick}>
-            <KitchenImage src={reservation.imageUrl} alt="주방 이미지" />
+            <KitchenImage
+                src={reservation.imageUrl || kitchenImage}
+                alt="주방 이미지"
+                onError={handleImgError}
+            />
             <ContentWrapper>
                 <ReservationInfo>
                     <ReservationNumber>예약번호 {reservation.id}</ReservationNumber>
