@@ -3,7 +3,8 @@ import Sidebar from "../../components/UserSideBar";
 import PendingReview from "../../components/review/ReviewPending";
 import ReviewCard from "../../components/review/ReviewCard";
 import ReviewModal from "../../components/review/ReviewModal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import api from "../../api/axiosInstance";
 
 const Container = styled.div`
     display: flex;
@@ -35,45 +36,64 @@ const SectionTitle = styled.h3`
     color: #444;
 `;
 
-const ReviewPage = () => {
-    const pendingReviews = [
-        {
-            id: 1,
-            name: "파이브잇 쿠킹스튜디오",
-            date: "2025.3.13",
-            time: "15:00 ~ 17:00 (4인)",
-            dDay: 5,
-        },
-    ];
-
-    const writtenReviews = [
-        {
-            id: 1,
-            name: "마이키친 렌탈스튜디오",
-            date: "2025.2.5",
-            time: "11:00 ~ 13:00 (2인)",
-            rating: 5,
-            content:
-                "정말 친절하시고 스튜디오도 깔끔했어요! 다음에도 또 이용할게요.",
-        },
-    ];
-
+const Reviews = () => {
+    const [unwrittenReviews, setUnwrittenReviews] = useState([]);
+    const [writtenReviews, setWrittenReviews] = useState([]);
     const [rating, setRating] = useState(0);
     const [content, setContent] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [selectedReview, setSelectedReview] = useState(null);
 
+    useEffect(() => {
+        const fetchReviews = async () => {
+            try {
+                const response = await api.get("/api/user/reviews");
+                setUnwrittenReviews(response.data.unwrittenReviews);
+                setWrittenReviews(response.data.writtenReviews);
+            } catch (err) {
+                console.error("리뷰 목록 불러오기 실패:", err);
+            }
+        };
+
+        fetchReviews();
+    }, []);
+
+    // 미작성 후기 클릭 시
     const handleOpenModal = (item) => {
-        setSelectedReview(item);
+        setSelectedReview({
+            id: item.reservationId,
+            name: item.kitchenName,
+            date: item.date,
+            time: `${item.startTime} ~ ${item.endTime} (${item.clientNumber}인)`,
+            image: item.kitchenImageUrl,
+        });
         setShowModal(true);
     };
 
-    const handleSubmit = (e) => {
+    // 후기 작성 제출
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        alert(`후기 제출됨! 별점: ${rating}, 내용: ${content}`);
-        setRating(0);
-        setContent("");
-        setShowModal(false);
+        if (!selectedReview) return;
+
+        try {
+            await api.post(`/api/user/reviews/write/${selectedReview.id}`, {
+                star: rating,
+                review: content,
+            });
+
+            alert("후기가 성공적으로 제출되었습니다!");
+            setRating(0);
+            setContent("");
+            setShowModal(false);
+
+            // 후기 목록 최신화
+            const response = await api.get("/api/user/reviews");
+            setUnwrittenReviews(response.data.unwrittenReviews);
+            setWrittenReviews(response.data.writtenReviews);
+        } catch (error) {
+            console.error("후기 작성 실패:", error);
+            alert("후기 작성 중 문제가 발생했습니다.");
+        }
     };
 
     return (
@@ -84,14 +104,22 @@ const ReviewPage = () => {
 
                 <Section>
                     <SectionTitle>
-                        미작성 후기 ({pendingReviews.length})
+                        미작성 후기 ({unwrittenReviews.length})
                     </SectionTitle>
-                    {pendingReviews.map((item) => (
+                    {unwrittenReviews.map((item) => (
                         <div
-                            key={item.id}
+                            key={item.reservationId}
                             onClick={() => handleOpenModal(item)}
                         >
-                            <PendingReview item={item} />
+                            <PendingReview
+                                item={{
+                                    id: item.reservationId,
+                                    name: item.kitchenName,
+                                    date: item.date,
+                                    time: `${item.startTime} ~ ${item.endTime} (${item.clientNumber}인)`,
+                                    dDay: item.daysLeft,
+                                }}
+                            />
                         </div>
                     ))}
                 </Section>
@@ -101,7 +129,17 @@ const ReviewPage = () => {
                         작성한 후기 ({writtenReviews.length})
                     </SectionTitle>
                     {writtenReviews.map((review) => (
-                        <ReviewCard key={review.id} review={review} />
+                        <ReviewCard
+                            key={review.reviewId}
+                            review={{
+                                id: review.reviewId,
+                                name: review.kitchenName,
+                                date: review.date,
+                                time: `${review.startTime} ~ ${review.endTime} (${review.clientNumber}인)`,
+                                rating: review.rating,
+                                content: review.review,
+                            }}
+                        />
                     ))}
                 </Section>
             </Content>
@@ -121,4 +159,4 @@ const ReviewPage = () => {
     );
 };
 
-export default ReviewPage;
+export default Reviews;
