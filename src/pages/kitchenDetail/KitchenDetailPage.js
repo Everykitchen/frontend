@@ -1,11 +1,12 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 import ImageGallery from "./ImageGallery";
 import ReservationSidebar from "./ReservationSidebar";
 import InfoSection from "./InfoSection";
 import starIcon from "../../assets/icons/starIcon.svg";
 import shareIcon from "../../assets/icons/shareIcon.svg";
-import kitchenImage1 from "../../assets/jpg/kitchen1.jpg";
+import { useParams } from "react-router-dom";
+import axios from "../../api/axiosInstance";
 
 const Container = styled.div`
     display: flex;
@@ -96,115 +97,13 @@ const CopyButton = styled.button`
     }
 `;
 
-// 임시 데이터 (개발 중에만 사용)
-const tempKitchenData = {
-    id: 123456,
-    kitchenName: "소담 쿠킹 스튜디오",
-    description: "우리 주방은 최신식 시설과 넓은 공간을 자랑합니다. 인덕션, 오븐 등 다양한 조리도구가 구비되어 있어 어떤 요리든 가능합니다. 자연광이 잘 들어와 사진 촬영도 좋습니다.",
-    likeCount: 10,
-    phoneNumber: "010-2220-5930",
-    images: [kitchenImage1, kitchenImage1, kitchenImage1, kitchenImage1, kitchenImage1],
-    location: "서울시 서초구 서초동 123-45",
-    latitude: 37.4969,
-    longitude: 127.0278,
-    size: 33.9,
-    baseClientNumber: 2,
-    maxClientNumber: 10,
-    businessHours: "09:00 - 22:00",
-    defaultPrice: [
-        { week: "Mon", price: 30000 },
-        { week: "Tue", price: 30000 },
-        { week: "Wed", price: 30000 },
-        { week: "Thu", price: 30000 },
-        { week: "Fri", price: 30000 },
-        { week: "Sat", price: 40000 },
-        { week: "Sun", price: 40000 }
-    ],
-    kitchenFacility: [
-        { facilityName: "인덕션", amount: 2, detail: "삼성 4구 인덕션" },
-        { facilityName: "전자레인지", amount: 2, detail: "LG 스마트 인버터" },
-        { facilityName: "발효기", amount: 2, detail: "발효파트너 프로" },
-        { facilityName: "냉장고", amount: 1, detail: "삼성 비스포크 4도어" },
-        { facilityName: "오븐", amount: 2, detail: "LG 디오스 오븐" },
-        { facilityName: "싱크대", amount: 2, detail: "프리미엄 스테인리스 싱크대" }
-    ],
-    cookingTool: [
-        { toolName: "전자저울", check: true },
-        { toolName: "도마", check: true },
-        { toolName: "칼 세트", check: true },
-        { toolName: "냄비/후라이팬", check: true },
-        { toolName: "믹싱볼", check: true },
-        { toolName: "거품기", check: true },
-        { toolName: "푸드프로세서", check: false },
-        { toolName: "핸드믹서", check: true },
-        { toolName: "반죽기", check: true },
-        { toolName: "휘낭시에 틀", check: false },
-        { toolName: "마들렌 틀", check: true },
-        { toolName: "계량도구", check: true }
-    ],
-    providedItem: [
-        { itemName: "위생장갑", check: true },
-        { itemName: "앞치마", check: true },
-        { itemName: "종이호일", check: true },
-        { itemName: "키친타올", check: true },
-        { itemName: "물티슈", check: true },
-        { itemName: "주방세제", check: true },
-        { itemName: "수세미", check: true },
-        { itemName: "행주", check: true },
-        { itemName: "쓰레기봉투", check: true }
-    ],
-    ingredientCategories: [
-        {
-            categoryName: "제과 재료",
-            ingredients: [
-                { name: "박력분", baseUnit: "kg", price: 3000 },
-                { name: "강력분", baseUnit: "kg", price: 3500 },
-                { name: "중력분", baseUnit: "kg", price: 3200 },
-                { name: "아몬드가루", baseUnit: "kg", price: 25000 },
-                { name: "코코아파우더", baseUnit: "kg", price: 18000 },
-                { name: "베이킹파우더", baseUnit: "10g", price: 500 },
-                { name: "베이킹소다", baseUnit: "10g", price: 500 },
-                { name: "바닐라빈", baseUnit: "10g", price: 8000 },
-                { name: "드라이이스트", baseUnit: "10g", price: 800 },
-                { name: "타피오카전분", baseUnit: "kg", price: 5000 }
-            ]
-        },
-        {
-            categoryName: "기본 재료",
-            ingredients: [
-                { name: "설탕", baseUnit: "kg", price: 3000 },
-                { name: "소금", baseUnit: "kg", price: 2000 },
-                { name: "계란", baseUnit: "10g", price: 4500 },
-                { name: "우유", baseUnit: "kg", price: 3000 },
-                { name: "생크림", baseUnit: "kg", price: 8000 },
-                { name: "버터", baseUnit: "kg", price: 12000 },
-                { name: "식용유", baseUnit: "kg", price: 4500 },
-                { name: "올리브유", baseUnit: "kg", price: 15000 },
-                { name: "꿀", baseUnit: "kg", price: 20000 },
-                { name: "메이플시럽", baseUnit: "kg", price: 18000 }
-            ]
-        }
-    ],
-    reviewCount: 10,
-    reviews: [
-        { name: "김지민", star: 1, review: "시설이 깨끗하고 도구도 잘 갖춰져 있어서 좋았어요!" },
-        { name: "이서연", star: 4, review: "공간이 넓어서 편하게 요리할 수 있었습니다." },
-        { name: "박현우", star: 5, review: "조리도구가 잘 갖춰져 있어서 편리했어요." },
-        { name: "최예린", star: 5, review: "주방이 깔끔하고 채광이 좋아서 사진 찍기도 좋았습니다." },
-        { name: "정도윤", star: 4, review: "오븐이 2대나 있어서 여러 가지 요리를 동시에 할 수 있어 좋았어요." },
-        { name: "한소희", star: 5, review: "인덕션이 4구라서 한 번에 여러 요리를 할 수 있어서 시간 절약됐어요!" },
-        { name: "송민재", star: 4, review: "발효기가 있어서 빵 만들기 정말 편했습니다. 다음에 또 오고 싶어요." },
-        { name: "임수진", star: 5, review: "냉장고가 크고 깨끗해서 재료 보관하기 좋았어요. 주방 도구도 잘 갖춰져 있습니다." },
-        { name: "강동현", star: 4, review: "주변 접근성이 좋고 주차도 편리해서 재료 운반하기 좋았습니다." },
-        { name: "윤하은", star: 5, review: "호스트님이 친절하시고 시설도 잘 관리되어 있어서 만족스러웠어요. 강추합니다!" }
-    ]
-};
-
-const KitchenDetailPage = ({ kitchen = tempKitchenData }) => {
+const KitchenDetailPage = () => {
+    const { id: kitchenId } = useParams();
+    const [kitchen, setKitchen] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [startDate, setStartDate] = useState(new Date());
-    const [count, setCount] = useState(kitchen.baseClientNumber);
-    const [startTime, setStartTime] = useState(null);
-    const [endTime, setEndTime] = useState(null);
+    const [count, setCount] = useState(1);
     const [selectedTab, setSelectedTab] = useState("공간정보");
     const [showShareModal, setShowShareModal] = useState(false);
 
@@ -215,15 +114,20 @@ const KitchenDetailPage = ({ kitchen = tempKitchenData }) => {
         후기: useRef(null),
     };
 
-    const handleTimeClick = (hour) => {
-        if (startTime === null || (startTime !== null && endTime !== null)) {
-            setStartTime(hour);
-            setEndTime(null);
-        } else if (startTime !== null && endTime === null) {
-            if (hour > startTime) setEndTime(hour);
-            else setStartTime(hour);
-        }
-    };
+    useEffect(() => {
+        if (!kitchenId) return;
+        setLoading(true);
+        setError(null);
+        axios.get(`/api/common/kitchen/${kitchenId}`)
+            .then(res => {
+                setKitchen(res.data);
+                setCount(res.data.baseClientNumber);
+            })
+            .catch(err => {
+                setError("주방 정보를 불러오지 못했습니다.");
+            })
+            .finally(() => setLoading(false));
+    }, [kitchenId]);
 
     const handleShare = () => {
         setShowShareModal(true);
@@ -241,11 +145,14 @@ const KitchenDetailPage = ({ kitchen = tempKitchenData }) => {
             });
     };
 
+    if (loading) return <div style={{textAlign:'center',marginTop:100}}>로딩 중...</div>;
+    if (error) return <div style={{textAlign:'center',marginTop:100,color:'red'}}>{error}</div>;
+    if (!kitchen) return null;
+
     return (
         <Container>
             <ImageGallery images={kitchen.images} />
             <div style={{ marginTop: 60 }} />
-
             <ContentWrapper>
                 <LeftSection>
                     <InfoSection
@@ -256,19 +163,14 @@ const KitchenDetailPage = ({ kitchen = tempKitchenData }) => {
                         onShare={handleShare}
                     />
                 </LeftSection>
-
                 <ReservationSidebar
                     startDate={startDate}
                     setStartDate={setStartDate}
                     count={count}
                     setCount={setCount}
-                    startTime={startTime}
-                    endTime={endTime}
-                    handleTimeClick={handleTimeClick}
                     kitchenData={kitchen}
                 />
             </ContentWrapper>
-
             {showShareModal && (
                 <>
                     <Overlay onClick={() => setShowShareModal(false)} />

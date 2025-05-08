@@ -159,7 +159,7 @@ const AppRouter = () => {
                     </ProtectedRoute>
                 }
             />
-            <Route path="/kitchen-detail" element={<KitchenDetailPage />} />
+            <Route path="/kitchen-detail/:id" element={<KitchenDetailPage />} />
         </Routes>
     );
 };

@@ -5,6 +5,9 @@ import "react-datepicker/dist/react-datepicker.css";
 import { addYears, format } from "date-fns";
 import ko from "date-fns/locale/ko";
 import ReservationModal from "./ReservationModal";
+import axios from "../../api/axiosInstance";
+import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 
 const RightSection = styled.div`
   flex: 1;
@@ -275,40 +278,6 @@ const ErrorMessage = styled.div`
   text-align: center;
 `;
 
-// 임시 예약 데이터 생성 함수
-const generateMockReservations = (date) => {
-  // 오늘부터 7일 사이의 날짜인지 확인
-  const today = new Date();
-  const selectedDate = new Date(date);
-  const diffTime = Math.abs(selectedDate - today);
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
-  if (diffDays > 7) {
-    return { reservations: [] };
-  }
-
-  // 날짜별로 다른 예약 패턴 생성
-  const dayOfWeek = selectedDate.getDay();
-  const reservations = [];
-
-  // 주말(토,일)에는 더 많은 예약이 있다고 가정
-  if (dayOfWeek === 0 || dayOfWeek === 6) {
-    // 주말 예약 패턴
-    reservations.push(
-      { start_time: "14:00", end_time: "16:00" },
-      { start_time: "19:00", end_time: "21:00" }
-    );
-  } else {
-    // 평일 예약 패턴
-    reservations.push(
-      { start_time: "12:00", end_time: "13:00" },
-      { start_time: "18:00", end_time: "20:00" }
-    );
-  }
-
-  return { reservations };
-};
-
 const ReservationSidebar = ({ 
   startDate, 
   setStartDate, 
@@ -316,134 +285,205 @@ const ReservationSidebar = ({
   setCount, 
   kitchenData 
 }) => {
-  const [unavailableTimes, setUnavailableTimes] = useState([]);
+  const [unavailableIds, setUnavailableIds] = useState([]);
   const [isDateSelected, setIsDateSelected] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [startTime, setStartTime] = useState(null);
-  const [endTime, setEndTime] = useState(null);
-  const [lastClickedTime, setLastClickedTime] = useState(null);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [startBlock, setStartBlock] = useState(null);
+  const [endBlock, setEndBlock] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [timeBlocks, setTimeBlocks] = useState([]);
+  const [userName, setUserName] = useState("");
+  const navigate = useNavigate();
+
+  const parseHour = (str) => parseInt(str.split(":")[0], 10);
+  const openHour = parseHour(kitchenData.openTime);
+  const closeHour = parseHour(kitchenData.closeTime);
+  const numBlocks = closeHour - openHour;
 
   useEffect(() => {
-    if (startDate) {
-      // TODO: 실제 API 연동 시 사용할 코드
-      /*
-      const fetchUnavailableTimes = async () => {
-        try {
-          const formattedDate = format(startDate, 'yyyy-MM-dd');
-          const response = await fetch(`/api/common/kitchen/${kitchenData.id}/${formattedDate}`);
-          const data = await response.json();
-          
-          // 예약된 시간대를 unavailableTimes로 변환
-          const unavailableTimes = data.reservations.map(reservation => {
-            const startHour = parseInt(reservation.start_time.split(':')[0]);
-            const endHour = parseInt(reservation.end_time.split(':')[0]);
-            return Array.from({ length: endHour - startHour }, (_, i) => startHour + i);
-          }).flat();
-          
-          setUnavailableTimes(unavailableTimes);
-          setIsDateSelected(true);
-        } catch (error) {
-          console.error('예약 가능 시간 조회 실패:', error);
-          setUnavailableTimes([]);
-          setIsDateSelected(false);
-        }
-      };
-      
-      fetchUnavailableTimes();
-      */
-
-      // 임시 데이터 사용
-      const mockData = generateMockReservations(startDate);
-      const unavailableTimes = mockData.reservations.map(reservation => {
-        const startHour = parseInt(reservation.start_time.split(':')[0]);
-        const endHour = parseInt(reservation.end_time.split(':')[0]);
-        return Array.from({ length: endHour - startHour }, (_, i) => startHour + i);
-      }).flat();
-      
-      setUnavailableTimes(unavailableTimes);
-      setIsDateSelected(true);
-    } else {
-      setUnavailableTimes([]);
-      setIsDateSelected(false);
+    const blocks = [];
+    for (let i = 0; i < numBlocks; i++) {
+      blocks.push({
+        label: `${openHour + i}:00 ~ ${openHour + i + 1}:00`,
+        hour: openHour + i,
+        availableId: null,
+        unavailable: false
+      });
     }
-  }, [startDate]);
+    setTimeBlocks(blocks);
+  }, [kitchenData.openTime, kitchenData.closeTime]);
 
-  const resetSelection = () => {
-    setStartTime(null);
-    setEndTime(null);
+  useEffect(() => {
+    if (!startDate || !kitchenData.id) return;
+    setIsDateSelected(false);
+    setUnavailableIds([]);
+    setSelectedIds([]);
+    setStartBlock(null);
+    setEndBlock(null);
     setErrorMessage("");
-    setLastClickedTime(null);
-  };
+    const fetchAvailables = async () => {
+      try {
+        const dateStr = format(startDate, "yyyy-MM-dd");
+        const res = await axios.get(`/api/common/kitchen/${kitchenData.id}/availables?date=${dateStr}`);
+        const blocks = [];
+        for (let i = 0; i < numBlocks; i++) {
+          const item = res.data[i];
+          blocks.push({
+            label: `${openHour + i}:00 ~ ${openHour + i + 1}:00`,
+            hour: openHour + i,
+            availableId: item?.availableId,
+            unavailable: item?.status === true
+          });
+        }
+        console.log(res.data);
+        setTimeBlocks(blocks);
+        setUnavailableIds(blocks.filter(b => b.unavailable).map(b => b.availableId));
+        setIsDateSelected(true);
+      } catch (e) {
+        setErrorMessage("예약 가능 시간 조회 실패");
+        setTimeBlocks([]);
+        setIsDateSelected(false);
+      }
+    };
+    fetchAvailables();
+  }, [startDate, kitchenData.id, kitchenData.openTime, kitchenData.closeTime, numBlocks, openHour]);
 
-  const handleTimeBlockClick = (hour) => {
-    if (!isDateSelected || unavailableTimes.includes(hour)) return;
-
-    // 첫 번째 클릭 또는 초기화 상태
-    if (startTime === null) {
-      setStartTime(hour);
-      setEndTime(hour + 1);
-      setLastClickedTime(hour);
+  const handleTimeBlockClick = (idx) => {
+    if (!isDateSelected || timeBlocks[idx]?.unavailable) return;
+    if (startBlock === null) {
+      setStartBlock(idx);
+      setEndBlock(idx);
+      setSelectedIds([Number(timeBlocks[idx].availableId)]);
       setErrorMessage("");
       return;
     }
-
-    // 이미 선택된 시작 시간을 다시 클릭하면 초기화
-    if (hour === startTime) {
-      resetSelection();
+    if (idx === startBlock && startBlock === endBlock) {
+      setStartBlock(null);
+      setEndBlock(null);
+      setSelectedIds([]);
+      setErrorMessage("");
       return;
     }
-
-    // 시작 시간보다 이전 시간을 클릭하면 초기화
-    if (hour < startTime) {
-      resetSelection();
+    if (idx < startBlock) {
+      setStartBlock(null);
+      setEndBlock(null);
+      setSelectedIds([]);
+      setErrorMessage("");
       return;
     }
-
-    // 두 번째 클릭한 시간을 다시 클릭하면 초기화
-    if (hour === lastClickedTime && errorMessage) {
-      resetSelection();
-      return;
-    }
-
-    // 범위 선택 시 예약 불가능한 시간이 있는지 확인
-    for (let i = startTime; i <= hour; i++) {
-      if (unavailableTimes.includes(i)) {
-        setErrorMessage("예약 불가능합니다.");
-        setLastClickedTime(hour);
+    for (let i = startBlock; i <= idx; i++) {
+      if (timeBlocks[i].unavailable) {
+        setErrorMessage("예약 불가능한 시간대가 포함되어 있습니다.");
         return;
       }
     }
-
-    // 정상적인 범위 선택
-    setEndTime(hour + 1);
+    setEndBlock(idx);
+    setSelectedIds(timeBlocks.slice(startBlock, idx + 1).map(b => Number(b.availableId)));
     setErrorMessage("");
-    setLastClickedTime(hour);
   };
 
   const getDayPrice = (date) => {
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
     const dayName = days[date.getDay()];
+    console.log('Price calculation:', {
+      selectedDate: date,
+      dayName,
+      defaultPrice: kitchenData.defaultPrice,
+      foundPrice: kitchenData.defaultPrice.find(p => p.week === dayName)
+    });
     const priceInfo = kitchenData.defaultPrice.find(p => p.week === dayName);
     return priceInfo ? priceInfo.price : 0;
   };
 
   const renderReservationTime = () => {
-    if (startTime !== null && endTime !== null) {
-      return `예약 일시\n${format(startDate, 'yyyy년 MM월 dd일')} ${startTime}:00 ~ ${endTime}:00`;
+    if (startBlock !== null && endBlock !== null && selectedIds.length > 0) {
+      return `예약 일시\n${format(startDate, 'yyyy년 MM월 dd일')} ${timeBlocks[startBlock].hour}:00 ~ ${timeBlocks[endBlock].hour + 1}:00`;
     }
     return "";
   };
 
   const calculateTotalPrice = () => {
-    if (startTime === null || endTime === null) return 0;
-    const hours = endTime - startTime;
+    if (startBlock === null || endBlock === null || !startDate) return 0;
+    const hours = endBlock - startBlock + 1;
     const pricePerHour = getDayPrice(startDate);
+    console.log('Price calculation:', {
+      hours,
+      pricePerHour,
+      count,
+      total: hours * pricePerHour * count
+    });
     return hours * pricePerHour * count;
   };
 
-  const handleReserveClick = () => {
-    setIsModalOpen(true);
+  const handleReserveClick = async () => {
+    const token = localStorage.getItem("token");
+    
+    if (!token) {
+      navigate('/login', { 
+        state: { 
+          from: window.location.pathname,
+          message: '예약을 하시려면 로그인이 필요합니다.' 
+        }
+      });
+      return;
+    }
+
+    try {
+      const decoded = jwtDecode(token);
+      if (decoded.role !== 'USER') {
+        alert('일반 회원으로 로그인해주세요.');
+        navigate('/login', { 
+          state: { 
+            from: window.location.pathname,
+            message: '일반 회원으로 로그인해주세요.' 
+          }
+        });
+        return;
+      }
+
+      // 사용자 정보 가져오기
+      try {
+        const response = await axios.get("/api/auth/user/my-information");
+        setUserName(response.data.name);
+        console.log(response.data);
+        setIsModalOpen(true);
+      } catch (error) {
+        console.error("사용자 정보 조회 실패:", error);
+        alert("사용자 정보를 불러오는데 실패했습니다.");
+      }
+    } catch (error) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+      navigate('/login', { 
+        state: { 
+          from: window.location.pathname,
+          message: '로그인이 필요합니다.' 
+        }
+      });
+    }
+  };
+
+  const handleConfirm = async () => {
+    try {
+      console.log("예약 요청 payload:", {
+        availableIds: selectedIds.map(id => Number(id)),
+        clientNumber: count,
+      });
+      await axios.post(`/api/user/kitchen/${kitchenData.id}/reservation`, {
+        availableIds: selectedIds.map(id => Number(id)),
+        clientNumber: count,
+      });
+      setIsModalOpen(false);
+      navigate("/mypage/reservations");
+    } catch (error) {
+      alert("예약에 실패했습니다. 다시 시도해주세요.");
+      console.error("예약 에러:", error);
+      if (error.response) {
+        console.error("서버 응답:", error.response.data);
+        alert("서버 응답: " + JSON.stringify(error.response.data));
+      }
+    }
   };
 
   return (
@@ -455,8 +495,9 @@ const ReservationSidebar = ({
             selected={startDate}
             onChange={(date) => {
               setStartDate(date);
-              setStartTime(null);
-              setEndTime(null);
+              setStartBlock(null);
+              setEndBlock(null);
+              setSelectedIds([]);
               setErrorMessage("");
             }}
             minDate={new Date()}
@@ -467,30 +508,27 @@ const ReservationSidebar = ({
             placeholderText="날짜를 선택해주세요"
           />
         </DatePickerWrapper>
-
         <TimeContainer>
           <SectionTitle>예약 시간 선택</SectionTitle>
           <TimeScrollContainer>
             <div style={{ display: 'flex', paddingTop: '20px' }}>
               <div style={{ width: '15px', position: 'relative' }}>
-                <FirstTimeLabel>10</FirstTimeLabel>
+                <FirstTimeLabel>{openHour}</FirstTimeLabel>
               </div>
-              {[...Array(13)].map((_, i) => {
-                const hour = 10 + i;
-                const isSelected = startTime !== null && endTime !== null && hour >= startTime && hour < endTime;
-                const isUnavailable = unavailableTimes.includes(hour);
-                const isDisabled = !isDateSelected || hour < 10 || hour > 22;
-
+              {timeBlocks.map((block, i) => {
+                const isSelected = startBlock !== null && endBlock !== null && i >= startBlock && i <= endBlock;
+                const isUnavailable = block.unavailable;
+                const isDisabled = !isDateSelected;
                 return (
-                  <TimeBlockContainer key={hour}>
-                    {i < 12 && (
+                  <TimeBlockContainer key={block.availableId || i}>
+                    {i < timeBlocks.length && (
                       <>
-                        <TimeLabel>{hour + 1}</TimeLabel>
+                        <TimeLabel>{block.hour + 1}</TimeLabel>
                         <TimeBlock
                           selected={isSelected}
                           unavailable={isUnavailable}
                           disabled={isDisabled}
-                          onClick={() => handleTimeBlockClick(hour)}
+                          onClick={() => handleTimeBlockClick(i)}
                         />
                       </>
                     )}
@@ -502,7 +540,6 @@ const ReservationSidebar = ({
           </TimeScrollContainer>
           {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
         </TimeContainer>
-
         <PriceInfo>
           <PriceItem>
             <ColorIndicator color="#f6f6f6" />
@@ -517,9 +554,7 @@ const ReservationSidebar = ({
             <span>선택</span>
           </PriceItem>
         </PriceInfo>
-
         <TimeRange>{renderReservationTime()}</TimeRange>
-
         <div style={{ marginTop: 32 }}>
           <SectionTitle>예약 인원</SectionTitle>
           <CounterWrapper>
@@ -538,36 +573,35 @@ const ReservationSidebar = ({
             </CounterButton>
           </CounterWrapper>
         </div>
-
         <div style={{ marginTop: 32 }}>
           <div style={{ fontSize: 12, color: "#666" }}>공간 대여료</div>
           <h2 style={{ color: "#ffbc39", margin: "4px 0", fontSize: "20px", fontWeight: "700" }}>
             ₩ {calculateTotalPrice().toLocaleString()}
           </h2>
-          <div style={{ fontSize: 10, color: "#666" }}>
-            {startDate && startTime !== null && endTime !== null && 
-              `(${getDayPrice(startDate).toLocaleString()}원/시간 × ${endTime - startTime}시간 × ${count}명)`
-            }
-          </div>
+          {startDate && startBlock !== null && endBlock !== null && (
+            <div style={{ fontSize: 10, color: "#666" }}>
+              {`(${getDayPrice(startDate).toLocaleString()}원/시간 × ${endBlock - startBlock + 1}시간 × ${count}명)`}
+            </div>
+          )}
         </div>
-
         <ReserveButton 
-          disabled={!startTime || !endTime}
+          disabled={startBlock === null || endBlock === null || selectedIds.length === 0}
           onClick={handleReserveClick}
         >
           예약하기
         </ReserveButton>
       </ScrollableContent>
-
       <ReservationModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={handleConfirm}
         kitchenName={kitchenData.kitchenName}
         reservationDate={startDate}
-        startTime={startTime}
-        endTime={endTime}
+        startTime={startBlock !== null ? timeBlocks[startBlock].hour : null}
+        endTime={endBlock !== null ? timeBlocks[endBlock].hour + 1 : null}
         guestCount={count}
         totalPrice={calculateTotalPrice()}
+        selectedIds={selectedIds}
+        userName={userName}
       />
     </RightSection>
   );

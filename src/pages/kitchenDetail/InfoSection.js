@@ -443,7 +443,7 @@ const InfoSection = ({ selectedTab, setSelectedTab, sections, kitchenData, onSha
                     </tr>
                     <tr>
                         <td>영업 시간</td>
-                        <td>{kitchenData.businessHours}</td>
+                        <td>{kitchenData.openTime} - {kitchenData.closeTime}</td>
                     </tr>
                 </tbody>
             </InfoTable>
@@ -476,7 +476,7 @@ const InfoSection = ({ selectedTab, setSelectedTab, sections, kitchenData, onSha
                         .filter(tool => tool.check)
                         .map((tool, index) => (
                             <ToolItem key={index}>
-                                {tool.toolName}
+                                {tool.name}
                             </ToolItem>
                         ))}
                 </ToolGrid>
@@ -488,7 +488,7 @@ const InfoSection = ({ selectedTab, setSelectedTab, sections, kitchenData, onSha
                         .filter(item => item.check)
                         .map((item, index) => (
                             <ToolItem key={index}>
-                                {item.itemName}
+                                {item.name}
                             </ToolItem>
                         ))}
                 </ToolGrid>
@@ -498,25 +498,52 @@ const InfoSection = ({ selectedTab, setSelectedTab, sections, kitchenData, onSha
             <SectionTitle ref={sections["재료정보"]} data-tab="재료정보">
                 재료정보
             </SectionTitle>
-            {kitchenData.ingredientCategories.map((category, index) => (
-                <Box key={index}>
-                    <CategoryTitle>{category.categoryName}</CategoryTitle>
-                    <IngredientContainer>
-                        <IngredientHeader>
-                            <div>재료명</div>
-                            <div>기준 단위</div>
-                            <div>금액</div>
-                        </IngredientHeader>
-                        {category.ingredients.map((ingredient, idx) => (
-                            <IngredientItem key={idx}>
-                                <div>{ingredient.name}</div>
-                                <div>{ingredient.baseUnit}</div>
-                                <div>{ingredient.price.toLocaleString()}원</div>
-                            </IngredientItem>
-                        ))}
-                    </IngredientContainer>
-                </Box>
-            ))}
+            <Box>
+                <CategoryTitle>기본재료</CategoryTitle>
+                <IngredientContainer>
+                    <IngredientHeader>
+                        <div>재료명</div>
+                        <div>기준 단위</div>
+                        <div>금액</div>
+                    </IngredientHeader>
+                    {kitchenData.ingredients && kitchenData.ingredients.filter(ingredient => !ingredient.additional).length > 0 ? (
+                        kitchenData.ingredients
+                            .filter(ingredient => !ingredient.additional)
+                            .map((ingredient, idx) => (
+                                <IngredientItem key={idx}>
+                                    <div>{ingredient.name}</div>
+                                    <div>{ingredient.baseUnit}</div>
+                                    <div>{ingredient.price.toLocaleString()}원</div>
+                                </IngredientItem>
+                            ))
+                    ) : (
+                        <div style={{ padding: 16, color: '#888', textAlign: 'center' }}>등록된 기본재료가 없습니다.</div>
+                    )}
+                </IngredientContainer>
+            </Box>
+            <Box>
+                <CategoryTitle>추가재료</CategoryTitle>
+                <IngredientContainer>
+                    <IngredientHeader>
+                        <div>재료명</div>
+                        <div>기준 단위</div>
+                        <div>금액</div>
+                    </IngredientHeader>
+                    {kitchenData.ingredients && kitchenData.ingredients.filter(ingredient => ingredient.additional).length > 0 ? (
+                        kitchenData.ingredients
+                            .filter(ingredient => ingredient.additional)
+                            .map((ingredient, idx) => (
+                                <IngredientItem key={idx}>
+                                    <div>{ingredient.name}</div>
+                                    <div>{ingredient.baseUnit}</div>
+                                    <div>{ingredient.price.toLocaleString()}원</div>
+                                </IngredientItem>
+                            ))
+                    ) : (
+                        <div style={{ padding: 16, color: '#888', textAlign: 'center' }}>등록된 추가재료가 없습니다.</div>
+                    )}
+                </IngredientContainer>
+            </Box>
 
             {/* 후기 */}
             <SectionTitle ref={sections["후기"]} data-tab="후기">

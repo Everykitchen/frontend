@@ -85,7 +85,9 @@ const ReservationModal = ({
   startTime,
   endTime,
   guestCount,
-  totalPrice
+  totalPrice,
+  selectedIds,
+  userName
 }) => {
   // 모달이 열리면 body 스크롤 막기
   useEffect(() => {
@@ -108,6 +110,12 @@ const ReservationModal = ({
     return days[date.getDay()];
   };
 
+  // 예약 확인(결제) 버튼 클릭 시 availableId 배열 콘솔 출력
+  const handleConfirm = () => {
+    console.log('예약할 availableIds:', selectedIds);
+    onClose();
+  };
+
   // Portal을 사용하여 모달을 root 레벨에서 렌더링
   return ReactDOM.createPortal(
     <ModalOverlay onClick={onClose}>
@@ -122,7 +130,7 @@ const ReservationModal = ({
         
         <InfoItem>
           <Label>예약자명</Label>
-          <Value>문진선</Value>
+          <Value>{userName}</Value>
         </InfoItem>
         
         <InfoItem>
@@ -145,7 +153,7 @@ const ReservationModal = ({
           <Value>₩{totalPrice.toLocaleString()}</Value>
         </InfoItem>
 
-        <ConfirmButton onClick={onClose}>
+        <ConfirmButton onClick={handleConfirm}>
           결제하기
         </ConfirmButton>
       </ModalContent>
