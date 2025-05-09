@@ -1,17 +1,18 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import HostSideBar from '../../components/HostSideBar';
 import { ReactComponent as CancelIcon } from '../../assets/icons/cancel.svg';
 import { ReactComponent as MessageIcon } from '../../assets/icons/message.svg';
 import { ReactComponent as MoneyIcon } from '../../assets/icons/money.svg';
 import kitchenImage from '../../assets/jpg/kitchen1.jpg';
+import { useParams } from 'react-router-dom';
+import axios from '../../api/axiosInstance';
 
 const Container = styled.div`
     display: flex;
     min-height: 100vh;
     background: white;
 `;
-
 const ContentWrapper = styled.div`
     padding: 40px;
     padding-left: 100px;
@@ -19,10 +20,12 @@ const ContentWrapper = styled.div`
     flex: 1;
 `;
 
+
 const Title = styled.h2`
     font-size: 24px;
     font-weight: bold;
     margin-bottom: 48px;
+    text-align: left;
 `;
 
 const DetailCard = styled.div`
@@ -30,7 +33,8 @@ const DetailCard = styled.div`
     border: 1px solid #E0E0E0;
     border-radius: 12px;
     padding: 18px 30px 30px 30px;
-    max-width: 750px;
+    max-width: 900px;
+    min-width: 700px;
 `;
 
 const ReservationStatus = styled.div`
@@ -39,7 +43,10 @@ const ReservationStatus = styled.div`
     font-weight: 700;
     margin-bottom: 20px;
     color: white;
-    background: #FFBC39;
+    background: ${props =>
+        props.status === 'RESERVED' ? '#FFBC39' :
+        props.status === 'PENDING_PAYMENT' ? '#FF7926' :
+        props.status === 'COMPLETED_PAYMENT' ? '#BDBDBD' : '#FFBC39'};
     padding: 8px 24px;
     border-radius: 6px;
 `;
@@ -51,21 +58,22 @@ const TopSection = styled.div`
 `;
 
 const KitchenImage = styled.img`
-    width: 40%;
-    height: 180px;
+    width: 45%;
+    height: 200px;
     object-fit: cover;
     border-radius: 8px;
+    margin-right: 20px;
 `;
 
 const KitchenInfo = styled.div`
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
 `;
 
 const KitchenName = styled.h3`
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 700;
     margin-bottom: 4px;
 `;
@@ -79,9 +87,9 @@ const Address = styled.p`
 
 const DateTime = styled.p`
     color: #333;
-    font-size: 21px;
-    margin-top: 32px;
-    font-weight: 500;
+    font-size: 24px;
+    margin-top: 40px;
+    font-weight: 600;
 `;
 
 const SectionTitle = styled.h4`
@@ -109,7 +117,7 @@ const Labels = styled.div`
     color: #767676;
     font-size: 16px;
     width: 45%;
-    font-weight: 300;
+    font-weight: 400;
 `;
 
 const Values = styled.div`
@@ -120,7 +128,7 @@ const Values = styled.div`
     font-size: 16px;
     text-align: right;
     width: 45%;
-    font-weight: 500;
+    font-weight: 600;
 `;
 
 const ActionSection = styled.div`
@@ -128,7 +136,7 @@ const ActionSection = styled.div`
     display: flex;
     justify-content: flex-end;
     align-items: flex-end;
-    gap: 16px;
+    gap: 20px;
 `;
 
 const ActionButton = styled.button`
@@ -136,12 +144,12 @@ const ActionButton = styled.button`
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 12px;
     padding: 12px;
-    width: 80px;
-    height: 80px;
+    width: 90px;
+    height: 90px;
     border-radius: 8px;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 700;
     cursor: pointer;
     border: none;
@@ -149,8 +157,8 @@ const ActionButton = styled.button`
     color: ${props => props.variant === 'cancel' ? '#666' : 'white'};
 
     svg {
-        width: 36px;
-        height: 36px;
+        width: 40px;
+        height: 40px;
         path {
             fill: ${props => props.variant === 'cancel' ? '#666' : 'white'};
         }
@@ -162,19 +170,39 @@ const ActionButton = styled.button`
 `;
 
 const HostReservationDetail = () => {
-    // 임시 데이터
-    const reservationData = {
-        id: 19980719,
-        userName: "문민선",
-        phoneNumber: "010-1111-2222",
-        date: "2025.3.13",
-        time: "15:00 ~ 17:00",
-        people: 4,
-        price: "80,000원",
-        kitchenName: "파이브잇 쿠킹스튜디오",
-        address: "서울 은평구 거북골로 135-2",
-        status: "진행중"
+    const { reservationId } = useParams();
+    const [reservationData, setReservationData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const fetchDetail = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                console.log("reservationId", reservationId);
+                const res = await axios.get(`/api/host/reservation/${reservationId}`);
+                setReservationData(res.data);
+            } catch (err) {
+                setError('상세 정보를 불러오지 못했습니다.');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchDetail();
+    }, [reservationId]);
+
+    // 상태 텍스트 변환
+    const getStatusText = (status) => {
+        if (status === 'RESERVED') return '예약완료';
+        if (status === 'PENDING_PAYMENT') return '정산대기';
+        if (status === 'COMPLETED_PAYMENT') return '정산완료';
+        return status;
     };
+
+    if (loading) return <Container><HostSideBar activeMenu="예약 관리" /><ContentWrapper>로딩 중...</ContentWrapper></Container>;
+    if (error) return <Container><HostSideBar activeMenu="예약 관리" /><ContentWrapper style={{color:'red'}}>{error}</ContentWrapper></Container>;
+    if (!reservationData) return null;
 
     return (
         <Container>
@@ -182,19 +210,16 @@ const HostReservationDetail = () => {
             <ContentWrapper>
                 <Title>상세 예약 내역</Title>
                 <DetailCard>
-                    <ReservationStatus>결제완료</ReservationStatus>
-                    
+                    <ReservationStatus status={reservationData.status}>{getStatusText(reservationData.status)}</ReservationStatus>
                     <TopSection>
-                        <KitchenImage src={kitchenImage} alt="주방 이미지" />
+                        <KitchenImage src={reservationData.kitchenImageUrl || kitchenImage} alt="주방 이미지" />
                         <KitchenInfo>
                             <KitchenName>{reservationData.kitchenName}</KitchenName>
-                            <Address>{reservationData.address}</Address>
-                            <DateTime>{reservationData.date} {reservationData.time} ({reservationData.people}인)</DateTime>
+                            <Address>{reservationData.kitchenLocation}</Address>
+                            <DateTime>{reservationData.reservationDate} {reservationData.reservationTime} ({reservationData.clientNumber}인)</DateTime>
                         </KitchenInfo>
                     </TopSection>
-
                     <SectionTitle>예약 정보</SectionTitle>
-
                     <BottomSection>
                         <ReservationDetails>
                             <Labels>
@@ -204,10 +229,10 @@ const HostReservationDetail = () => {
                                 <span>선결제 금액</span>
                             </Labels>
                             <Values>
-                                <span>{reservationData.id}</span>
-                                <span>{reservationData.userName}</span>
-                                <span>{reservationData.phoneNumber}</span>
-                                <span>{reservationData.price}</span>
+                                <span>{reservationData.reservationId}</span>
+                                <span>{reservationData.clientName}</span>
+                                <span>{reservationData.clientPhone}</span>
+                                <span>{reservationData.prepaidAmount.toLocaleString()}원</span>
                             </Values>
                         </ReservationDetails>
                         <ActionSection>

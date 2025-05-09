@@ -130,7 +130,7 @@ const AppRouter = () => {
                 }
             />
             <Route
-                path="/host-mypage/reservations/:id"
+                path="/host-mypage/reservations/:reservationId"
                 element={
                     <ProtectedRoute allowedRole="HOST">
                         <HostReservationDetail />

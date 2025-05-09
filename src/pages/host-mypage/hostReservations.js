@@ -32,7 +32,7 @@ const TabMenu = styled.div`
 const Tab = styled.div`
     margin-right: 16px;
     cursor: pointer;
-    font-weight: ${(props) => (props.active ? "bold" : "normal")};
+    font-weight: ${(props) => (props.active ? "700" : "500")};
     color: ${(props) => (props.active ? "#000" : "#666")};
     border-bottom: ${(props) => (props.active ? "2px solid black" : "none")};
 `;
@@ -152,7 +152,19 @@ const HostReservations = () => {
                 </TabMenu>
                 {loading && <div>로딩 중...</div>}
                 {error && <div style={{ color: 'red' }}>{error}</div>}
-                {!loading && !error && currentItems.length === 0 && <div>내역이 없습니다.</div>}
+                {!loading && !error && currentItems.length === 0 && (
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        height: '300px',
+                        fontSize: '24px',
+                        color: '#666',
+                        fontWeight: '500'
+                    }}>
+                        예약 내역이 없습니다.
+                    </div>
+                )}
                 {currentItems.map((reservation) => (
                     <HostReservationCard
                         key={reservation.reservationId}

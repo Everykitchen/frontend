@@ -10,15 +10,15 @@ const Card = styled.div`
     background: #fcfcfc;
     display: flex;
     gap: 30px;
-
+    width: 100%;
     &:hover {
         background: #FAFAFA;
     }
 `;
 
 const KitchenImage = styled.img`
-    width: 300px;
-    height: 200px;
+    width: 280px;
+    height: 180px;
     object-fit: cover;
     border-radius: 8px;
     flex-shrink: 0;
@@ -29,19 +29,20 @@ const ContentWrapper = styled.div`
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    padding: 8px 0;
+    padding: 6px 0;
 `;
 
 const ReservationInfo = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
     margin-bottom: 10px;
 `;
 
 const ReservationNumber = styled.div`
     color: #666;
     font-size: 14px;
+    font-weight: 400;
 `;
 
 const KitchenName = styled.div`
@@ -50,27 +51,28 @@ const KitchenName = styled.div`
 `;
 
 const UserName = styled.div`
-    color: #000;
+    font-size: 20px;
+    font-weight: 700;
+`;
+
+const DateTime = styled.div`
+    color: #666;
     font-size: 18px;
     font-weight: 600;
 `;
 
-const DateTime = styled.div`
-    color: #333;
-    font-size: 14px;
-`;
-
 const Location = styled.div`
-    color: #888;
+    color: #666;
     font-size: 13px;
-    margin-bottom: 4px;
+    font-weight: 400;
+    margin-bottom: 6px;
 `;
 
 const Status = styled.div`
     padding: 8px 16px;
     border-radius: 4px;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 400;
     width: fit-content;
     background: ${props => props.status === "진행중" ? "#FFBC39" : "#9B9B9B"};
     color: white;
@@ -94,8 +96,8 @@ const HostReservationCard = ({ reservation, onClick }) => {
                     <ReservationNumber>예약번호 {reservation.id}</ReservationNumber>
                     <KitchenName>{reservation.kitchenName}</KitchenName>
                     <Location>{reservation.location}</Location>
-                    <UserName>{reservation.userName} 님</UserName>
                     <DateTime>{reservation.date} {reservation.time} ({reservation.people}인)</DateTime>
+                    <UserName> {reservation.userName} 님</UserName>
                 </ReservationInfo>
                 <Status status={reservation.status}>
                     {reservation.status}
