@@ -84,6 +84,7 @@ const KitchenMap = () => {
     const cardRefs = useRef({});
     const debounceTimer = useRef(null);
 
+    const [allKitchens, setAllKitchens] = useState([]); // 전체 원본
     const [nearbyKitchens, setNearbyKitchens] = useState([]);
     const [selectedKitchen, setSelectedKitchen] = useState(null);
     const [mapInstance, setMapInstance] = useState(null);
@@ -105,6 +106,52 @@ const KitchenMap = () => {
             () => initMap(37.9, 126.96)
         );
     }, [loaded]);
+
+    // ✅ 정렬 및 찜 필터링 반영
+    useEffect(() => {
+        let filtered = [...allKitchens];
+
+        if (sortOption === "rating") {
+            filtered.sort((a, b) => b.avgStar - a.avgStar);
+        } else if (sortOption === "review") {
+            filtered.sort((a, b) => b.reviewCount - a.reviewCount);
+        } else if (sortOption === "distance" && userPosition) {
+            const dist = (lat1, lng1, lat2, lng2) => {
+                const toRad = (val) => (val * Math.PI) / 180;
+                const R = 6371;
+                const dLat = toRad(lat2 - lat1);
+                const dLng = toRad(lng2 - lng1);
+                const aVal =
+                    Math.sin(dLat / 2) ** 2 +
+                    Math.cos(toRad(lat1)) *
+                        Math.cos(toRad(lat2)) *
+                        Math.sin(dLng / 2) ** 2;
+                const c = 2 * Math.atan2(Math.sqrt(aVal), Math.sqrt(1 - aVal));
+                return R * c;
+            };
+            filtered.sort((a, b) => {
+                const da = dist(
+                    userPosition.lat,
+                    userPosition.lng,
+                    a.latitude,
+                    a.longitude
+                );
+                const db = dist(
+                    userPosition.lat,
+                    userPosition.lng,
+                    b.latitude,
+                    b.longitude
+                );
+                return da - db;
+            });
+        }
+
+        if (showOnlyLiked) {
+            filtered = filtered.filter((k) => k.isLiked);
+        }
+
+        setNearbyKitchens(filtered);
+    }, [sortOption, showOnlyLiked, userPosition, allKitchens]);
 
     const initMap = async (lat, lng) => {
         const map = new window.kakao.maps.Map(mapRef.current, {
@@ -155,52 +202,15 @@ const KitchenMap = () => {
             const kitchenList = Array.isArray(res.data)
                 ? res.data
                 : res.data.content || [];
-            const sortedList = [...kitchenList];
 
-            if (userPosition) {
-                sortedList.sort((a, b) => {
-                    const dist = (lat1, lng1, lat2, lng2) => {
-                        const toRad = (val) => (val * Math.PI) / 180;
-                        const R = 6371;
-                        const dLat = toRad(lat2 - lat1);
-                        const dLng = toRad(lng2 - lng1);
-                        const aVal =
-                            Math.sin(dLat / 2) ** 2 +
-                            Math.cos(toRad(lat1)) *
-                                Math.cos(toRad(lat2)) *
-                                Math.sin(dLng / 2) ** 2;
-                        const c =
-                            2 *
-                            Math.atan2(Math.sqrt(aVal), Math.sqrt(1 - aVal));
-                        return R * c;
-                    };
-                    const da = dist(
-                        userPosition.lat,
-                        userPosition.lng,
-                        a.latitude,
-                        a.longitude
-                    );
-                    const db = dist(
-                        userPosition.lat,
-                        userPosition.lng,
-                        b.latitude,
-                        b.longitude
-                    );
-                    return da - db;
-                });
-            }
+            setAllKitchens(
+                kitchenList.map((k) => ({
+                    ...k,
+                    isLiked: k.liked ?? false, // 👈 liked → isLiked로 변환
+                }))
+            );
 
-            if (sortOption === "rating") {
-                sortedList.sort((a, b) => b.review - a.review);
-            } else if (sortOption === "review") {
-                sortedList.sort((a, b) => b.reviewCount - a.reviewCount);
-            }
-
-            const filteredList = showOnlyLiked
-                ? sortedList.filter((k) => k.isLiked === "yes")
-                : sortedList;
-
-            setNearbyKitchens(filteredList);
+            console.log(kitchenList);
 
             Object.values(markerMap.current).forEach((marker) =>
                 marker.setMap(null)
@@ -297,6 +307,7 @@ const KitchenMap = () => {
                         찜한 주방만 보기
                     </CheckboxLabel>
                 </Controls>
+
                 {nearbyKitchens.map((kitchen) => (
                     <div
                         key={kitchen.kitchenId}

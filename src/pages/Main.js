@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import styled from "styled-components";
-import axios from "axios";
 import api from "../api/axiosInstance";
-import FilterBar from "../components/FilterBar";
 import StoreCard from "../components/StoreCard";
 
 const PageContainer = styled.div`
@@ -44,52 +42,51 @@ const MainPage = () => {
 
     const fetchStores = async (pageNum = 0) => {
         try {
-            const [storeRes, likedIds] = await Promise.all([
-                axios.get("/api/common/kitchen", {
-                    params: {
-                        location: "",
-                        date: "",
-                        count: "",
-                        price: "",
-                        page: pageNum,
-                        size: 10,
-                    },
-                }),
-            ]);
+            const response = await api.get("/api/common/kitchen", {
+                params: {
+                    location: "",
+                    date: "",
+                    count: "",
+                    price: "",
+                    page: pageNum,
+                    size: 10,
+                },
+            });
 
-            const kitchens = storeRes.data?.content || [];
+            const kitchens = response.data?.content || [];
 
             const transformed = kitchens.map((kitchen) => ({
                 id: kitchen.kitchenId ?? kitchen.id,
-                imageUrl: kitchen.image,
+                imageUrl:
+                    kitchen.imageUrl || "https://via.placeholder.com/240x160",
                 location: kitchen.location,
                 name: kitchen.kitchenName,
-                price: kitchen.defaultPrice
-                    ? `${kitchen.defaultPrice.toLocaleString()}원~`
+                price: kitchen.minPrice
+                    ? `${kitchen.minPrice.toLocaleString()}원~`
                     : "가격 정보 없음",
-                time: "1시간",
-                tags: kitchen.tag
-                    ? [kitchen.tag === "KITCHEN" ? "쿠킹" : "베이킹"]
+                time: `${kitchen.minReservationTime}분`,
+                tags: kitchen.category
+                    ? [kitchen.category === "COOKING" ? "쿠킹" : "베이킹"]
                     : [],
-                isLiked: kitchen.isLiked ?? false,
+                isLiked: kitchen.liked ?? false,
                 review: kitchen.avgStar || 0,
                 reviewCount: kitchen.reviewCount || 0,
             }));
 
             setStoreList(transformed);
-            setTotalPages(storeRes.data.totalPages || 1);
+            setTotalPages(response.data.totalPages || 1);
         } catch (err) {
             console.error("주방 목록 불러오기 실패", err);
         }
     };
 
-    // 찜 토글 시 상태 반영
-    const handleLikeToggle = (id, isNowLiked) => {
-        setStoreList((prev) =>
-            prev.map((store) =>
-                store.id === id ? { ...store, isLiked: isNowLiked } : store
-            )
-        );
+    const handleLikeToggle = async (id) => {
+        try {
+            await api.post(`/api/user/kitchen/${id}/likes`);
+            await fetchStores(page); // ✅ 하트를 누르면 전체 데이터 재요청
+        } catch (err) {
+            alert("찜 처리 실패");
+        }
     };
 
     useEffect(() => {
@@ -98,7 +95,6 @@ const MainPage = () => {
 
     return (
         <PageContainer>
-            <FilterBar />
             <StoreList>
                 {storeList.map((store) => (
                     <StoreCard

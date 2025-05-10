@@ -1,7 +1,5 @@
 import styled from "styled-components";
-import { useState } from "react";
 import { FaRegHeart, FaHeart, FaStar } from "react-icons/fa";
-import api from "../api/axiosInstance";
 
 const Card = styled.div`
     width: 240px;
@@ -86,33 +84,13 @@ const Tag = styled.span`
 `;
 
 const StoreCard = ({ store, onLikeToggle }) => {
-    const [liked, setLiked] = useState(store.isLiked || false);
-
     if (!store?.id) {
         console.warn("StoreCard: store.id가 undefined입니다", store);
         return null;
     }
 
-    const handleLikeToggle = async () => {
-        const newLiked = !liked;
-        setLiked(newLiked);
-
-        try {
-            if (newLiked) {
-                // 좋아요 표시
-                await api.post(`/api/user/kitchen/${store.id}/likes`);
-            } else {
-                // 좋아요 취소
-                await api.delete(`/api/user/kitchen/${store.id}/likes`);
-            }
-
-            onLikeToggle?.(store.id, newLiked);
-        } catch (err) {
-            console.error("찜 처리 실패", err);
-            setLiked(!newLiked);
-            alert("찜 처리에 실패했습니다.");
-        }
-        console.log("StoreCard props:", store);
+    const handleLikeToggle = () => {
+        onLikeToggle?.(store.id); // 👍 상태는 상위에서 재요청으로 처리
     };
 
     return (
@@ -121,7 +99,7 @@ const StoreCard = ({ store, onLikeToggle }) => {
                 src={store.imageUrl || "https://via.placeholder.com/240x160"}
             />
             <LikeButton onClick={handleLikeToggle}>
-                {liked ? <FaHeart /> : <FaRegHeart />}
+                {store.isLiked ? <FaHeart /> : <FaRegHeart />}
             </LikeButton>
 
             <Info>
