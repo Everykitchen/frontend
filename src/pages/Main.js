@@ -60,7 +60,7 @@ const MainPage = () => {
             const kitchens = storeRes.data?.content || [];
 
             const transformed = kitchens.map((kitchen) => ({
-                id: kitchen.id,
+                id: kitchen.kitchenId ?? kitchen.id,
                 imageUrl: kitchen.image,
                 location: kitchen.location,
                 name: kitchen.kitchenName,
