@@ -12,6 +12,7 @@ import HostReservationDetail from "../pages/host-mypage/HostReservationDetail";
 import HostSales from "../pages/host-mypage/HostSales";
 import ChatHistory from "../pages/host-mypage/ChatHistory";
 import ChattingRoom from "../pages/host-mypage/ChattingRoom";
+import IngredientSettlement from "../pages/user-mypage/IngredientSettlement";
 
 import ProtectedRoute from "./ProtectedRoute";
 import {
@@ -174,6 +175,7 @@ const AppRouter = () => {
             />
             <Route path="/kitchen-detail/:id" element={<KitchenDetailPage />} />
             <Route path="/map" element={<KitchenMap />} />
+            <Route path="/mypage/ingredient-settlement" element={<IngredientSettlement />} />
         </Routes>
     );
 };
