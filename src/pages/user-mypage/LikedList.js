@@ -35,16 +35,18 @@ const LikedList = () => {
     const fetchLikedKitchens = async () => {
         try {
             const response = await api.get("/api/user/like-kitchens");
-            const kitchens = response.data.contents?.[0]?.myLikes || [];
+            const contents = response.data?.contents?.[0]?.myLikes || [];
 
-            const transformed = kitchens.map((kitchen) => ({
+            const transformed = contents.map((kitchen) => ({
                 id: kitchen.kitchenId,
                 imageUrl: kitchen.imageUrl,
                 location: kitchen.location,
                 name: kitchen.kitchenName,
-                price: `${kitchen.minPrice.toLocaleString()}원~`,
-                time: `${kitchen.minReservationTime}시간`,
-                tags: [kitchen.category], // 카테고리를 태그로 사용
+                price: kitchen.minPrice
+                    ? `${kitchen.minPrice.toLocaleString()}원~`
+                    : "가격 정보 없음",
+                time: `${kitchen.minReservationTime}분`,
+                tags: kitchen.category ? [kitchen.category] : [],
                 isLiked: true,
                 review: kitchen.avgStar,
                 reviewCount: kitchen.reviewCount,
@@ -53,6 +55,20 @@ const LikedList = () => {
             setLikedStores(transformed);
         } catch (err) {
             console.error("찜 목록 불러오기 실패", err);
+        }
+    };
+
+    const handleLikeToggle = async (id) => {
+        try {
+            const res = await api.post(`/api/user/kitchen/${id}/likes`);
+            const confirmedLiked = res.data.liked;
+            if (!confirmedLiked) {
+                setLikedStores((prev) =>
+                    prev.filter((store) => store.id !== id)
+                );
+            }
+        } catch (err) {
+            alert("찜 처리 실패");
         }
     };
 
@@ -67,7 +83,11 @@ const LikedList = () => {
                 <Title>찜 목록</Title>
                 <Grid>
                     {likedStores.map((store) => (
-                        <StoreCard key={store.id} store={store} />
+                        <StoreCard
+                            key={`${store.id}-${store.isLiked}`}
+                            store={store}
+                            onLikeToggle={handleLikeToggle}
+                        />
                     ))}
                 </Grid>
             </Content>
