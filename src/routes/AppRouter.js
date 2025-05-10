@@ -30,6 +30,8 @@ import {
 } from "../pages/host-mypage/HostMyPageIndex";
 import KitchenForm from "../pages/host-mypage/kitchen/KitchenForm";
 
+import KitchenMap from "../pages/kitchenMap/KitchenMap";
+
 const AppRouter = () => {
     const location = useLocation();
 
@@ -171,6 +173,7 @@ const AppRouter = () => {
                 }
             />
             <Route path="/kitchen-detail/:id" element={<KitchenDetailPage />} />
+            <Route path="/map" element={<KitchenMap />} />
         </Routes>
     );
 };
