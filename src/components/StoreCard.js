@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import { useState } from "react";
 import { FaRegHeart, FaHeart, FaStar } from "react-icons/fa";
-import axios from "axios";
+import api from "../api/axiosInstance";
 
 const Card = styled.div`
     width: 240px;
@@ -88,24 +88,31 @@ const Tag = styled.span`
 const StoreCard = ({ store, onLikeToggle }) => {
     const [liked, setLiked] = useState(store.isLiked || false);
 
+    if (!store?.id) {
+        console.warn("StoreCard: store.id가 undefined입니다", store);
+        return null;
+    }
+
     const handleLikeToggle = async () => {
         const newLiked = !liked;
-        setLiked(newLiked); // optimistic UI
+        setLiked(newLiked);
 
         try {
             if (newLiked) {
-                await axios.post("/api/likes", { kitchenId: store.id });
+                // 좋아요 표시
+                await api.post(`/api/user/kitchen/${store.id}/likes`);
             } else {
-                await axios.delete(`/api/likes/${store.id}`);
+                // 좋아요 취소
+                await api.delete(`/api/user/kitchen/${store.id}/likes`);
             }
 
-            // 외부에서 필요 시 콜백 처리
             onLikeToggle?.(store.id, newLiked);
         } catch (err) {
             console.error("찜 처리 실패", err);
-            setLiked(!newLiked); // 롤백
+            setLiked(!newLiked);
             alert("찜 처리에 실패했습니다.");
         }
+        console.log("StoreCard props:", store);
     };
 
     return (

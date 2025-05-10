@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../api/axiosInstance";
 import Sidebar from "../../components/UserSideBar";
 import StoreCard from "../../components/StoreCard";
 
@@ -34,19 +34,19 @@ const LikedList = () => {
 
     const fetchLikedKitchens = async () => {
         try {
-            const response = await axios.get("/api/likes");
-            const kitchens = response.data || [];
+            const response = await api.get("/api/user/like-kitchens");
+            const kitchens = response.data.contents?.[0]?.myLikes || [];
 
             const transformed = kitchens.map((kitchen) => ({
-                id: kitchen.id,
-                imageUrl: kitchen.image,
+                id: kitchen.kitchenId,
+                imageUrl: kitchen.imageUrl,
                 location: kitchen.location,
                 name: kitchen.kitchenName,
-                price: `${kitchen.defaultPrice.toLocaleString()}원~`,
-                time: "1시간",
-                tags: kitchen.tags || [],
+                price: `${kitchen.minPrice.toLocaleString()}원~`,
+                time: `${kitchen.minReservationTime}시간`,
+                tags: [kitchen.category], // 카테고리를 태그로 사용
                 isLiked: true,
-                review: kitchen.review,
+                review: kitchen.avgStar,
                 reviewCount: kitchen.reviewCount,
             }));
 
@@ -65,7 +65,6 @@ const LikedList = () => {
             <Sidebar />
             <Content>
                 <Title>찜 목록</Title>
-
                 <Grid>
                     {likedStores.map((store) => (
                         <StoreCard key={store.id} store={store} />
