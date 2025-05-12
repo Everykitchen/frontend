@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSearch } from "../contexts/SearchContext";
 import styled from "styled-components";
 import api from "../api/axiosInstance";
 import StoreCard from "../components/StoreCard";
@@ -45,6 +46,8 @@ const MainPage = () => {
         count: 1,
         price: 50000,
     });
+    const { searchKeyword } = useSearch();
+    const observerTarget = useRef(null);
 
     const fetchStores = async (pageNum = 0) => {
         try {
@@ -53,8 +56,10 @@ const MainPage = () => {
                     location: filters.location || "",
                     count: filters.count || "",
                     price: filters.price || "",
+                    keyword: searchKeyword || "",
+                    // date랑 facility도 추가 필요
                     page: pageNum,
-                    size: 10,
+                    size: 12,
                 },
             });
 
@@ -78,6 +83,12 @@ const MainPage = () => {
                 reviewCount: kitchen.reviewCount || 0,
             }));
 
+            if (pageNum === 0) {
+                setStoreList(transformed); // 필터 변경 시 초기화
+            } else {
+                setStoreList((prev) => [...prev, ...transformed]); // 이어 붙이기
+            }
+
             setStoreList(transformed);
             setTotalPages(response.data.totalPages || 1);
         } catch (err) {
@@ -100,8 +111,27 @@ const MainPage = () => {
     };
 
     useEffect(() => {
+        if (page + 1 >= totalPages) return;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setPage((prev) => prev + 1);
+                }
+            },
+            { threshold: 1 }
+        );
+
+        if (observerTarget.current) {
+            observer.observe(observerTarget.current);
+        }
+
+        return () => observer.disconnect();
+    }, [page, totalPages]);
+
+    useEffect(() => {
         fetchStores(page);
-    }, [page, filters]);
+    }, [page, filters, searchKeyword]);
 
     return (
         <PageContainer>
@@ -115,6 +145,21 @@ const MainPage = () => {
                     />
                 ))}
             </StoreList>
+
+            {storeList.length === 0 && searchKeyword && (
+                <div
+                    style={{
+                        marginTop: "60px",
+                        color: "#999",
+                        fontSize: "16px",
+                    }}
+                >
+                    <strong>"{searchKeyword}"</strong>에 대한 검색 결과가
+                    없습니다.
+                </div>
+            )}
+
+            <div ref={observerTarget} style={{ height: "1px" }} />
 
             <PaginationContainer>
                 {[...Array(totalPages)].map((_, i) => (

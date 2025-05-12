@@ -4,6 +4,7 @@ import styled from "styled-components";
 import GlobalStyle from "./components/GlobalStyle";
 import { jwtDecode } from "jwt-decode";
 import { useEffect } from "react";
+import { SearchProvider } from "./contexts/SearchContext";
 
 const AppContainer = styled.div`
     display: flex;
@@ -45,15 +46,17 @@ function App() {
     }, []);
 
     return (
-        <AppContainer>
-            <GlobalStyle />
-            <FixedNavBar>
-                <NavBar />
-            </FixedNavBar>
-            <Content>
-                <AppRouter />
-            </Content>
-        </AppContainer>
+        <SearchProvider>
+            <AppContainer>
+                <GlobalStyle />
+                <FixedNavBar>
+                    <NavBar />
+                </FixedNavBar>
+                <Content>
+                    <AppRouter />
+                </Content>
+            </AppContainer>
+        </SearchProvider>
     );
 }
 

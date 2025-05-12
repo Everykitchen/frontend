@@ -1,8 +1,8 @@
-import React from "react";
 import styled from "styled-components";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Logo from "./Logo";
-
+import { useSearch } from "../contexts/SearchContext";
 import mapIcon from "../assets/icons/mapIcon.svg";
 import calendarIcon from "../assets/icons/calendarIcon.svg";
 import heartIcon from "../assets/icons/heartIcon.svg";
@@ -72,7 +72,14 @@ const IconImg = styled.img`
 `;
 
 const Navbar = () => {
+    const { setSearchKeyword } = useSearch();
+    const [searchText, setSearchText] = useState("");
     const navigate = useNavigate();
+
+    const handleSearch = () => {
+        setSearchKeyword(searchText);
+        navigate("/");
+    };
 
     const handleMypageClick = (e) => {
         e.preventDefault();
@@ -88,8 +95,17 @@ const Navbar = () => {
         <HeaderWrapper>
             <Logo />
             <SearchSection>
-                <SearchInput placeholder="찾으시는 주방을 검색해보세요! " />
-                <SearchIcon src={searchIcon} alt="검색" />
+                <SearchInput
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                            handleSearch();
+                        }
+                    }}
+                    placeholder="찾으시는 주방을 검색해보세요!"
+                />
+                <SearchIcon src={searchIcon} onClick={handleSearch} />
             </SearchSection>
             <IconSection>
                 <IconLink to="/map">
