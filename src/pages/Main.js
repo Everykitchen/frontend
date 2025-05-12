@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 import api from "../api/axiosInstance";
 import StoreCard from "../components/StoreCard";
+import FilterBar from "../components/FilterBar";
 
 const PageContainer = styled.div`
     display: flex;
@@ -39,15 +40,19 @@ const MainPage = () => {
     const [storeList, setStoreList] = useState([]);
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
+    const [filters, setFilters] = useState({
+        location: "",
+        count: 1,
+        price: 50000,
+    });
 
     const fetchStores = async (pageNum = 0) => {
         try {
             const response = await api.get("/api/common/kitchen", {
                 params: {
-                    location: "",
-                    date: "",
-                    count: "",
-                    price: "",
+                    location: filters.location || "",
+                    count: filters.count || "",
+                    price: filters.price || "",
                     page: pageNum,
                     size: 10,
                 },
@@ -83,18 +88,24 @@ const MainPage = () => {
     const handleLikeToggle = async (id) => {
         try {
             await api.post(`/api/user/kitchen/${id}/likes`);
-            await fetchStores(page); // ✅ 하트를 누르면 전체 데이터 재요청
+            await fetchStores(page); // 전체 데이터 재요청
         } catch (err) {
             alert("찜 처리 실패");
         }
     };
 
+    const handleFilterChange = (newFilters) => {
+        setFilters(newFilters);
+        setPage(0); // 필터 변경 시 1페이지부터
+    };
+
     useEffect(() => {
         fetchStores(page);
-    }, [page]);
+    }, [page, filters]);
 
     return (
         <PageContainer>
+            <FilterBar onFilterChange={handleFilterChange} />
             <StoreList>
                 {storeList.map((store) => (
                     <StoreCard
