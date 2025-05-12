@@ -93,16 +93,36 @@ const Navbar = () => {
             </SearchSection>
             <IconSection>
                 <IconLink to="/map">
-                    <IconImg src={mapIcon} alt="지도" width={"18px"} height={"18px"} />
+                    <IconImg
+                        src={mapIcon}
+                        alt="지도"
+                        width={"18px"}
+                        height={"18px"}
+                    />
                 </IconLink>
-                <IconLink to="/calendar">
-                    <IconImg src={calendarIcon} alt="달력" width={"20px"} height={"20px"} />
+                <IconLink to="/mypage/reservations">
+                    <IconImg
+                        src={calendarIcon}
+                        alt="달력"
+                        width={"20px"}
+                        height={"20px"}
+                    />
                 </IconLink>
-                <IconLink to="/favorites">
-                    <IconImg src={heartIcon} alt="찜" width={"20px"} height={"20px"} />
+                <IconLink to="/mypage/likes">
+                    <IconImg
+                        src={heartIcon}
+                        alt="찜"
+                        width={"20px"}
+                        height={"20px"}
+                    />
                 </IconLink>
                 <IconLink to="#" onClick={handleMypageClick}>
-                    <IconImg src={userIcon} alt="마이페이지" width={"17px"} height={"17px"} />
+                    <IconImg
+                        src={userIcon}
+                        alt="마이페이지"
+                        width={"17px"}
+                        height={"17px"}
+                    />
                 </IconLink>
             </IconSection>
         </HeaderWrapper>
