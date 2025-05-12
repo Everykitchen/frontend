@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import { FaRegHeart, FaHeart, FaStar } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const Card = styled.div`
     width: 240px;
@@ -8,6 +9,7 @@ const Card = styled.div`
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     background: white;
     position: relative;
+    cursor: pointer;
 `;
 
 const Image = styled.img`
@@ -84,17 +86,24 @@ const Tag = styled.span`
 `;
 
 const StoreCard = ({ store, onLikeToggle }) => {
+    const navigate = useNavigate();
+
     if (!store?.id) {
         console.warn("StoreCard: store.id가 undefined입니다", store);
         return null;
     }
 
-    const handleLikeToggle = () => {
-        onLikeToggle?.(store.id); // 👍 상태는 상위에서 재요청으로 처리
+    const handleLikeToggle = (e) => {
+        e.stopPropagation(); // 카드 클릭 이벤트 버블링 방지
+        onLikeToggle?.(store.id);
+    };
+
+    const handleCardClick = () => {
+        navigate(`/kitchen/${store.id}`);
     };
 
     return (
-        <Card>
+        <Card onClick={handleCardClick}>
             <Image
                 src={store.imageUrl || "https://via.placeholder.com/240x160"}
             />
