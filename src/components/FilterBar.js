@@ -6,7 +6,7 @@ import {
     FaWonSign,
     FaSlidersH,
 } from "react-icons/fa";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CalendarBox from "./CalendarBox";
 import CommonButton from "./Button";
 
@@ -64,6 +64,24 @@ const PopupItem = styled.div`
     }
 `;
 
+const RegionGrid = styled.div`
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    width: 100%;
+`;
+
+const RegionTitle = styled.div`
+    margin-bottom: 12px;
+    font-weight: bold;
+    font-size: 14px;
+    text-align: center;
+`;
+
+const LocationPopup = styled(Popup)`
+    min-width: 360px;
+`;
+
 const ButtonRow = styled.div`
     display: flex;
     justify-content: center;
@@ -89,7 +107,56 @@ const countButtonStyle = {
     cursor: "pointer",
 };
 
-const FilterBar = () => {
+const regions = {
+    서울: [
+        "강남구",
+        "강동구",
+        "강북구",
+        "강서구",
+        "관악구",
+        "광진구",
+        "구로구",
+        "금천구",
+        "노원구",
+        "도봉구",
+        "동대문구",
+        "동작구",
+        "마포구",
+        "서대문구",
+        "서초구",
+        "성동구",
+        "성북구",
+        "송파구",
+        "양천구",
+        "영등포구",
+        "용산구",
+        "은평구",
+        "종로구",
+        "중구",
+        "중랑구",
+    ],
+    경기: [
+        "수원시",
+        "성남시",
+        "고양시",
+        "용인시",
+        "부천시",
+        "안산시",
+        "안양시",
+        "남양주시",
+        "화성시",
+        "평택시",
+        "의정부시",
+        "시흥시",
+        "파주시",
+        "김포시",
+    ],
+    인천: ["중구", "동구", "연수구", "부평구", "계양구", "서구"],
+    부산: ["해운대구", "부산진구", "동래구", "수영구"],
+    제주: ["제주시", "서귀포시"],
+};
+
+const FilterBar = ({ onFilterChange }) => {
     const filters = [
         { icon: <FaMapMarkerAlt />, label: "지역" },
         { icon: <FaCalendarAlt />, label: "날짜" },
@@ -98,6 +165,11 @@ const FilterBar = () => {
         { icon: <FaSlidersH />, label: "필터" },
     ];
 
+    const [selectedRegion, setSelectedRegion] = useState(null);
+    const [selectedLocation, setSelectedLocation] = useState({
+        city: null,
+        district: null,
+    });
     const [activePopup, setActivePopup] = useState(null);
     const [selectedDate, setSelectedDate] = useState(null);
     const [guestCount, setGuestCount] = useState(1);
@@ -112,45 +184,79 @@ const FilterBar = () => {
         );
     };
 
+    const resetAllFilters = () => {
+        setSelectedRegion(null);
+        setSelectedLocation({ city: null, district: null });
+        setGuestCount(1);
+        setPriceRange(50000);
+        setSelectedFacilities([]);
+        setActivePopup(null);
+        onFilterChange({ location: "", count: 1, price: 50000 });
+    };
+
+    useEffect(() => {
+        onFilterChange({
+            location: selectedLocation.district
+                ? `${selectedLocation.city} ${selectedLocation.district}`
+                : "",
+            count: guestCount,
+            price: priceRange,
+        });
+    }, [selectedLocation, guestCount, priceRange]);
+
     const renderPopup = (label) => {
         if (label === "지역") {
-            const locations = [
-                "서울",
-                "경기도",
-                "인천",
-                "강남구",
-                "강동구",
-                "강북구",
-                "강서구",
-                "관악구",
-                "광진구",
-                "구로구",
-                "금천구",
-                "노원구",
-                "도봉구",
-                "동대문구",
-                "동작구",
-                "마포구",
-                "서대문구",
-                "서초구",
-                "성동구",
-                "성북구",
-                "송파구",
-            ];
             return (
-                <Popup>
-                    <div
-                        style={{
-                            display: "grid",
-                            gridTemplateColumns: "repeat(5, 1fr)",
-                            gap: "10px",
-                        }}
-                    >
-                        {locations.map((loc, idx) => (
-                            <PopupItem key={idx}>{loc}</PopupItem>
-                        ))}
-                    </div>
-                </Popup>
+                <LocationPopup>
+                    {!selectedRegion ? (
+                        <RegionGrid>
+                            {Object.keys(regions).map((region, idx) => (
+                                <PopupItem
+                                    key={idx}
+                                    onClick={() => setSelectedRegion(region)}
+                                >
+                                    {region}
+                                </PopupItem>
+                            ))}
+                        </RegionGrid>
+                    ) : (
+                        <>
+                            <RegionTitle>{selectedRegion}</RegionTitle>
+                            <RegionGrid>
+                                {regions[selectedRegion].map(
+                                    (district, idx) => (
+                                        <PopupItem
+                                            key={idx}
+                                            onClick={() => {
+                                                setSelectedLocation({
+                                                    city: selectedRegion,
+                                                    district,
+                                                });
+                                                setActivePopup(null);
+                                                setSelectedRegion(null);
+                                            }}
+                                        >
+                                            {district}
+                                        </PopupItem>
+                                    )
+                                )}
+                            </RegionGrid>
+                            <ButtonRow>
+                                <ActionButton
+                                    reset
+                                    onClick={() => setSelectedRegion(null)}
+                                >
+                                    이전
+                                </ActionButton>
+                                <ActionButton
+                                    onClick={() => setActivePopup(null)}
+                                >
+                                    닫기
+                                </ActionButton>
+                            </ButtonRow>
+                        </>
+                    )}
+                </LocationPopup>
             );
         }
 
@@ -318,6 +424,9 @@ const FilterBar = () => {
                     {activePopup === idx && renderPopup(filter.label)}
                 </div>
             ))}
+            <ActionButton reset onClick={resetAllFilters}>
+                전체 초기화
+            </ActionButton>
         </FilterContainer>
     );
 };

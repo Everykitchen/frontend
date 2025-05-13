@@ -173,9 +173,12 @@ const AppRouter = () => {
                     </ProtectedRoute>
                 }
             />
-            <Route path="/kitchen-detail/:id" element={<KitchenDetailPage />} />
+            <Route path="/kitchen/:id" element={<KitchenDetailPage />} />
             <Route path="/map" element={<KitchenMap />} />
-            <Route path="/mypage/ingredient-settlement" element={<IngredientSettlement />} />
+            <Route
+                path="/mypage/ingredient-settlement"
+                element={<IngredientSettlement />}
+            />
         </Routes>
     );
 };

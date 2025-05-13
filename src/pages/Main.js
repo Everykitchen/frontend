@@ -1,3 +1,4 @@
+import { useSearch } from "../contexts/SearchContext";
 import { useEffect, useState, useRef, useCallback } from "react";
 import styled from "styled-components";
 import api from "../api/axiosInstance";

@@ -3,32 +3,7 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import UserSideBar from '../../components/UserSideBar';
 import HostChatCard from '../../components/HostChatCard';
-
-// Temporary data
-const tempChats = [
-    {
-        id: 1,
-        kitchenName: "방배동 공유주방",
-        kitchenLocation: "서울시 서초구 방배동",
-        userName: "호스트님",
-        status: "예약중",
-        lastMessage: "네, 알겠습니다!",
-        lastMessageTime: "2024-03-14T15:30:00",
-        lastReservationDate: "2024-03-20T10:00:00",
-        people: 4
-    },
-    {
-        id: 2,
-        kitchenName: "강남 쿠킹 스튜디오",
-        kitchenLocation: "서울시 강남구 역삼동",
-        userName: "김호스트",
-        status: "미예약",
-        lastMessage: "주방 시설이 어떻게 되나요?",
-        lastMessageTime: "2024-03-14T14:20:00",
-        lastReservationDate: "2024-03-19T14:00:00",
-        people: 2
-    }
-];
+import api from '../../api/axiosInstance';
 
 const Container = styled.div`
     display: flex;
@@ -69,29 +44,92 @@ const Tab = styled.button`
     }
 `;
 
+const NoChats = styled.div`
+    padding: 32px 0;
+    text-align: center;
+    color: #666;
+    font-size: 16px;
+`;
+
 const ChatHistory = () => {
     const navigate = useNavigate();
     const [activeStatus, setActiveStatus] = useState('전체');
     const [chats, setChats] = useState([]);
     const [filteredChats, setFilteredChats] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
-        // 실제 API 연동 시에는 이 부분을 API 호출로 대체
-        setChats(tempChats);
+        const fetchChatHistory = async () => {
+            setLoading(true);
+            setError(null);
+            
+            try {
+                const response = await api.get('/api/user/chat-history');
+                setChats(response.data);
+            } catch (err) {
+                console.error('채팅 내역을 불러오는 데 실패했습니다:', err);
+                setError('채팅 내역을 불러오지 못했습니다.');
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        fetchChatHistory();
     }, []);
 
     useEffect(() => {
         if (activeStatus === '전체') {
             setFilteredChats(chats);
         } else {
-            setFilteredChats(chats.filter(chat => chat.status === activeStatus));
+            const statusMap = {
+                '미예약': ['PENDING', 'CANCELED'],
+                '예약중': ['RESERVED', 'PENDING_PAYMENT', 'COMPLETED_PAYMENT']
+            };
+            
+            setFilteredChats(chats.filter(chat => statusMap[activeStatus]?.includes(chat.reservationStatus)));
         }
     }, [activeStatus, chats]);
 
     const getStatusCount = (status) => {
         if (status === '전체') return chats.length;
-        return chats.filter(chat => chat.status === status).length;
+        
+        const statusMap = {
+            '미예약': ['PENDING', 'CANCELED'],
+            '예약중': ['RESERVED', 'PENDING_PAYMENT', 'COMPLETED_PAYMENT']
+        };
+        
+        return chats.filter(chat => statusMap[status]?.includes(chat.reservationStatus)).length;
     };
+
+    const handleChatClick = (chat) => {
+        navigate(`/mypage/chats/${chat.chattingRoomId}`, { 
+            state: { 
+                kitchenId: chat.kitchenId,
+                chattingRoomId: chat.chattingRoomId 
+            } 
+        });
+    };
+
+    if (loading) return (
+        <Container>
+            <UserSideBar activeMenu="채팅 내역" />
+            <MainContent>
+                <Title>채팅 내역</Title>
+                <div>로딩 중...</div>
+            </MainContent>
+        </Container>
+    );
+
+    if (error) return (
+        <Container>
+            <UserSideBar activeMenu="채팅 내역" />
+            <MainContent>
+                <Title>채팅 내역</Title>
+                <div style={{ color: 'red' }}>{error}</div>
+            </MainContent>
+        </Container>
+    );
 
     return (
         <Container>
@@ -109,13 +147,29 @@ const ChatHistory = () => {
                         </Tab>
                     ))}
                 </StatusTabs>
-                {filteredChats.map(chat => (
-                    <HostChatCard
-                        key={chat.id}
-                        chat={chat}
-                        onClick={() => navigate(`/mypage/chats/${chat.id}`)}
-                    />
-                ))}
+                
+                {filteredChats.length > 0 ? (
+                    filteredChats.map(chat => (
+                        <HostChatCard
+                            key={chat.chattingRoomId}
+                            chat={{
+                                id: chat.chattingRoomId,
+                                kitchenName: chat.kitchenName,
+                                kitchenLocation: chat.kitchenLocation,
+                                userName: "호스트님",
+                                status: chat.reservationStatus === "RESERVED" ? "예약중" : "미예약",
+                                lastMessage: chat.lastMessage,
+                                lastMessageTime: chat.lastMessageTime,
+                                lastReservationDate: chat.lastReservationDate,
+                                people: chat.lastReservationCount,
+                                kitchenImage: chat.kitchenImage
+                            }}
+                            onClick={() => handleChatClick(chat)}
+                        />
+                    ))
+                ) : (
+                    <NoChats>채팅 내역이 없습니다.</NoChats>
+                )}
             </MainContent>
         </Container>
     );

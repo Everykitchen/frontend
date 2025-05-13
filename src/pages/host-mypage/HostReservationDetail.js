@@ -5,7 +5,7 @@ import { ReactComponent as CancelIcon } from '../../assets/icons/cancel.svg';
 import { ReactComponent as MessageIcon } from '../../assets/icons/message.svg';
 import { ReactComponent as MoneyIcon } from '../../assets/icons/money.svg';
 import kitchenImage from '../../assets/jpg/kitchen1.jpg';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../../api/axiosInstance';
 
 const Container = styled.div`
@@ -171,6 +171,7 @@ const ActionButton = styled.button`
 
 const HostReservationDetail = () => {
     const { reservationId } = useParams();
+    const navigate = useNavigate();
     const [reservationData, setReservationData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -180,10 +181,12 @@ const HostReservationDetail = () => {
             setLoading(true);
             setError(null);
             try {
-                console.log("reservationId", reservationId);
+                console.log("Fetching reservation ID:", reservationId);
                 const res = await axios.get(`/api/host/reservation/${reservationId}`);
+                console.log('호스트 예약 상세 정보:', res.data);
                 setReservationData(res.data);
             } catch (err) {
+                console.error('상세 정보 불러오기 실패:', err);
                 setError('상세 정보를 불러오지 못했습니다.');
             } finally {
                 setLoading(false);
@@ -198,6 +201,60 @@ const HostReservationDetail = () => {
         if (status === 'PENDING_PAYMENT') return '정산대기';
         if (status === 'COMPLETED_PAYMENT') return '정산완료';
         return status;
+    };
+
+    const handleChatClick = () => {
+        if (reservationData) {
+            // 토큰이 있는지 확인
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error('로그인 정보를 찾을 수 없습니다.');
+                alert('로그인 정보를 찾을 수 없습니다. 다시 로그인해주세요.');
+                return;
+            }
+            
+            // 필수 정보인 kitchenId와 reservationId 확인
+            if (!reservationData.kitchenId) {
+                console.error('주의: kitchenId가 없습니다!', reservationData);
+                alert('주방 정보가 없어 채팅을 시작할 수 없습니다.');
+                return;
+            }
+            
+            // 채팅방 이동 전 상세 정보 로깅
+            console.log('호스트 채팅방 이동 시도:', {
+                kitchenId: reservationData.kitchenId,
+                reservationId: reservationData.reservationId,
+                kitchenName: reservationData.kitchenName
+            });
+            
+            // 백엔드 요구 사항에 맞게 정확한 값 전달
+            // 호스트 채팅 엔드포인트에는 kitchenId, reservationId만 필요
+            // 직접 URL 접근을 위해 쿼리 파라미터 추가
+            const navigateState = {
+                kitchenId: reservationData.kitchenId,
+                reservationId: reservationData.reservationId,
+                kitchenName: reservationData.kitchenName
+            };
+            
+            console.log('navigate 호출:', {
+                url: `/host-mypage/chats/direct?reservationId=${reservationData.reservationId}`,
+                state: navigateState
+            });
+            
+            navigate(`/host-mypage/chats/direct?reservationId=${reservationData.reservationId}`, {
+                state: navigateState
+            });
+        }
+    };
+
+    const handleCompletedPayment = async () => {
+        try {
+            await axios.put(`/api/host/reservation/${reservationId}/complete`);
+            window.location.reload();
+        } catch (error) {
+            console.error('정산 완료 처리 실패:', error);
+            alert('정산 완료 처리에 실패했습니다.');
+        }
     };
 
     if (loading) return <Container><HostSideBar activeMenu="예약 관리" /><ContentWrapper>로딩 중...</ContentWrapper></Container>;
@@ -240,11 +297,11 @@ const HostReservationDetail = () => {
                                 <CancelIcon />
                                 예약취소
                             </ActionButton>
-                            <ActionButton>
+                            <ActionButton onClick={handleChatClick}>
                                 <MessageIcon />
                                 채팅하기
                             </ActionButton>
-                            <ActionButton>
+                            <ActionButton onClick={handleCompletedPayment}>
                                 <MoneyIcon />
                                 정산완료
                             </ActionButton>
