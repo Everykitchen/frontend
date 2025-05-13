@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-// import axios from "axios";
+import api from "../../api/axiosInstance";
 import HostSideBar from "../../components/HostSideBar";
 
 const Container = styled.div`
@@ -72,22 +72,9 @@ const KitchenManage = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // axios.get("/api/kitchens").then((res) => setKitchenList(res.data));
-        const dummyData = [
-            {
-                id: 1,
-                name: "파이브잇 쿠킹스튜디오 홍대점",
-                address: "경기도 용인시 홍대구 죽전로 152",
-                review: "4.5 (1,230)",
-            },
-            {
-                id: 2,
-                name: "파이브잇 쿠킹스튜디오 강남점",
-                address: "서울 강남구 테헤란로 100",
-                review: "4.8 (980)",
-            },
-        ];
-        setKitchenList(dummyData);
+        api.get("/api/host/my-kitchens")
+            .then((res) => setKitchenList(res.data))
+            .catch((err) => console.error("주방 목록 불러오기 실패", err));
     }, []);
 
     const handleEditClick = (kitchenId) => {
@@ -98,7 +85,7 @@ const KitchenManage = () => {
         // });
 
         const selectedKitchen = kitchenList.find(
-            (kitchen) => kitchen.id === kitchenId
+            (kitchen) => kitchen.kitchenId === kitchenId
         );
         navigate("/host-mypage/kitchen-form", {
             state: { isEdit: true, editData: selectedKitchen },
@@ -130,9 +117,9 @@ const KitchenManage = () => {
                     <tbody>
                         {kitchenList.map((kitchen) => (
                             <TableRow key={kitchen.id}>
-                                <TableCell>{kitchen.name}</TableCell>
-                                <TableCell>{kitchen.address}</TableCell>
-                                <TableCell>{kitchen.review}</TableCell>
+                                <TableCell>{kitchen.kitchenName}</TableCell>
+                                <TableCell>{kitchen.location}</TableCell>
+                                <TableCell>{kitchen.reviewCount}</TableCell>
                                 <TableCell>
                                     <IconButton
                                         onClick={() =>
