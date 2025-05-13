@@ -8,6 +8,13 @@ const Card = styled.div`
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     background: white;
     position: relative;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    
+    &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    }
 `;
 
 const Image = styled.img`
@@ -83,21 +90,24 @@ const Tag = styled.span`
     color: white;
 `;
 
-const StoreCard = ({ store, onLikeToggle }) => {
+const StoreCard = ({ store, onLikeToggle, onClick }) => {
     if (!store?.id) {
         console.warn("StoreCard: store.id가 undefined입니다", store);
         return null;
     }
 
-    const handleLikeToggle = () => {
-        onLikeToggle?.(store.id); // 👍 상태는 상위에서 재요청으로 처리
+    const handleLikeToggle = (e) => {
+        e.stopPropagation(); // 버블링 방지
+        onLikeToggle?.(store.id);
+    };
+
+    const handleCardClick = () => {
+        onClick?.(store.id);
     };
 
     return (
-        <Card>
-            <Image
-                src={store.imageUrl || "https://via.placeholder.com/240x160"}
-            />
+        <Card onClick={handleCardClick}>
+            <Image src={store.imageUrl} />
             <LikeButton onClick={handleLikeToggle}>
                 {store.isLiked ? <FaHeart /> : <FaRegHeart />}
             </LikeButton>
