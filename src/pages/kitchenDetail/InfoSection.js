@@ -95,6 +95,30 @@ const ReviewCard = styled.div`
     gap: 10px;
 `;
 
+const ReviewHeader = styled.div`
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+    font-size: 14px;
+`;
+
+const ReviewerEmail = styled.strong`
+    font-weight: 600;
+    margin-right: 18px;
+`;
+
+const StarContainer = styled.div`
+    display: flex;
+    align-items: center;
+`;
+
+const ReviewDate = styled.span`
+    color: #999;
+    font-weight: 400;
+    font-size: 12px;
+    margin-left: 10px;
+`;
+
 const StarIcon = styled.img`
     width: 14px;
     margin-right: 4px;
@@ -553,16 +577,19 @@ const InfoSection = ({ selectedTab, setSelectedTab, sections, kitchenData, onSha
                 .slice((currentPage - 1) * REVIEWS_PER_PAGE, currentPage * REVIEWS_PER_PAGE)
                 .map((review, index) => (
                     <ReviewCard key={index}>
-                        <div>
-                            <strong>{review.name}</strong>
-                            <div style={{ marginTop: 4, display: 'flex' }}>
+                        <ReviewHeader>
+                            <ReviewerEmail>{review.email}</ReviewerEmail>
+                            <StarContainer>
                                 {[...Array(5)].map((_, i) => (
                                     i < review.star ? 
                                         <StarIcon key={i} src={starIcon} alt="star" /> : 
                                         <EmptyStarIcon key={i} src={starIcon} alt="empty star" />
                                 ))}
-                            </div>
-                        </div>
+                            </StarContainer>
+                            <ReviewDate>
+                                {new Date(review.createdAt).toLocaleDateString()}
+                            </ReviewDate>
+                        </ReviewHeader>
                         <div>{review.review}</div>
                     </ReviewCard>
                 ))}
