@@ -192,6 +192,11 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
         }
     };
 
+    const categoryOptions = [
+        { label: "쿠킹", value: "COOKING" },
+        { label: "베이킹", value: "BAKING" },
+    ];
+
     return (
         <Container>
             <FieldGroup>
@@ -219,13 +224,13 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                 />
                 <Label>분류</Label>
                 <ToggleButtons>
-                    {["쿠킹", "베이킹"].map((type) => (
+                    {categoryOptions.map((option) => (
                         <ToggleButton
-                            key={type}
-                            active={category === type}
-                            onClick={() => setCategory(type)}
+                            key={option.value}
+                            active={category === option.value}
+                            onClick={() => setCategory(option.value)}
                         >
-                            {type}
+                            {option.label}
                         </ToggleButton>
                     ))}
                 </ToggleButtons>

@@ -92,6 +92,20 @@ const KitchenManage = () => {
         });
     };
 
+    const handleDeleteClick = async (kitchenId) => {
+        if (!window.confirm("정말 이 주방을 삭제하시겠습니까?")) return;
+
+        try {
+            await api.delete(`/api/host/kitchen/${kitchenId}`);
+            setKitchenList((prev) =>
+                prev.filter((k) => k.kitchenId !== kitchenId)
+            );
+        } catch (err) {
+            console.error("주방 삭제 실패", err);
+            alert("주방 삭제에 실패했습니다.");
+        }
+    };
+
     return (
         <Container>
             <HostSideBar />
@@ -130,7 +144,13 @@ const KitchenManage = () => {
                                     </IconButton>
                                 </TableCell>
                                 <TableCell>
-                                    <IconButton>🗑️</IconButton>
+                                    <IconButton
+                                        onClick={() =>
+                                            handleDeleteClick(kitchen.kitchenId)
+                                        }
+                                    >
+                                        🗑️
+                                    </IconButton>
                                 </TableCell>
                             </TableRow>
                         ))}
