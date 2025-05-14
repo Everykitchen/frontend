@@ -39,18 +39,21 @@ const MainPage = () => {
     const navigate = useNavigate();
 
     // 마지막 요소 참조를 위한 콜백 함수
-    const lastStoreElementRef = useCallback(node => {
-        if (loading) return;
-        if (observer.current) observer.current.disconnect();
-        
-        observer.current = new IntersectionObserver(entries => {
-            if (entries[0].isIntersecting && hasMore) {
-                setPage(prevPage => prevPage + 1);
-            }
-        });
-        
-        if (node) observer.current.observe(node);
-    }, [loading, hasMore]);
+    const lastStoreElementRef = useCallback(
+        (node) => {
+            if (loading) return;
+            if (observer.current) observer.current.disconnect();
+
+            observer.current = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting && hasMore) {
+                    setPage((prevPage) => prevPage + 1);
+                }
+            });
+
+            if (node) observer.current.observe(node);
+        },
+        [loading, hasMore]
+    );
 
     const fetchStores = async (pageNum = 0) => {
         try {
@@ -62,7 +65,7 @@ const MainPage = () => {
                     count: "",
                     price: "",
                     page: pageNum,
-                    size: 6, // 한 번에 6개씩 로드
+                    size: 12,
                 },
             });
 
@@ -89,7 +92,7 @@ const MainPage = () => {
             if (pageNum === 0) {
                 setStoreList(transformed);
             } else {
-                setStoreList(prev => [...prev, ...transformed]);
+                setStoreList((prev) => [...prev, ...transformed]);
             }
 
             // 더 불러올 데이터가 있는지 체크
@@ -104,7 +107,7 @@ const MainPage = () => {
     // 주소 형식 변경 함수
     const formatLocation = (location) => {
         if (!location) return "";
-        
+
         // 공백으로 구분하여 앞의 두 부분만 사용 (예: "서울시 관악구")
         const parts = location.split(" ");
         if (parts.length >= 2) {
@@ -117,9 +120,11 @@ const MainPage = () => {
         try {
             await api.post(`/api/user/kitchen/${id}/likes`);
             // 찜 상태만 변경하고 전체 리스트를 다시 불러오지 않음
-            setStoreList(prevList => 
-                prevList.map(store => 
-                    store.id === id ? { ...store, isLiked: !store.isLiked } : store
+            setStoreList((prevList) =>
+                prevList.map((store) =>
+                    store.id === id
+                        ? { ...store, isLiked: !store.isLiked }
+                        : store
                 )
             );
         } catch (err) {
@@ -129,7 +134,7 @@ const MainPage = () => {
 
     // 주방 카드 클릭 핸들러
     const handleStoreClick = (id) => {
-        navigate(`/kitchen-detail/${id}`);
+        navigate(`/kitchen/${id}`);
     };
 
     useEffect(() => {
@@ -163,7 +168,7 @@ const MainPage = () => {
                     }
                 })}
             </StoreList>
-            
+
             {loading && <LoadingIndicator>로딩 중...</LoadingIndicator>}
             {!hasMore && storeList.length > 0 && (
                 <LoadingIndicator>더 이상 주방이 없습니다</LoadingIndicator>
