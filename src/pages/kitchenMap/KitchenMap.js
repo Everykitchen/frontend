@@ -1,8 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import { createRoot } from "react-dom/client";
 import styled from "styled-components";
 import api from "../../api/axiosInstance";
 import useKakaoLoader from "../../hooks/useKakaoLoader";
 import KitchenCard from "./KitchenCard";
+import KitchenInfo from "./KitchenInfo";
+import defaultKitchenImage from "../../assets/jpg/kitchen1.jpg";
 
 const Layout = styled.div`
     display: flex;
@@ -15,12 +18,10 @@ const Sidebar = styled.div`
     overflow-y: auto;
     background: #f9f9f9;
     border-left: 1px solid #ddd;
-    height: 100%;
 `;
 
 const MapWrapper = styled.div`
     flex: 1;
-    height: 100%;
     position: relative;
 `;
 
@@ -28,9 +29,15 @@ const LoadingText = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 600px;
+    height: 100%;
     font-size: 18px;
     color: #888;
+`;
+
+const LoadingIndicator = styled.div`
+    text-align: center;
+    padding: 16px;
+    color: #666;
 `;
 
 const LocationButton = styled.button`
@@ -39,26 +46,22 @@ const LocationButton = styled.button`
     left: 50%;
     transform: translateX(-50%);
     z-index: 100;
-    background-color: #ffffff;
+    background: #fff;
     border: 1px solid #bbb;
     border-radius: 20px;
     padding: 10px 20px;
     font-size: 14px;
     font-weight: bold;
-    color: #333;
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    transition: background-color 0.2s ease;
-
     &:hover {
-        background-color: #f1f1f1;
+        background: #f1f1f1;
     }
 `;
 
 const Controls = styled.div`
     display: flex;
     justify-content: space-between;
-    align-items: center;
     margin-bottom: 16px;
 `;
 
@@ -66,131 +69,137 @@ const Select = styled.select`
     padding: 6px 10px;
     border-radius: 6px;
     border: 1px solid #ccc;
-    font-size: 14px;
 `;
 
 const CheckboxLabel = styled.label`
     display: flex;
     align-items: center;
-    font-size: 14px;
     gap: 6px;
 `;
 
 const KitchenMap = () => {
+    const [storeList, setStoreList] = useState([]);
+    const [page, setPage] = useState(0);
+    const [loading, setLoading] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
     const [showOnlyLiked, setShowOnlyLiked] = useState(false);
     const [sortOption, setSortOption] = useState("distance");
+
     const mapRef = useRef(null);
     const markerMap = useRef({});
-    const cardRefs = useRef({});
+    const observerRef = useRef(null);
     const debounceTimer = useRef(null);
-
-    const [allKitchens, setAllKitchens] = useState([]); // 전체 원본
-    const [nearbyKitchens, setNearbyKitchens] = useState([]);
-    const [selectedKitchen, setSelectedKitchen] = useState(null);
+    const overlayRef = useRef(null);
     const [mapInstance, setMapInstance] = useState(null);
     const [userPosition, setUserPosition] = useState(null);
-    const [showLocationButton, setShowLocationButton] = useState(true);
 
     const loaded = useKakaoLoader();
 
-    useEffect(() => {
-        if (!loaded) return;
-
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                const lat = pos.coords.latitude;
-                const lng = pos.coords.longitude;
-                setUserPosition({ lat, lng });
-                initMap(lat, lng);
-            },
-            () => initMap(37.9, 126.96)
-        );
-    }, [loaded]);
-
-    // ✅ 정렬 및 찜 필터링 반영
-    useEffect(() => {
-        let filtered = [...allKitchens];
-
-        if (sortOption === "rating") {
-            filtered.sort((a, b) => b.avgStar - a.avgStar);
-        } else if (sortOption === "review") {
-            filtered.sort((a, b) => b.reviewCount - a.reviewCount);
-        } else if (sortOption === "distance" && userPosition) {
-            const dist = (lat1, lng1, lat2, lng2) => {
-                const toRad = (val) => (val * Math.PI) / 180;
-                const R = 6371;
-                const dLat = toRad(lat2 - lat1);
-                const dLng = toRad(lng2 - lng1);
-                const aVal =
-                    Math.sin(dLat / 2) ** 2 +
-                    Math.cos(toRad(lat1)) *
-                        Math.cos(toRad(lat2)) *
-                        Math.sin(dLng / 2) ** 2;
-                const c = 2 * Math.atan2(Math.sqrt(aVal), Math.sqrt(1 - aVal));
-                return R * c;
-            };
-            filtered.sort((a, b) => {
-                const da = dist(
-                    userPosition.lat,
-                    userPosition.lng,
-                    a.latitude,
-                    a.longitude
-                );
-                const db = dist(
-                    userPosition.lat,
-                    userPosition.lng,
-                    b.latitude,
-                    b.longitude
-                );
-                return da - db;
+    const lastCardRef = useCallback(
+        (node) => {
+            if (loading) return;
+            if (observerRef.current) observerRef.current.disconnect();
+            observerRef.current = new window.IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting && hasMore) {
+                    setPage((prev) => prev + 1);
+                }
             });
+            if (node) observerRef.current.observe(node);
+        },
+        [loading, hasMore]
+    );
+
+    const fetchStores = async (pageNum = 0) => {
+        setLoading(true);
+        try {
+            const res = await api.get("/api/common/kitchen", {
+                params: { page: pageNum, size: 6 },
+            });
+            const list = Array.isArray(res.data)
+                ? res.data
+                : res.data.content || [];
+            const transformed = list.map((k) => ({
+                kitchenId: k.kitchenId ?? k.id,
+                kitchenName: k.kitchenName,
+                latitude: k.latitude,
+                longitude: k.longitude,
+                imageUrl: k.imageUrl || defaultKitchenImage,
+                location: formatLocation(k.location),
+                minPrice: k.minPrice,
+                avgStar: k.avgStar,
+                reviewCount: k.reviewCount,
+                liked: k.liked ?? false,
+                category: k.category,
+            }));
+            setStoreList((prev) =>
+                pageNum === 0 ? transformed : [...prev, ...transformed]
+            );
+            setHasMore(list.length > 0 && !res.data.last);
+        } catch (err) {
+            console.error("주방 목록 불러오기 실패", err);
+        } finally {
+            setLoading(false);
         }
-
-        if (showOnlyLiked) {
-            filtered = filtered.filter((k) => k.isLiked);
-        }
-
-        setNearbyKitchens(filtered);
-    }, [sortOption, showOnlyLiked, userPosition, allKitchens]);
-
-    const initMap = async (lat, lng) => {
-        const map = new window.kakao.maps.Map(mapRef.current, {
-            center: new window.kakao.maps.LatLng(lat, lng),
-            level: 5,
-        });
-        setMapInstance(map);
-
-        drawUserCircle(map, lat, lng);
-        await fetchNearbyKitchens(lat, lng, map);
-
-        window.kakao.maps.event.addListener(map, "idle", () => {
-            if (debounceTimer.current) clearTimeout(debounceTimer.current);
-            debounceTimer.current = setTimeout(() => {
-                const center = map.getCenter();
-                fetchNearbyKitchens(center.getLat(), center.getLng(), map);
-                setShowLocationButton(true);
-            }, 500);
-        });
     };
 
-    const drawUserCircle = (map, lat, lng) => {
-        const position = new window.kakao.maps.LatLng(lat, lng);
+    const formatLocation = (loc) => {
+        if (!loc) return "";
+        const parts = loc.split(" ");
+        return parts.length >= 2 ? `${parts[0]} ${parts[1]}` : loc;
+    };
 
-        new window.kakao.maps.Marker({
+    const addKitchenMarker = (k, map) => {
+        const pos = new window.kakao.maps.LatLng(k.latitude, k.longitude);
+        const marker = new window.kakao.maps.Marker({
             map,
-            position,
-            title: "현재 위치",
+            position: pos,
         });
+        markerMap.current[k.kitchenId] = marker;
 
-        new window.kakao.maps.Circle({
-            center: position,
-            radius: 3000,
-            strokeWeight: 1,
-            strokeColor: "#007bff",
-            strokeOpacity: 0.7,
-            fillColor: "#cce5ff",
-            fillOpacity: 0.3,
-            map,
+        window.kakao.maps.event.addListener(marker, "click", () => {
+            if (overlayRef.current) {
+                const { overlay, root, container } = overlayRef.current;
+                overlay.setMap(null);
+                root.unmount();
+                container.remove();
+                overlayRef.current = null;
+            }
+            const container = document.createElement("div");
+            const root = createRoot(container);
+            root.render(
+                <KitchenInfo
+                    kitchen={{
+                        kitchenName: k.kitchenName,
+                        imageUrl: k.imageUrl || defaultKitchenImage,
+                        location: formatLocation(k.location),
+                        avgStar: k.avgStar,
+                        reviewCount: k.reviewCount,
+                        category: k.category,
+                        minPrice: k.minPrice,
+                    }}
+                    onClose={() => {
+                        if (overlayRef.current) {
+                            const { overlay, root, container } =
+                                overlayRef.current;
+                            overlay.setMap(null);
+                            root.unmount();
+                            container.remove();
+                            overlayRef.current = null;
+                        }
+                    }}
+                />
+            );
+            const overlay = new window.kakao.maps.CustomOverlay({
+                position: pos,
+                content: container,
+                xAnchor: 0.5,
+                yAnchor: 1.2,
+                clickable: true,
+            });
+            overlay.setMap(map);
+            overlayRef.current = { overlay, root, container };
+
+            map.panTo(pos);
         });
     };
 
@@ -199,66 +208,64 @@ const KitchenMap = () => {
             const res = await api.get(
                 `/api/common/kitchen?lat=${lat}&long=${lng}`
             );
-            const kitchenList = Array.isArray(res.data)
+            const list = Array.isArray(res.data)
                 ? res.data
                 : res.data.content || [];
-
-            setAllKitchens(
-                kitchenList.map((k) => ({
-                    ...k,
-                    isLiked: k.liked ?? false, // 👈 liked → isLiked로 변환
-                }))
-            );
-
-            console.log(kitchenList);
-
-            Object.values(markerMap.current).forEach((marker) =>
-                marker.setMap(null)
-            );
+            Object.values(markerMap.current).forEach((m) => m.setMap(null));
             markerMap.current = {};
-
-            kitchenList.forEach((kitchen) => {
-                const coords = new window.kakao.maps.LatLng(
-                    kitchen.latitude,
-                    kitchen.longitude
-                );
-
-                const marker = new window.kakao.maps.Marker({
-                    map,
-                    position: coords,
-                });
-
-                markerMap.current[kitchen.kitchenId] = marker;
-
-                const infowindow = new window.kakao.maps.InfoWindow({
-                    content: `<div style="padding:5px;font-size:14px;">${kitchen.kitchenName}</div>`,
-                });
-
-                window.kakao.maps.event.addListener(marker, "mouseover", () =>
-                    infowindow.open(map, marker)
-                );
-                window.kakao.maps.event.addListener(marker, "mouseout", () =>
-                    infowindow.close()
-                );
-                window.kakao.maps.event.addListener(marker, "click", () => {
-                    setSelectedKitchen(kitchen);
-                    const el = cardRefs.current[kitchen.kitchenId];
-                    if (el)
-                        el.scrollIntoView({
-                            behavior: "smooth",
-                            block: "center",
-                        });
-                });
-            });
+            list.forEach((k) => addKitchenMarker(k, map));
         } catch (err) {
-            console.error("주방 재검색 실패:", err);
+            console.error("반경 내 주방 조회 실패", err);
         }
     };
 
-    const moveToCurrentLocation = () => {
-        if (!mapInstance || !userPosition) return;
-        const { lat, lng } = userPosition;
-        mapInstance.setCenter(new window.kakao.maps.LatLng(lat, lng));
+    const initMap = (lat, lng) => {
+        const map = new window.kakao.maps.Map(mapRef.current, {
+            center: new window.kakao.maps.LatLng(lat, lng),
+            level: 5,
+        });
+        setMapInstance(map);
+
+        fetchNearbyKitchens(lat, lng, map);
+
+        window.kakao.maps.event.addListener(map, "idle", () => {
+            clearTimeout(debounceTimer.current);
+            debounceTimer.current = setTimeout(() => {
+                const center = map.getCenter();
+                fetchNearbyKitchens(center.getLat(), center.getLng(), map);
+            }, 500);
+        });
+    };
+
+    useEffect(() => {
+        if (!loaded) return;
+        navigator.geolocation.getCurrentPosition(
+            ({ coords }) => {
+                setUserPosition({
+                    lat: coords.latitude,
+                    lng: coords.longitude,
+                });
+                initMap(coords.latitude, coords.longitude);
+            },
+            () => initMap(37.9, 126.96)
+        );
+    }, [loaded]);
+
+    useEffect(() => {
+        if (loaded) fetchStores(page);
+    }, [page, loaded]);
+
+    const handleLikeToggle = async (id) => {
+        try {
+            await api.post(`/api/user/kitchen/${id}/likes`);
+            setStoreList((prev) =>
+                prev.map((s) =>
+                    s.kitchenId === id ? { ...s, liked: !s.liked } : s
+                )
+            );
+        } catch {
+            alert("찜 처리 실패");
+        }
     };
 
     return (
@@ -272,8 +279,17 @@ const KitchenMap = () => {
                             ref={mapRef}
                             style={{ width: "100%", height: "100%" }}
                         />
-                        {showLocationButton && (
-                            <LocationButton onClick={moveToCurrentLocation}>
+                        {userPosition && mapInstance && (
+                            <LocationButton
+                                onClick={() =>
+                                    mapInstance.panTo(
+                                        new window.kakao.maps.LatLng(
+                                            userPosition.lat,
+                                            userPosition.lng
+                                        )
+                                    )
+                                }
+                            >
                                 현재 위치로
                             </LocationButton>
                         )}
@@ -284,16 +300,14 @@ const KitchenMap = () => {
             <Sidebar>
                 <Controls>
                     <div>
-                        <label
-                            style={{ fontWeight: "bold", marginRight: "8px" }}
-                        >
+                        <label style={{ fontWeight: "bold", marginRight: 8 }}>
                             정렬:
                         </label>
                         <Select
                             value={sortOption}
                             onChange={(e) => setSortOption(e.target.value)}
                         >
-                            <option value="distance">거리순</option>
+                            <option value="distance">기본</option>
                             <option value="rating">평점순</option>
                             <option value="review">리뷰 많은 순</option>
                         </Select>
@@ -308,27 +322,35 @@ const KitchenMap = () => {
                     </CheckboxLabel>
                 </Controls>
 
-                {nearbyKitchens.map((kitchen) => (
-                    <div
-                        key={kitchen.kitchenId}
-                        ref={(el) => (cardRefs.current[kitchen.kitchenId] = el)}
-                    >
-                        <KitchenCard
-                            kitchen={kitchen}
-                            isActive={
-                                selectedKitchen?.kitchenId === kitchen.kitchenId
-                            }
-                            onClick={() => {
-                                setSelectedKitchen(kitchen);
-                                const marker =
-                                    markerMap.current[kitchen.kitchenId];
-                                if (marker && mapInstance) {
-                                    mapInstance.setCenter(marker.getPosition());
+                {storeList.map((k, i) => {
+                    const isLast = storeList.length === i + 1;
+                    return (
+                        <div
+                            key={k.kitchenId}
+                            ref={isLast ? lastCardRef : null}
+                        >
+                            <KitchenCard
+                                kitchen={k}
+                                isactive={false}
+                                onClick={() => {
+                                    const marker =
+                                        markerMap.current[k.kitchenId];
+                                    if (marker && mapInstance) {
+                                        mapInstance.panTo(marker.getPosition());
+                                    }
+                                }}
+                                onLikeToggle={() =>
+                                    handleLikeToggle(k.kitchenId)
                                 }
-                            }}
-                        />
-                    </div>
-                ))}
+                            />
+                        </div>
+                    );
+                })}
+
+                {loading && <LoadingIndicator>로딩 중...</LoadingIndicator>}
+                {!hasMore && storeList.length > 0 && (
+                    <LoadingIndicator>더 이상 주방이 없습니다</LoadingIndicator>
+                )}
             </Sidebar>
         </Layout>
     );
