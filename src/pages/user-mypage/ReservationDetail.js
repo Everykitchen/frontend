@@ -162,7 +162,7 @@ const ReservationDetail = () => {
         const fetchDetail = async () => {
             try {
                 const response = await api.get(`/api/user/reservation/${id}`);
-                console.log('예약 상세 정보:', response.data);
+                console.log("예약 상세 정보:", response.data);
                 setReservation(response.data);
             } catch (error) {
                 console.error("예약 상세 정보 로드 실패:", error);
@@ -190,42 +190,45 @@ const ReservationDetail = () => {
     const handleChatClick = () => {
         if (reservation) {
             // 토큰이 있는지 확인
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem("token");
             if (!token) {
-                console.error('로그인 정보를 찾을 수 없습니다.');
-                alert('로그인 정보를 찾을 수 없습니다. 다시 로그인해주세요.');
+                console.error("로그인 정보를 찾을 수 없습니다.");
+                alert("로그인 정보를 찾을 수 없습니다. 다시 로그인해주세요.");
                 return;
             }
-            
+
             // 필수 정보인 kitchenId와 reservationId 확인
             if (!reservation.kitchenId) {
-                console.error('주의: kitchenId가 없습니다!', reservation);
-                alert('주방 정보가 없어 채팅을 시작할 수 없습니다.');
+                console.error("주의: kitchenId가 없습니다!", reservation);
+                alert("주방 정보가 없어 채팅을 시작할 수 없습니다.");
                 return;
             }
-            
+
             // 채팅방 이동 전 상세 정보 로깅 - 필요한 정보만 포함
-            console.log('채팅방 이동 시도:', {
+            console.log("채팅방 이동 시도:", {
                 kitchenId: reservation.kitchenId,
                 reservationId: reservation.reservationId,
-                kitchenName: reservation.kitchenName
+                kitchenName: reservation.kitchenName,
             });
-            
+
             // 백엔드에 필요한 정보만 state에 포함
             const navigateState = {
                 kitchenId: reservation.kitchenId,
                 reservationId: reservation.reservationId,
-                kitchenName: reservation.kitchenName
+                kitchenName: reservation.kitchenName,
             };
-            
-            console.log('navigate 호출:', {
+
+            console.log("navigate 호출:", {
                 url: `/mypage/chats/direct?reservationId=${reservation.reservationId}`,
-                state: navigateState
+                state: navigateState,
             });
-            
-            navigate(`/mypage/chats/direct?reservationId=${reservation.reservationId}`, {
-                state: navigateState
-            });
+
+            navigate(
+                `/mypage/chats/direct?reservationId=${reservation.reservationId}`,
+                {
+                    state: navigateState,
+                }
+            );
         }
     };
 
@@ -270,7 +273,7 @@ const ReservationDetail = () => {
                             </InfoRow>
                             <InfoRow>
                                 <InfoLabel>예약자 성함</InfoLabel>
-                                <InfoValue>{reservation.hostName}</InfoValue>
+                                <InfoValue>{reservation.clientName}</InfoValue>
                             </InfoRow>
                             <InfoRow>
                                 <InfoLabel>주방 연락처</InfoLabel>
