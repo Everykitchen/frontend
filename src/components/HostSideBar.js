@@ -5,10 +5,22 @@ import {SidebarContainer,Title, Underline, MenuList, MenuItemWrapper,
     MenuItem, OrangeCircle, Divider
 } from "./UserSideBar";
 
-const HostSidebar = () => {
+/**
+ * 호스트 마이페이지의 사이드바 컴포넌트
+ * 
+ * 주요 기능:
+ * - 호스트 마이페이지 내 각 섹션으로 이동할 수 있는 메뉴 제공
+ * - 현재 활성화된 메뉴 표시 (주황색 동그라미 아이콘)
+ * - UserSideBar와 스타일 공유하여 일관된 디자인 유지
+ * 
+ * Props:
+ * - activeMenu: 외부에서 강제로 활성화할 메뉴 이름을 지정 (옵션)
+ */
+const HostSidebar = ({ activeMenu }) => {
     const location = useLocation();
     const navigate = useNavigate();
 
+    // 호스트용 메뉴 아이템 정의
     const menuItems = [
         { path: "/host-mypage/reservations", label: "예약 관리" },
         { path: "/host-mypage/sales", label: "매출 관리" },
@@ -20,6 +32,14 @@ const HostSidebar = () => {
     ];
 
     const isMenuActive = (path) => {
+        // 외부에서 전달받은 activeMenu가 있으면 그것을 우선 확인
+        if (activeMenu) {
+            const menuItem = menuItems.find(item => !item.divider && item.label === activeMenu);
+            if (menuItem && menuItem.path === path) {
+                return true;
+            }
+        }
+        
         // 정확한 경로 매칭
         if (location.pathname === path) return true;
         

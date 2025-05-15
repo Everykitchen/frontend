@@ -1,12 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import styled from 'styled-components';
 import HostSideBar from '../../components/HostSideBar';
 import { ReactComponent as CancelIcon } from '../../assets/icons/cancel.svg';
 import { ReactComponent as MessageIcon } from '../../assets/icons/message.svg';
 import { ReactComponent as MoneyIcon } from '../../assets/icons/money.svg';
+import { ReactComponent as MapIcon } from '../../assets/icons/mapIcon.svg';
+import informationIcon from '../../assets/icons/information.png';
+import backIcon from '../../assets/icons/back.png';
 import kitchenImage from '../../assets/jpg/kitchen1.jpg';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../../api/axiosInstance';
+import useKakaoLoader from '../../hooks/useKakaoLoader';
 
 const Container = styled.div`
     display: flex;
@@ -16,15 +20,40 @@ const Container = styled.div`
 const ContentWrapper = styled.div`
     padding: 40px;
     padding-left: 100px;
+    padding-right: 100px;
     margin-top: 30px;
     flex: 1;
 `;
 
+const TitleSection = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+`;
+
+const BackButton = styled.button`
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+        width: 24px;
+        height: 24px;
+    }
+
+    &:hover {
+        opacity: 0.8;
+    }
+`;
 
 const Title = styled.h2`
     font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 48px;
+    font-weight: 700;
     text-align: left;
 `;
 
@@ -32,23 +61,25 @@ const DetailCard = styled.div`
     background: #FCFCFC;
     border: 1px solid #E0E0E0;
     border-radius: 12px;
-    padding: 18px 30px 30px 30px;
-    max-width: 900px;
+    padding: 18px 30px 0px 30px;
     min-width: 700px;
+    width: 100%;
 `;
 
 const ReservationStatus = styled.div`
     display: inline-block;
     font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 20px;
+    font-weight: 600;
+    width: 90px;
     color: white;
     background: ${props =>
         props.status === 'RESERVED' ? '#FFBC39' :
         props.status === 'PENDING_PAYMENT' ? '#FF7926' :
         props.status === 'COMPLETED_PAYMENT' ? '#BDBDBD' : '#FFBC39'};
-    padding: 8px 24px;
+    padding: 6px 14px;
     border-radius: 6px;
+    text-align: center;
+    margin-bottom: 20px;
 `;
 
 const TopSection = styled.div`
@@ -59,7 +90,7 @@ const TopSection = styled.div`
 
 const KitchenImage = styled.img`
     width: 45%;
-    height: 200px;
+    height: 240px;
     object-fit: cover;
     border-radius: 8px;
     margin-right: 20px;
@@ -70,26 +101,113 @@ const KitchenInfo = styled.div`
     display: flex;
     flex-direction: column;
     gap: 16px;
+    position: relative;
+`;
+
+const KitchenInfoHeader = styled.div`
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+`;
+
+const KitchenInfoContent = styled.div`
+    flex: 9;
+`;
+
+const StatusContainer = styled.div`
+    flex: 1;
 `;
 
 const KitchenName = styled.h3`
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 4px;
+    font-size: 22px;
+    font-weight: 600;
 `;
 
 const Address = styled.p`
     color: #767676;
     font-weight: 400;
     font-size: 16px;
-    margin-bottom: 60px;
+    position: relative;
+    margin-bottom: 30px;
 `;
 
-const DateTime = styled.p`
-    color: #333;
-    font-size: 24px;
-    margin-top: 40px;
+const CopyButton = styled.button`
+    background-color: transparent;
+    color: #FFBC39;
+    border: none;
+    font-size: 14px;
     font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-block;
+    margin-left: 20px;
+    
+    &:hover {
+        text-decoration: underline;
+    }
+`;
+
+const ActionButtons = styled.div`
+    display: flex;
+    gap: clamp(8px, 3%, 20px);
+    margin-top: 24px;
+    margin-bottom: 8px;
+    width: 100%;
+`;
+
+const SmallActionButton = styled.button`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    padding: 12px 8px;
+    aspect-ratio: 1/1;
+    flex: 1;
+    min-width: 70px;
+    max-width: 100px;
+    height: auto;
+    border-radius: 8px;
+    font-size: clamp(16px, 0.9vw, 18px);
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    background: ${props => props.variant === 'primary' ? '#FFBC39' : '#F6F6F6'};
+    color: ${props => props.variant === 'primary' ? 'white' : '#666'};
+
+    svg {
+        width: clamp(30px, 3.5vw, 40px);
+        height: clamp(30px, 3.5vw, 40px);
+        path {
+            fill: ${props => props.variant === 'primary' ? 'white' : '#666'};
+        }
+    }
+
+    img {
+        width: clamp(30px, 3.5vw, 40px);
+        height: clamp(30px, 3.5vw, 40px);
+        object-fit: contain;
+    }
+
+    &:hover {
+        background: ${props => props.variant === 'primary' ? '#FFB020' : '#EEEEEE'};
+        color: ${props => props.variant === 'primary' ? 'white' : '#333'};
+        
+        svg path {
+            fill: ${props => props.variant === 'primary' ? 'white' : '#333'};
+        }
+    }
+    
+    @media (max-width: 768px) {
+        font-size: 14px;
+        gap: 8px;
+        
+        svg, img {
+            width: 24px;
+            height: 24px;
+        }
+    }
 `;
 
 const SectionTitle = styled.h4`
@@ -101,13 +219,23 @@ const SectionTitle = styled.h4`
 
 const BottomSection = styled.div`
     display: flex;
-    gap: 32px;
+    width: 100%;
+    margin-bottom: 32px;
+    gap: clamp(32px, 10%, 120px);
+    flex-wrap: wrap;
 `;
 
-const ReservationDetails = styled.div`
-    width: 50%;
+const InfoSection = styled.div`
+    flex: 1;
+    min-width: 280px;
+    display: flex;
+    flex-direction: column;
+`;
+
+const InfoContainer = styled.div`
     display: flex;
     justify-content: space-between;
+    margin-bottom: 10px;
 `;
 
 const Labels = styled.div`
@@ -131,41 +259,114 @@ const Values = styled.div`
     font-weight: 600;
 `;
 
-const ActionSection = styled.div`
-    width: 50%;
-    display: flex;
-    justify-content: flex-end;
-    align-items: flex-end;
-    gap: 20px;
+const PendingPayment = styled.span`
+    color: #FF7926;
+    font-weight: 700;
 `;
 
-const ActionButton = styled.button`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    padding: 12px;
-    width: 90px;
-    height: 90px;
-    border-radius: 8px;
+const CancellationNotice = styled.p`
+    color: #666;
+    font-size: 14px;
+    text-align: right;
+    margin-top: 30px;
+    margin-bottom: 8px;
+    font-style: italic;
+`;
+
+const CancelButton = styled.button`
+    background-color: #FFF0E6;
+    color: #FF7926;
     font-size: 16px;
-    font-weight: 700;
+    font-weight: 600;
+    padding: 14px 0;
+    border-radius: 8px;
     cursor: pointer;
     border: none;
-    background: ${props => props.variant === 'cancel' ? '#F6F6F6' : '#FFBC39'};
-    color: ${props => props.variant === 'cancel' ? '#666' : 'white'};
-
-    svg {
-        width: 40px;
-        height: 40px;
-        path {
-            fill: ${props => props.variant === 'cancel' ? '#666' : 'white'};
-        }
-    }
-
+    width: 120px;
+    text-align: center;
+    
     &:hover {
-        background: ${props => props.variant === 'cancel' ? '#EEEEEE' : '#FFB020'};
+        background-color: #FFE2D1;
+        color: #FF6B0F;
+    }
+`;
+
+const ActionSection = styled.div`
+    display: flex;
+    flex-direction: column;
+    margin-top: 32px;
+    align-items: flex-end;
+`;
+
+const Modal = styled.div`
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+    background-color: white;
+    padding: 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+`;
+
+const ModalHeader = styled.div`
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+`;
+
+const ModalTitle = styled.h3`
+    font-size: 20px;
+    font-weight: 600;
+`;
+
+const CloseButton = styled.button`
+    border: none;
+    background: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    
+    &:hover {
+        color: #333;
+    }
+`;
+
+const MapContainer = styled.div`
+    width: 100%;
+    height: 500px;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+
+    .map-loading {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.8);
+        z-index: 5;
+        font-weight: 500;
+        color: #666;
     }
 `;
 
@@ -175,6 +376,11 @@ const HostReservationDetail = () => {
     const [reservationData, setReservationData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [showMap, setShowMap] = useState(false);
+    const [mapLoading, setMapLoading] = useState(false);
+    const mapRef = useRef(null);
+    
+    const loaded = useKakaoLoader();
 
     useEffect(() => {
         const fetchDetail = async () => {
@@ -184,7 +390,15 @@ const HostReservationDetail = () => {
                 console.log("Fetching reservation ID:", reservationId);
                 const res = await axios.get(`/api/host/reservation/${reservationId}`);
                 console.log('호스트 예약 상세 정보:', res.data);
-                setReservationData(res.data);
+                
+                // 좌표가 없으면 서울 좌표로 기본값 설정
+                const data = res.data;
+                if (!data.latitude || !data.longitude) {
+                    data.latitude = 37.5665;  // 서울 기본 좌표
+                    data.longitude = 126.9780;
+                }
+                
+                setReservationData(data);
             } catch (err) {
                 console.error('상세 정보 불러오기 실패:', err);
                 setError('상세 정보를 불러오지 못했습니다.');
@@ -194,10 +408,70 @@ const HostReservationDetail = () => {
         };
         fetchDetail();
     }, [reservationId]);
-
+    
+    // 지도 초기화 및 표시 함수
+    useEffect(() => {
+        if (!loaded || !showMap || !mapRef.current || !reservationData) return;
+            
+        // 지도 초기화 시작
+        setMapLoading(true);
+        
+        try {
+            // 이전에 생성된 지도 요소 정리
+            if (mapRef.current) {
+                mapRef.current.innerHTML = '';
+            }
+            
+            // 지연 처리로 DOM이 준비된 후 지도 생성
+            const timer = setTimeout(() => {
+                try {
+                    const coords = new window.kakao.maps.LatLng(
+                        reservationData.latitude, 
+                        reservationData.longitude
+                    );
+                    
+                    const mapOptions = {
+                        center: coords,
+                        level: 3
+                    };
+                    
+                    // 지도 객체 생성
+                    const map = new window.kakao.maps.Map(mapRef.current, mapOptions);
+                    
+                    // 마커 생성
+                    const marker = new window.kakao.maps.Marker({
+                        position: coords
+                    });
+                    marker.setMap(map);
+                    
+                    // 상호명 표시
+                    const infowindow = new window.kakao.maps.InfoWindow({
+                        content: `<div style="padding:5px;font-size:12px;">${reservationData.kitchenName}</div>`
+                    });
+                    infowindow.open(map, marker);
+                    
+                    // 지도 크기 재조정 처리
+                    setTimeout(() => {
+                        map.relayout();
+                        map.setCenter(coords);
+                        setMapLoading(false);
+                    }, 200);
+                } catch (mapError) {
+                    console.error('지도 초기화 중 오류 발생:', mapError);
+                    setMapLoading(false);
+                }
+            }, 100);
+            
+            return () => clearTimeout(timer);
+        } catch (err) {
+            console.error('지도 생성 오류:', err);
+            setMapLoading(false);
+        }
+    }, [loaded, showMap, reservationData]);
+    
     // 상태 텍스트 변환
     const getStatusText = (status) => {
-        if (status === 'RESERVED') return '예약완료';
+        if (status === 'RESERVED') return '예약중';
         if (status === 'PENDING_PAYMENT') return '정산대기';
         if (status === 'COMPLETED_PAYMENT') return '정산완료';
         return status;
@@ -256,6 +530,35 @@ const HostReservationDetail = () => {
             alert('정산 완료 처리에 실패했습니다.');
         }
     };
+    
+    const handleCopyAddress = () => {
+        if (reservationData?.kitchenLocation) {
+            navigator.clipboard.writeText(reservationData.kitchenLocation)
+                .then(() => {
+                    alert('주소가 클립보드에 복사되었습니다.');
+                })
+                .catch(err => {
+                    console.error('주소 복사 실패:', err);
+                    alert('주소 복사에 실패했습니다.');
+                });
+        }
+    };
+    
+    const handleShowMap = () => {
+        setShowMap(true);
+    };
+
+    const handleKitchenInfo = () => {
+        if (reservationData?.kitchenId) {
+            navigate(`/kitchen/${reservationData.kitchenId}`);
+        } else {
+            alert('주방 정보를 찾을 수 없습니다.');
+        }
+    };
+
+    const goBack = () => {
+        navigate(-1);
+    };
 
     if (loading) return <Container><HostSideBar activeMenu="예약 관리" /><ContentWrapper>로딩 중...</ContentWrapper></Container>;
     if (error) return <Container><HostSideBar activeMenu="예약 관리" /><ContentWrapper style={{color:'red'}}>{error}</ContentWrapper></Container>;
@@ -265,49 +568,108 @@ const HostReservationDetail = () => {
         <Container>
             <HostSideBar activeMenu="예약 관리" />
             <ContentWrapper>
-                <Title>상세 예약 내역</Title>
+                <TitleSection>
+                    <BackButton onClick={goBack}>
+                        <img src={backIcon} alt="뒤로 가기" />
+                    </BackButton>
+                    <Title>상세 예약 내역</Title>
+                </TitleSection>
                 <DetailCard>
                     <ReservationStatus status={reservationData.status}>{getStatusText(reservationData.status)}</ReservationStatus>
                     <TopSection>
                         <KitchenImage src={reservationData.kitchenImageUrl || kitchenImage} alt="주방 이미지" />
                         <KitchenInfo>
                             <KitchenName>{reservationData.kitchenName}</KitchenName>
-                            <Address>{reservationData.kitchenLocation}</Address>
-                            <DateTime>{reservationData.reservationDate} {reservationData.reservationTime} ({reservationData.clientNumber}인)</DateTime>
+                            <Address>
+                                {reservationData.kitchenLocation}
+                                <CopyButton onClick={handleCopyAddress}>주소복사</CopyButton>
+                            </Address>
+                            <ActionButtons>
+                                <SmallActionButton onClick={handleShowMap}>
+                                    <MapIcon />
+                                    지도조회
+                                </SmallActionButton>
+                                <SmallActionButton onClick={handleKitchenInfo}>
+                                    <img 
+                                        src={informationIcon} 
+                                        alt="주방 정보" 
+                                        style={{
+                                            filter: 'brightness(0) saturate(100%) invert(40%) sepia(0%) saturate(0%) hue-rotate(222deg) brightness(92%) contrast(86%)'
+                                        }} 
+                                    />
+                                    주방 정보
+                                </SmallActionButton>
+                                <SmallActionButton variant="primary" onClick={handleChatClick}>
+                                    <MessageIcon />
+                                    채팅하기
+                                </SmallActionButton>
+                                <SmallActionButton variant="primary" onClick={handleCompletedPayment}>
+                                    <MoneyIcon />
+                                    정산완료
+                                </SmallActionButton>
+                            </ActionButtons>
                         </KitchenInfo>
                     </TopSection>
-                    <SectionTitle>예약 정보</SectionTitle>
+                    
                     <BottomSection>
-                        <ReservationDetails>
-                            <Labels>
-                                <span>예약 번호</span>
-                                <span>예약자 성함</span>
-                                <span>예약자 연락처</span>
-                                <span>선결제 금액</span>
-                            </Labels>
-                            <Values>
-                                <span>{reservationData.reservationId}</span>
-                                <span>{reservationData.clientName}</span>
-                                <span>{reservationData.clientPhone}</span>
-                                <span>{reservationData.prepaidAmount.toLocaleString()}원</span>
-                            </Values>
-                        </ReservationDetails>
-                        <ActionSection>
-                            <ActionButton variant="cancel">
-                                <CancelIcon />
-                                예약취소
-                            </ActionButton>
-                            <ActionButton onClick={handleChatClick}>
-                                <MessageIcon />
-                                채팅하기
-                            </ActionButton>
-                            <ActionButton onClick={handleCompletedPayment}>
-                                <MoneyIcon />
-                                정산완료
-                            </ActionButton>
-                        </ActionSection>
+                        <InfoSection>
+                            <SectionTitle>예약 정보</SectionTitle>
+                            <InfoContainer>
+                                <Labels>
+                                    <span>예약 번호</span>
+                                    <span>예약 날짜</span>
+                                    <span>예약 인원</span>
+                                    <span>예약자 성함</span>
+                                    <span>예약자 연락처</span>
+                                </Labels>
+                                <Values>
+                                    <span>{reservationData.reservationId}</span>
+                                    <span>{reservationData.reservationDate} {reservationData.reservationTime}</span>
+                                    <span>{reservationData.clientNumber}인</span>
+                                    <span>{reservationData.clientName}</span>
+                                    <span>{reservationData.clientPhone}</span>
+                                </Values>
+                            </InfoContainer>
+                        </InfoSection>
+                        
+                        <InfoSection>
+                            <SectionTitle>결제 정보</SectionTitle>
+                            <InfoContainer>
+                                <Labels>
+                                    <span>선결제 금액</span>
+                                    <span>후결제 금액</span>
+                                </Labels>
+                                <Values>
+                                    <span>{reservationData.prepaidAmount.toLocaleString()}원</span>
+                                    <PendingPayment>정산예정</PendingPayment>
+                                </Values>
+                            </InfoContainer>
+                            
+                            <ActionSection>
+                                <CancellationNotice>
+                                    예약자에게 채팅으로 사전에 고지한 뒤 예약 취소를 해주시길 바랍니다.
+                                </CancellationNotice>
+                                <CancelButton>
+                                    예약취소
+                                </CancelButton>
+                            </ActionSection>
+                        </InfoSection>
                     </BottomSection>
                 </DetailCard>
+                
+                {showMap && (
+                    <Modal>
+                        <ModalContent>
+                            <ModalHeader>
+                                <ModalTitle>{reservationData.kitchenName} 위치</ModalTitle>
+                                <CloseButton onClick={() => setShowMap(false)}>×</CloseButton>
+                            </ModalHeader>
+                            <MapContainer ref={mapRef}>
+                                {mapLoading && <div className="map-loading">지도를 불러오는 중...</div>}
+                            </MapContainer>
+                        </ModalContent>
+                    </Modal>
+                )}
             </ContentWrapper>
         </Container>
     );

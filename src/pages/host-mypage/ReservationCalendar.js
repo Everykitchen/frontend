@@ -96,6 +96,7 @@ const ReservationCard = styled.div`
     background: #f9f9f9;
     margin-bottom: 12px;
     cursor: pointer;
+    height: auto;
     
     &:hover {
         background: #f0f0f0;
@@ -103,8 +104,8 @@ const ReservationCard = styled.div`
 `;
 
 const KitchenImage = styled.img`
-    width: 100px;
-    height: 100px;
+    width: 80px;
+    height: 80px;
     border-radius: 8px;
     object-fit: cover;
     margin-right: 16px;
@@ -112,18 +113,21 @@ const KitchenImage = styled.img`
 
 const ReservationContent = styled.div`
     flex: 1;
+    position: relative;
 `;
 
 const KitchenName = styled.h4`
+    margin-top: 4px;
     font-size: 18px;
     font-weight: 600;
     margin-bottom: 8px;
 `;
 
 const ReservationDetails = styled.div`
-    margin-bottom: 4px;
-    font-size: 14px;
+    margin-top: 12px;
+    font-size: 16px;
     color: #333;
+    font-weight: 500;
 `;
 
 const StatusBadge = styled.div`
@@ -132,9 +136,11 @@ const StatusBadge = styled.div`
     background-color: ${props => props.status === "진행중" ? "#FFBC39" : "#9B9B9B"};
     color: white;
     border-radius: 4px;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 500;
-    margin-top: 8px;
+    position: absolute;
+    top: 0;
+    right: 0;
 `;
 
 // CalendarBox 스타일 (기존 컴포넌트 대신 직접 스타일링)
@@ -392,19 +398,16 @@ const ReservationCalendar = () => {
                                         onError={handleImgError}
                                     />
                                     <ReservationContent>
+                                        <StatusBadge status={getStatusLabel(reservation.status)}>
+                                            {getStatusLabel(reservation.status)}
+                                        </StatusBadge>
                                         <KitchenName>{reservation.kitchenName}</KitchenName>
                                         <ReservationDetails>
-                                            {reservation.startTime} ~ {reservation.endTime}
-                                        </ReservationDetails>
-                                        <ReservationDetails>
-                                            {reservation.clientNumber}명
+                                            {reservation.startTime} ~ {reservation.endTime} ({reservation.clientNumber}인)
                                         </ReservationDetails>
                                         <ReservationDetails>
                                             {reservation.clientName}
                                         </ReservationDetails>
-                                        <StatusBadge status={getStatusLabel(reservation.status)}>
-                                            {getStatusLabel(reservation.status)}
-                                        </StatusBadge>
                                     </ReservationContent>
                                 </ReservationCard>
                             ))

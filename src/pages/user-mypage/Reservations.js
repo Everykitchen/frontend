@@ -5,6 +5,17 @@ import Sidebar from "../../components/UserSideBar";
 import styled from "styled-components";
 import api from "../../api/axiosInstance";
 
+/**
+ * 사용자의 예약 내역 목록을 보여주는 페이지 컴포넌트
+ * 
+ * 주요 기능:
+ * - 사용자의 예약 목록을 페이징 처리하여 표시 (5개씩)
+ * - 전체/진행중/완료 필터링 기능
+ * - 각 탭별 예약 수 표시
+ * - 데이터가 없을 경우 안내 메시지 표시
+ * - 로딩 및 에러 상태 처리
+ */
+
 const Container = styled.div`
     display: flex;
     min-height: 100vh;
@@ -14,6 +25,8 @@ const ContentWrapper = styled.div`
     padding: 40px;
     margin-top: 30px;
     flex: 1;
+    margin-left: 50px;
+    margin-right: 50px;
 `;
 
 const Title = styled.h2`
@@ -30,63 +43,120 @@ const TabMenu = styled.div`
 const Tab = styled.div`
     margin-right: 16px;
     cursor: pointer;
-    font-weight: ${(props) => (props.active ? "bold" : "normal")};
+    font-weight: ${(props) => (props.active ? "700" : "500")};
+    color: ${(props) => (props.active ? "#000" : "#666")};
     border-bottom: ${(props) => (props.active ? "2px solid black" : "none")};
 `;
 
-const CardWrapper = styled.div`
-    margin-bottom: 20px;
-    padding: 4px;
-    border-radius: 12px;
-    border-left: 6px solid
-        ${(props) =>
-            props.status === "RESERVED"
-                ? "#ffbc39"
-                : props.status === "PENDING_PAYMENT"
-                ? "#4da6ff"
-                : props.status === "COMPLETED_PAYMENT"
-                ? "#5cb85c"
-                : "#ccc"};
-    background-color: #fdfdfd;
-    transition: background-color 0.2s ease;
-    cursor: pointer;
+const Pagination = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 32px;
+    gap: 8px;
+`;
+
+const PageButton = styled.button`
+    padding: 8px 12px;
+    border: none;
+    background: ${props => props.active ? '#FFBC39' : 'white'};
+    color: ${props => props.active ? 'white' : '#666'};
+    cursor: ${props => props.disabled ? 'default' : 'pointer'};
+    border-radius: 4px;
+    font-weight: ${props => props.active ? 'bold' : 'normal'};
 
     &:hover {
-        background-color: #f9f9f9;
+        background: ${props => props.active ? '#FFBC39' : '#f5f5f5'};
     }
+
+    &:disabled {
+        opacity: 0.5;
+    }
+`;
+
+const EmptyMessage = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 300px;
+    font-size: 24px;
+    color: #666;
+    font-weight: 500;
 `;
 
 const Reservation = () => {
     const [activeTab, setActiveTab] = useState("전체");
     const [reservationList, setReservationList] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const itemsPerPage = 5; // 한 페이지당 5개 항목 표시
     const navigate = useNavigate();
 
+    // 상태 필터링을 위한 매핑 객체
     const statusMap = {
         전체: null,
         진행중: ["RESERVED", "PENDING_PAYMENT"],
         완료: ["COMPLETED_PAYMENT"],
     };
 
+    /**
+     * 예약 목록 데이터를 로드하는 함수
+     * 페이지 번호가 변경될 때마다 실행됨
+     */
     useEffect(() => {
         const fetchReservations = async () => {
+            setLoading(true);
+            setError(null);
             try {
                 const response = await api.get(
-                    "/api/user/reservation?page=0&size=100"
+                    `/api/user/reservation?page=${currentPage - 1}&size=${itemsPerPage}`
                 );
-                setReservationList(response.data.content);
+                // 서버에서 받은 데이터를 그대로 사용
+                setReservationList(response.data.content || []);
+                setTotalPages(response.data.totalPages || 1);
             } catch (error) {
                 console.error("예약 목록 불러오기 실패:", error);
+                setError("예약 내역을 불러오지 못했습니다.");
+            } finally {
+                setLoading(false);
             }
         };
 
         fetchReservations();
-    }, []);
+    }, [currentPage]);
 
+    /**
+     * 선택된 탭에 따라 예약 목록 필터링
+     * 전체 탭: 모든 예약
+     * 진행중 탭: RESERVED, PENDING_PAYMENT 상태의 예약
+     * 완료 탭: COMPLETED_PAYMENT 상태의 예약
+     */
     const filteredList = statusMap[activeTab]
         ? reservationList.filter((item) =>
               statusMap[activeTab].includes(item.status)
           )
         : reservationList;
+    
+    /**
+     * 페이지 변경 핸들러
+     * @param {number} pageNumber 이동할 페이지 번호
+     */
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+        window.scrollTo(0, 0); // 페이지 상단으로 스크롤
+    };
+
+    /**
+     * 탭 변경 핸들러
+     * 탭 변경 시 페이지를 1로 리셋
+     * @param {string} tab 선택한 탭 이름
+     */
+    const handleTabChange = (tab) => {
+        setActiveTab(tab);
+        setCurrentPage(1);
+    };
 
     return (
         <Container>
@@ -98,7 +168,7 @@ const Reservation = () => {
                         <Tab
                             key={tab}
                             active={activeTab === tab}
-                            onClick={() => setActiveTab(tab)}
+                            onClick={() => handleTabChange(tab)}
                         >
                             {tab} (
                             {statusMap[tab]
@@ -111,19 +181,51 @@ const Reservation = () => {
                     ))}
                 </TabMenu>
 
+                {/* 로딩 중 표시 */}
+                {loading && <EmptyMessage>로딩 중...</EmptyMessage>}
+                
+                {/* 에러 메시지 표시 */}
+                {error && <EmptyMessage style={{ color: 'red' }}>{error}</EmptyMessage>}
+                
+                {/* 결과가 없을 때 안내 메시지 표시 */}
+                {!loading && !error && filteredList.length === 0 && (
+                    <EmptyMessage>예약 내역이 없습니다.</EmptyMessage>
+                )}
+
+                {/* 예약 목록 표시 */}
                 {filteredList.map((reservation) => (
-                    <CardWrapper
+                    <ReservationCard 
                         key={reservation.reservationId}
-                        status={reservation.status}
-                        onClick={() =>
-                            navigate(
-                                `/mypage/reservations/${reservation.reservationId}`
-                            )
-                        }
-                    >
-                        <ReservationCard reservation={reservation} />
-                    </CardWrapper>
+                        reservation={reservation}
+                    />
                 ))}
+
+                {/* 페이지네이션 (필터링된 예약이 있고 총 페이지가 1 이상일 때만 표시) */}
+                {!loading && !error && filteredList.length > 0 && totalPages > 1 && (
+                    <Pagination>
+                        <PageButton
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                        >
+                            이전
+                        </PageButton>
+                        {[...Array(totalPages)].map((_, index) => (
+                            <PageButton
+                                key={index + 1}
+                                onClick={() => handlePageChange(index + 1)}
+                                active={currentPage === index + 1}
+                            >
+                                {index + 1}
+                            </PageButton>
+                        ))}
+                        <PageButton
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                        >
+                            다음
+                        </PageButton>
+                    </Pagination>
+                )}
             </ContentWrapper>
         </Container>
     );

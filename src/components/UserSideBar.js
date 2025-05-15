@@ -4,6 +4,17 @@ import styled from "styled-components";
 
 import orangeCircle from "../assets/icons/orangeDot.svg";
 
+/**
+ * 사용자 마이페이지의 사이드바 컴포넌트
+ * 
+ * 주요 기능:
+ * - 마이페이지 내 각 섹션으로 이동할 수 있는 메뉴 제공
+ * - 현재 활성화된 메뉴 표시 (주황색 동그라미 아이콘)
+ * - 반응형 디자인 지원
+ * 
+ * Props:
+ * - activeMenu: 외부에서 강제로 활성화할 메뉴 이름을 지정 (옵션)
+ */
 const SidebarContainer = styled.div`
     width: 240px;
     background-color: white;
@@ -63,7 +74,7 @@ const Divider = styled.div`
     margin: 8px 0;
 `;
 
-const UserSidebar = () => {
+const UserSidebar = ({ activeMenu }) => {
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -78,6 +89,14 @@ const UserSidebar = () => {
     ];
 
     const isMenuActive = (path) => {
+        // 외부에서 전달받은 activeMenu가 있으면 그것을 우선 확인
+        if (activeMenu) {
+            const menuItem = menuItems.find(item => !item.divider && item.label === activeMenu);
+            if (menuItem && menuItem.path === path) {
+                return true;
+            }
+        }
+        
         // 정확한 경로 매칭
         if (location.pathname === path) return true;
 
@@ -85,6 +104,14 @@ const UserSidebar = () => {
         if (
             path === "/mypage/chats" &&
             location.pathname.startsWith("/mypage/chats/")
+        ) {
+            return true;
+        }
+        
+        // 예약 상세 페이지 체크 (/mypage/reservations/:id)
+        if (
+            path === "/mypage/reservations" &&
+            location.pathname.startsWith("/mypage/reservations/")
         ) {
             return true;
         }
