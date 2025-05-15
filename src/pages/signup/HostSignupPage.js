@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import CommonButton from "../../components/Button";
 import axios from "../../api/axiosInstance";
 import { useNavigate } from "react-router-dom";
+import EmailVerification from "../../components/EmailVerification";
 
 const FormContainer = styled.div`
     max-width: 500px;
@@ -73,7 +74,6 @@ const BottomButtonWrapper = styled.div`
 const HostSignupPage = () => {
     const [form, setForm] = useState({
         email: "",
-        code: "",
         password: "",
         confirmPassword: "",
         name: "",
@@ -87,17 +87,7 @@ const HostSignupPage = () => {
 
     const [errors, setErrors] = useState({});
     const [isEmailVerified, setIsEmailVerified] = useState(false);
-    const [isSendingCode, setIsSendingCode] = useState(false);
-    const [timeLeft, setTimeLeft] = useState(0);
     const navigate = useNavigate();
-
-    useEffect(() => {
-        let timer;
-        if (timeLeft > 0) {
-            timer = setTimeout(() => setTimeLeft((prev) => prev - 1), 1000);
-        }
-        return () => clearTimeout(timer);
-    }, [timeLeft]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -115,65 +105,22 @@ const HostSignupPage = () => {
         setForm((prev) => ({ ...prev, businessFile: e.target.files[0] }));
     };
 
-    const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email);
+    const handleEmailVerified = (verifiedEmail) => {
+        setForm(prev => ({ ...prev, email: verifiedEmail }));
+        setIsEmailVerified(true);
+    };
+
     const isStrongPassword = (pw) =>
         /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?/~`|\\-]).{8,20}$/.test(pw);
 
-    const handleSendCode = async () => {
-        if (!isValidEmail(form.email)) {
-            setErrors((prev) => ({ ...prev, email: "올바른 형식이 아닙니다." }));
-            return;
-        }
-        try {
-            await axios.post("/api/auth/register/send-email-code", {
-                email: form.email,
-            });
-            setIsSendingCode(true);
-            setTimeLeft(60);
-            alert("인증번호가 이메일로 전송되었습니다.");
-        } catch (error) {
-            const msg = error?.response?.data?.result?.resultMessage;
-            if (msg) {
-                setErrors((prev) => ({ ...prev, email: msg }));
-            } else {
-                alert("인증번호 전송 실패");
-            }
-        }
-    };
-
-    const handleVerifyCode = async () => {
-        if (!form.code) {
-            setErrors((prev) => ({ ...prev, code: "인증번호를 입력해주세요." }));
-            return;
-        }
-        try {
-            await axios.post("/api/auth/register/verify-email-code", {
-                email: form.email,
-                verificationCode: form.code,
-            });
-            setIsEmailVerified(true);
-            setIsSendingCode(false);
-            setTimeLeft(0);
-            alert("이메일 인증 성공");
-        } catch (error) {
-            const msg = error?.response?.data?.result?.resultMessage;
-            if (msg) {
-                setErrors((prev) => ({ ...prev, code: msg }));
-            } else {
-                setErrors((prev) => ({ ...prev, code: "인증 실패" }));
-            }
-        }
-    };
-
     const validate = () => {
         const newErrors = {};
-        if (!isValidEmail(form.email))
-            newErrors.email = "올바른 형식이 아닙니다.";
+        if (!isEmailVerified) 
+            newErrors.email = "이메일 인증이 필요합니다.";
         if (!isStrongPassword(form.password))
             newErrors.password = "영문, 숫자, 특수문자 포함 8~20자";
         if (form.password !== form.confirmPassword)
             newErrors.confirmPassword = "비밀번호가 일치하지 않습니다.";
-        if (!isEmailVerified) newErrors.code = "이메일 인증이 필요합니다.";
         setErrors(newErrors);
         if (Object.keys(newErrors).length === 0) {
             submitForm();
@@ -211,9 +158,9 @@ const HostSignupPage = () => {
                 } else if (msg.includes("이미 등록된")) {
                     setErrors((prev) => ({ ...prev, email: msg }));
                 } else if (msg.includes("이메일 인증")) {
-                    setErrors((prev) => ({ ...prev, code: msg }));
+                    setErrors((prev) => ({ ...prev, email: msg }));
                 } else if (msg.includes("시간 초과")) {
-                    setErrors((prev) => ({ ...prev, code: msg }));
+                    setErrors((prev) => ({ ...prev, email: msg }));
                 } else {
                     alert(msg);
                 }
@@ -224,66 +171,12 @@ const HostSignupPage = () => {
         }
     };
 
-    const formatTime = (seconds) => {
-        const m = Math.floor(seconds / 60).toString().padStart(2, "0");
-        const s = (seconds % 60).toString().padStart(2, "0");
-        return `${m}:${s}`;
-    };
-
     return (
         <FormContainer>
             <Title>회원가입</Title>
 
-            {/* 이메일 */}
-            <FieldGroup>
-                <LabelRow>
-                    <Label>이메일</Label>
-                    {errors.email && <ErrorText>{errors.email}</ErrorText>}
-                </LabelRow>
-                <InlineFlex>
-                    <Input
-                        name="email"
-                        value={form.email}
-                        onChange={handleChange}
-                        placeholder="example@example.com"
-                        disabled={isEmailVerified || isSendingCode || timeLeft > 0}
-                        invalid={errors.email}
-                    />
-                    <CommonButton
-                        type="button"
-                        onClick={handleSendCode}
-                        disabled={timeLeft > 0 || isEmailVerified || isSendingCode}
-                    >
-                        {timeLeft > 0
-                            ? `재전송 ${formatTime(timeLeft)}`
-                            : "인증번호 전송"}
-                    </CommonButton>
-                </InlineFlex>
-            </FieldGroup>
-
-            {/* 인증번호 */}
-            <FieldGroup>
-                <LabelRow>
-                    <Label>인증번호</Label>
-                    {errors.code && <ErrorText>{errors.code}</ErrorText>}
-                </LabelRow>
-                <InlineFlex>
-                    <Input
-                        name="code"
-                        value={form.code}
-                        onChange={handleChange}
-                        placeholder="인증번호 입력"
-                        disabled={isEmailVerified}
-                    />
-                    <CommonButton
-                        type="button"
-                        onClick={handleVerifyCode}
-                        disabled={isEmailVerified}
-                    >
-                        인증번호 확인
-                    </CommonButton>
-                </InlineFlex>
-            </FieldGroup>
+            {/* 이메일 인증 컴포넌트 */}
+            <EmailVerification onVerified={handleEmailVerified} />
 
             {/* 나머지 입력필드 */}
             {[ 
