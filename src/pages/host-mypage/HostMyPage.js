@@ -16,8 +16,6 @@ import {
     InfoRow,
     Label,
     Data,
-    TagContainer,
-    Tag,
     LogoutWrapper,
     LogoutActionButton,
 } from "../../components/ProfileLayout";
@@ -88,6 +86,111 @@ const EditableInfoRow = styled(InfoRow)`
     gap: 8px;
 `;
 
+// 새로 추가된 스타일 컴포넌트
+const LogoutContainer = styled.div`
+    display: flex;
+    justify-content: flex-end;
+    margin: 10px 0;
+`;
+
+const SectionRow = styled.div`
+    display: flex;
+    gap: 40px;
+    width: 100%;
+`;
+
+const SectionColumn = styled.div`
+    flex: 1;
+    width: 100%;
+`;
+
+const SectionTitle = styled.h3`
+    font-size: 20px;
+    margin-bottom: 16px;
+    color: #000;
+    font-weight: 600;
+`;
+
+const Card = styled.div`
+    width: 100%;
+    background: #FCFCFC;
+    border: 1px solid #E0E0E0;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    transition: box-shadow 0.2s;
+    height: 330px;
+
+    &:hover {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+`;
+
+const ItemList = styled.div`
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: hidden;
+`;
+
+const ItemHeader = styled.div`
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    padding: 12px 0px;
+    font-weight: 500;
+    color: #000;
+    text-align: center;
+    font-size: 16px;
+    line-height: 30px;
+    margin-bottom: 10px;
+    position: relative;
+
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background-color: #FF7926;
+    }
+`;
+
+const KitchenHeader = styled(ItemHeader)`
+    grid-template-columns: 1fr 1fr;
+`;
+
+const Item = styled.div`
+    padding: 12px 0px;
+`;
+
+const ReservationItem = styled(Item)`
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    text-align: center;
+    color: #333;
+    height: 48px;
+    align-items: center;
+`;
+
+const KitchenItem = styled(Item)`
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    text-align: center;
+    color: #333;
+    height: 48px;
+    align-items: center;
+`;
+
+const EmptyMessage = styled.div`
+    padding: 30px 0;
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+`;
+
 const HostMyPage = () => {
     const navigate = useNavigate();
     const [userInfo, setUserInfo] = useState({
@@ -103,6 +206,10 @@ const HostMyPage = () => {
     const [previewImage, setPreviewImage] = useState(profileImg);
     const [error, setError] = useState("");
     const fileInputRef = useRef(null);
+    
+    // 최근 예약 내역과 주방 목록 상태 추가
+    const [recentReservations, setRecentReservations] = useState([]);
+    const [kitchenList, setKitchenList] = useState([]);
 
     const validatePhoneNumber = (number) => {
         const phoneRegex = /^010-\d{4}-\d{4}$/;
@@ -134,10 +241,12 @@ const HostMyPage = () => {
             }
 
             const formData = new FormData();
-            if (selectedImage) {
-                formData.append("image", selectedImage);
-            }
+            formData.append("email", userInfo.email);
             formData.append("phoneNumber", phoneNumber);
+            
+            if (selectedImage) {
+                formData.append("imageFile", selectedImage);
+            }
 
             const response = await api.put(
                 "/api/auth/edit/my-information",
@@ -180,6 +289,46 @@ const HostMyPage = () => {
         setError("");
     };
 
+    // 최근 예약 내역 조회
+    const fetchRecentReservations = async () => {
+        try {
+            const res = await api.get('/api/host/reservation?page=0&size=5');
+            setRecentReservations(res.data.content || []);
+        } catch (err) {
+            console.error("최근 예약 내역 조회 실패", err);
+        }
+    };
+
+    // 주방 목록 조회
+    const fetchKitchens = async () => {
+        try {
+            const res = await api.get("/api/host/my-kitchens");
+            setKitchenList(res.data || []);
+        } catch (err) {
+            console.error("주방 목록 조회 실패", err);
+        }
+    };
+
+    // 주소 처리 함수 (앞 두 단어만 표시)
+    const formatAddress = (address) => {
+        if (!address) return "";
+        const words = address.split(" ");
+        return words.slice(0, 2).join(" ");
+    };
+
+    // 날짜 포맷팅 함수
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return `${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
+    };
+
+    // 예약 상태 변환 함수
+    const getStatusLabel = (status) => {
+        if (status === "RESERVED" || status === "PENDING_PAYMENT") return "진행중";
+        if (status === "COMPLETED_PAYMENT") return "완료";
+        return status;
+    };
+
     useEffect(() => {
         const fetchUserInfo = async () => {
             try {
@@ -204,6 +353,8 @@ const HostMyPage = () => {
         };
 
         fetchUserInfo();
+        fetchRecentReservations();
+        fetchKitchens();
     }, [navigate]);
 
     return (
@@ -292,25 +443,59 @@ const HostMyPage = () => {
                             )}
                         </ProfileInfo>
                     </ProfileSection>
-                    <InfoSection>
-                        <InfoRow>
-                            <Label>담당 공유주방 지역</Label>
-                            <TagContainer>
-                                <Tag>서울시 마포구</Tag>
-                                <Tag>서울시 동작구</Tag>
-                            </TagContainer>
-                        </InfoRow>
-                        <InfoRow>
-                            <Label>운영 형태</Label>
-                            <TagContainer>
-                                <Tag>개별 운영</Tag>
-                                <Tag>공유 운영</Tag>
-                            </TagContainer>
-                        </InfoRow>
-                        <LogoutWrapper>
-                            <LogoutActionButton />
-                        </LogoutWrapper>
-                    </InfoSection>
+                    
+                    <LogoutContainer>
+                        <LogoutActionButton />
+                    </LogoutContainer>
+                    
+                    <SectionRow>
+                        <SectionColumn>
+                            <SectionTitle>최근 예약 내역</SectionTitle>
+                            <Card onClick={() => navigate('/host-mypage/reservations')}>
+                                <ItemList>
+                                    <ItemHeader>
+                                        <div>예약일</div>
+                                        <div>시간</div>
+                                        <div>예약자 성함</div>
+                                    </ItemHeader>
+                                    {recentReservations.length > 0 ? (
+                                        recentReservations.map((reservation) => (
+                                            <ReservationItem key={reservation.reservationId}>
+                                                <span>{formatDate(reservation.date)}</span>
+                                                <span>{reservation.startTime} - {reservation.endTime}</span>
+                                                <span>{reservation.clientName}</span>
+                                                
+                                            </ReservationItem>
+                                        ))
+                                    ) : (
+                                        <EmptyMessage>최근 예약 내역이 없습니다.</EmptyMessage>
+                                    )}
+                                </ItemList>
+                            </Card>
+                        </SectionColumn>
+                        
+                        <SectionColumn>
+                            <SectionTitle>운영 중인 주방</SectionTitle>
+                            <Card onClick={() => navigate('/host-mypage/kitchen-management')}>
+                                <ItemList>
+                                    <KitchenHeader>
+                                        <div>주방명</div>
+                                        <div>주소</div>
+                                    </KitchenHeader>
+                                    {kitchenList.length > 0 ? (
+                                        kitchenList.map((kitchen) => (
+                                            <KitchenItem key={kitchen.id || kitchen.kitchenId}>
+                                                <span>{kitchen.kitchenName}</span>
+                                                <span>{formatAddress(kitchen.location)}</span>
+                                            </KitchenItem>
+                                        ))
+                                    ) : (
+                                        <EmptyMessage>운영 중인 주방이 없습니다.</EmptyMessage>
+                                    )}
+                                </ItemList>
+                            </Card>
+                        </SectionColumn>
+                    </SectionRow>
                 </Content>
             </Container>
         </div>
