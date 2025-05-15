@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
-import mapPlaceholder from "../../assets/jpg/map.jpg";
+import useKakaoLoader from "../../hooks/useKakaoLoader";
 import starIcon from "../../assets/icons/starIcon.svg";
 import shareIcon from "../../assets/icons/shareIcon.svg";
 
@@ -57,11 +57,11 @@ const Box = styled.div`
     }
 `;
 
-const MapImage = styled.img`
+const MapContainer = styled.div`
     width: 100%;
     height: 300px;
-    object-fit: cover;
     border-radius: 10px;
+    overflow: hidden;
     margin-bottom: 12px;
 `;
 
@@ -137,7 +137,7 @@ const CategoryTitle = styled.h3`
     font-size: 18px;
     font-weight: bold;
     margin: 32px 0 16px;
-    color: #FFBC39;
+    color: #ffbc39;
 `;
 
 const StrongText = styled.strong`
@@ -154,7 +154,8 @@ const FacilityHeader = styled.div`
     background: #fcfcfc;
     border-radius: 8px 8px 0 0;
 
-    div, h4 {
+    div,
+    h4 {
         flex: 1;
         color: #333;
         font-size: 14px;
@@ -163,7 +164,7 @@ const FacilityHeader = styled.div`
         position: relative;
 
         &::after {
-            content: '';
+            content: "";
             position: absolute;
             bottom: -8px;
             left: 0;
@@ -184,7 +185,8 @@ const FacilityItem = styled.div`
     padding: 16px;
     background: #fcfcfc;
 
-    div, h4 {
+    div,
+    h4 {
         flex: 1;
         font-size: 14px;
         font-weight: 500;
@@ -218,18 +220,18 @@ const IngredientHeader = styled.div`
         font-weight: 600;
         text-align: center;
         position: relative;
-        
+
         &:first-child {
             flex: 1;
             text-align: center;
         }
-        
+
         &:last-child {
             text-align: center;
         }
 
         &::after {
-            content: '';
+            content: "";
             position: absolute;
             bottom: -8px;
             left: 0;
@@ -257,13 +259,13 @@ const IngredientItem = styled.div`
         color: #333;
         font-size: 14px;
         text-align: center;
-        
+
         &:first-child {
             flex: 1;
             text-align: center;
             font-weight: 500;
         }
-        
+
         &:last-child {
             text-align: center;
             font-weight: 500;
@@ -303,64 +305,101 @@ const PaginationContainer = styled.div`
 
 const PageButton = styled.button`
     padding: 8px 12px;
-    border: 1px solid ${props => props.active ? '#ffbc39' : '#ddd'};
-    background-color: ${props => props.active ? '#ffbc39' : 'white'};
-    color: ${props => props.active ? 'white' : '#333'};
+    border: 1px solid ${(props) => (props.active ? "#ffbc39" : "#ddd")};
+    background-color: ${(props) => (props.active ? "#ffbc39" : "white")};
+    color: ${(props) => (props.active ? "white" : "#333")};
     border-radius: 4px;
     cursor: pointer;
-    font-weight: ${props => props.active ? 'bold' : 'normal'};
+    font-weight: ${(props) => (props.active ? "bold" : "normal")};
 
     &:hover {
-        background-color: ${props => props.active ? '#ffbc39' : '#f5f5f5'};
+        background-color: ${(props) => (props.active ? "#ffbc39" : "#f5f5f5")};
     }
 `;
 
 const TopInfoWrapper = styled.div`
-  margin-bottom: 16px;
+    margin-bottom: 16px;
 `;
 const TopRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 80px;
+    display: flex;
+    align-items: center;
+    gap: 80px;
 `;
 const KitchenName = styled.h1`
-  font-size: 32px;
-  font-weight: 700;
-  line-height: 100%;
-  letter-spacing: -0.64px;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 100%;
+    letter-spacing: -0.64px;
 `;
 const ShareButton = styled.button`
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: #f5f5f5;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  &:hover {
-    background-color: #ebebeb;
-  }
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #f5f5f5;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    &:hover {
+        background-color: #ebebeb;
+    }
 `;
 const KitchenInfoLine = styled.div`
-  margin: 8px 0;
-  line-height: 1.4;
+    margin: 8px 0;
+    line-height: 1.4;
 `;
 const StarLine = styled.div`
-  margin-top: 5px;
-  font-size: 14px;
-  color: #555;
-  display: flex;
-  align-items: center;
+    margin-top: 5px;
+    font-size: 14px;
+    color: #555;
+    display: flex;
+    align-items: center;
 `;
 
-const InfoSection = ({ selectedTab, setSelectedTab, sections, kitchenData, onShare }) => {
+const InfoSection = ({
+    selectedTab,
+    setSelectedTab,
+    sections,
+    kitchenData,
+    onShare,
+}) => {
     const REVIEWS_PER_PAGE = 3;
     const [currentPage, setCurrentPage] = useState(1);
     const totalPages = Math.ceil(kitchenData.reviews.length / REVIEWS_PER_PAGE);
     const [scrolling, setScrolling] = useState(false);
+    const mapRef = useRef(null);
+
+    const loaded = useKakaoLoader();
+
+    useEffect(() => {
+        if (
+            !loaded ||
+            !window.kakao ||
+            !window.kakao.maps ||
+            !kitchenData ||
+            !kitchenData.latitude ||
+            !kitchenData.longitude
+        )
+            return;
+
+        const map = new window.kakao.maps.Map(mapRef.current, {
+            center: new window.kakao.maps.LatLng(
+                kitchenData.latitude,
+                kitchenData.longitude
+            ),
+            level: 4,
+        });
+
+        new window.kakao.maps.Marker({
+            map,
+            position: new window.kakao.maps.LatLng(
+                kitchenData.latitude,
+                kitchenData.longitude
+            ),
+        });
+    }, [loaded, kitchenData]);
 
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -378,7 +417,7 @@ const InfoSection = ({ selectedTab, setSelectedTab, sections, kitchenData, onSha
             },
             {
                 rootMargin: "-20% 0px -70% 0px",
-                threshold: 0
+                threshold: 0,
             }
         );
 
@@ -406,7 +445,10 @@ const InfoSection = ({ selectedTab, setSelectedTab, sections, kitchenData, onSha
     };
 
     // 별점 평균 계산
-    const averageRating = (kitchenData.reviews.reduce((acc, curr) => acc + curr.star, 0) / kitchenData.reviews.length).toFixed(1);
+    const averageRating = (
+        kitchenData.reviews.reduce((acc, curr) => acc + curr.star, 0) /
+        kitchenData.reviews.length
+    ).toFixed(1);
 
     return (
         <Container>
@@ -415,14 +457,27 @@ const InfoSection = ({ selectedTab, setSelectedTab, sections, kitchenData, onSha
                 <TopRow>
                     <KitchenName>{kitchenData.kitchenName}</KitchenName>
                     <ShareButton onClick={onShare}>
-                        <img src={shareIcon} alt="공유" style={{ width: 20, height: 20 }} />
+                        <img
+                            src={shareIcon}
+                            alt="공유"
+                            style={{ width: 20, height: 20 }}
+                        />
                     </ShareButton>
                 </TopRow>
                 <KitchenInfoLine>{kitchenData.location}</KitchenInfoLine>
-                <KitchenInfoLine>{kitchenData.defaultPrice[0].price.toLocaleString()}원 ~ / 1시간</KitchenInfoLine>
+                <KitchenInfoLine>
+                    {kitchenData.defaultPrice[0].price.toLocaleString()}원 ~ /
+                    1시간
+                </KitchenInfoLine>
                 <StarLine>
-                    <img src={starIcon} alt="별점" style={{ width: 14, marginRight: 4 }} />
-                    {kitchenData.reviews.length > 0 ? `${averageRating} | ` : ''}
+                    <img
+                        src={starIcon}
+                        alt="별점"
+                        style={{ width: 14, marginRight: 4 }}
+                    />
+                    {kitchenData.reviews.length > 0
+                        ? `${averageRating} | `
+                        : ""}
                     후기 ({kitchenData.reviewCount})
                 </StarLine>
             </TopInfoWrapper>
@@ -446,7 +501,7 @@ const InfoSection = ({ selectedTab, setSelectedTab, sections, kitchenData, onSha
                 공간정보
             </SectionTitle>
             <Paragraph>{kitchenData.description}</Paragraph>
-            <MapImage src={mapPlaceholder} alt="지도 API 자리" />
+            <MapContainer ref={mapRef} />
             <InfoTable>
                 <tbody>
                     <tr>
@@ -467,7 +522,9 @@ const InfoSection = ({ selectedTab, setSelectedTab, sections, kitchenData, onSha
                     </tr>
                     <tr>
                         <td>영업 시간</td>
-                        <td>{kitchenData.openTime} - {kitchenData.closeTime}</td>
+                        <td>
+                            {kitchenData.openTime} - {kitchenData.closeTime}
+                        </td>
                     </tr>
                 </tbody>
             </InfoTable>
@@ -497,11 +554,9 @@ const InfoSection = ({ selectedTab, setSelectedTab, sections, kitchenData, onSha
                 <StrongText>구비 도구</StrongText>
                 <ToolGrid>
                     {kitchenData.cookingTool
-                        .filter(tool => tool.check)
+                        .filter((tool) => tool.check)
                         .map((tool, index) => (
-                            <ToolItem key={index}>
-                                {tool.name}
-                            </ToolItem>
+                            <ToolItem key={index}>{tool.name}</ToolItem>
                         ))}
                 </ToolGrid>
             </Box>
@@ -509,11 +564,9 @@ const InfoSection = ({ selectedTab, setSelectedTab, sections, kitchenData, onSha
                 <StrongText>제공 물품</StrongText>
                 <ToolGrid>
                     {kitchenData.providedItem
-                        .filter(item => item.check)
+                        .filter((item) => item.check)
                         .map((item, index) => (
-                            <ToolItem key={index}>
-                                {item.name}
-                            </ToolItem>
+                            <ToolItem key={index}>{item.name}</ToolItem>
                         ))}
                 </ToolGrid>
             </Box>
@@ -530,18 +583,31 @@ const InfoSection = ({ selectedTab, setSelectedTab, sections, kitchenData, onSha
                         <div>기준 단위</div>
                         <div>금액</div>
                     </IngredientHeader>
-                    {kitchenData.ingredients && kitchenData.ingredients.filter(ingredient => !ingredient.additional).length > 0 ? (
+                    {kitchenData.ingredients &&
+                    kitchenData.ingredients.filter(
+                        (ingredient) => !ingredient.additional
+                    ).length > 0 ? (
                         kitchenData.ingredients
-                            .filter(ingredient => !ingredient.additional)
+                            .filter((ingredient) => !ingredient.additional)
                             .map((ingredient, idx) => (
                                 <IngredientItem key={idx}>
                                     <div>{ingredient.name}</div>
                                     <div>{ingredient.baseUnit}</div>
-                                    <div>{ingredient.price.toLocaleString()}원</div>
+                                    <div>
+                                        {ingredient.price.toLocaleString()}원
+                                    </div>
                                 </IngredientItem>
                             ))
                     ) : (
-                        <div style={{ padding: 16, color: '#888', textAlign: 'center' }}>등록된 기본재료가 없습니다.</div>
+                        <div
+                            style={{
+                                padding: 16,
+                                color: "#888",
+                                textAlign: "center",
+                            }}
+                        >
+                            등록된 기본재료가 없습니다.
+                        </div>
                     )}
                 </IngredientContainer>
             </Box>
@@ -553,18 +619,31 @@ const InfoSection = ({ selectedTab, setSelectedTab, sections, kitchenData, onSha
                         <div>기준 단위</div>
                         <div>금액</div>
                     </IngredientHeader>
-                    {kitchenData.ingredients && kitchenData.ingredients.filter(ingredient => ingredient.additional).length > 0 ? (
+                    {kitchenData.ingredients &&
+                    kitchenData.ingredients.filter(
+                        (ingredient) => ingredient.additional
+                    ).length > 0 ? (
                         kitchenData.ingredients
-                            .filter(ingredient => ingredient.additional)
+                            .filter((ingredient) => ingredient.additional)
                             .map((ingredient, idx) => (
                                 <IngredientItem key={idx}>
                                     <div>{ingredient.name}</div>
                                     <div>{ingredient.baseUnit}</div>
-                                    <div>{ingredient.price.toLocaleString()}원</div>
+                                    <div>
+                                        {ingredient.price.toLocaleString()}원
+                                    </div>
                                 </IngredientItem>
                             ))
                     ) : (
-                        <div style={{ padding: 16, color: '#888', textAlign: 'center' }}>등록된 추가재료가 없습니다.</div>
+                        <div
+                            style={{
+                                padding: 16,
+                                color: "#888",
+                                textAlign: "center",
+                            }}
+                        >
+                            등록된 추가재료가 없습니다.
+                        </div>
                     )}
                 </IngredientContainer>
             </Box>
@@ -574,26 +653,41 @@ const InfoSection = ({ selectedTab, setSelectedTab, sections, kitchenData, onSha
                 후기 ({kitchenData.reviewCount})
             </SectionTitle>
             {kitchenData.reviews
-                .slice((currentPage - 1) * REVIEWS_PER_PAGE, currentPage * REVIEWS_PER_PAGE)
+                .slice(
+                    (currentPage - 1) * REVIEWS_PER_PAGE,
+                    currentPage * REVIEWS_PER_PAGE
+                )
                 .map((review, index) => (
                     <ReviewCard key={index}>
                         <ReviewHeader>
                             <ReviewerEmail>{review.email}</ReviewerEmail>
                             <StarContainer>
-                                {[...Array(5)].map((_, i) => (
-                                    i < review.star ? 
-                                        <StarIcon key={i} src={starIcon} alt="star" /> : 
-                                        <EmptyStarIcon key={i} src={starIcon} alt="empty star" />
-                                ))}
+                                {[...Array(5)].map((_, i) =>
+                                    i < review.star ? (
+                                        <StarIcon
+                                            key={i}
+                                            src={starIcon}
+                                            alt="star"
+                                        />
+                                    ) : (
+                                        <EmptyStarIcon
+                                            key={i}
+                                            src={starIcon}
+                                            alt="empty star"
+                                        />
+                                    )
+                                )}
                             </StarContainer>
                             <ReviewDate>
-                                {new Date(review.createdAt).toLocaleDateString()}
+                                {new Date(
+                                    review.createdAt
+                                ).toLocaleDateString()}
                             </ReviewDate>
                         </ReviewHeader>
                         <div>{review.review}</div>
                     </ReviewCard>
                 ))}
-            
+
             {totalPages > 1 && (
                 <PaginationContainer>
                     {[...Array(totalPages)].map((_, i) => (
