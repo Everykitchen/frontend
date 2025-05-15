@@ -139,11 +139,10 @@ const ItemList = styled.div`
 
 const ItemHeader = styled.div`
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 0.7fr 1fr;
     padding: 12px 0px;
     font-weight: 500;
     color: #000;
-    text-align: center;
     font-size: 16px;
     line-height: 30px;
     margin-bottom: 10px;
@@ -155,13 +154,33 @@ const ItemHeader = styled.div`
         bottom: 0;
         left: 0;
         width: 100%;
-        height: 2px;
+        height: 1.5px;
         background-color: #FF7926;
+    }
+    
+    & > div:first-child {
+        text-align: left;
+        padding-left: 10px;
+    }
+    
+    & > div:last-child {
+        text-align: right;
+        padding-right: 10px;
     }
 `;
 
 const ChatHeader = styled(ItemHeader)`
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
+    
+    & > div:first-child {
+        text-align: left;
+        padding-left: 10px;
+    }
+    
+    & > div:last-child {
+        text-align: right;
+        padding-right: 10px;
+    }
 `;
 
 const Item = styled.div`
@@ -170,20 +189,49 @@ const Item = styled.div`
 
 const ReservationItem = styled(Item)`
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    text-align: center;
+    grid-template-columns: 1fr 0.7fr 1fr;
     color: #333;
     height: 48px;
     align-items: center;
+    
+    & > span:first-child {
+        text-align: left;
+        padding-left: 10px;
+    }
+    
+    & > span:last-child {
+        text-align: right;
+        padding-right: 10px;
+    }
 `;
 
 const ChatItem = styled(Item)`
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    text-align: center;
+    grid-template-columns: 1fr 1fr 1fr;
     color: #333;
     height: 48px;
     align-items: center;
+    
+    & > span:first-child {
+        text-align: left;
+        padding-left: 10px;
+    }
+    
+    & > span:last-child {
+        text-align: right;
+        padding-right: 10px;
+    }
+`;
+
+const ItemText = styled.span`
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+`;
+
+const StatusText = styled(ItemText)`
+    color: ${props => props.status === '예약중' ? '#FFBC39' : '#9B9B9B'};
+    font-weight: 600;
 `;
 
 const EmptyMessage = styled.div`
@@ -321,10 +369,33 @@ const MyPage = () => {
     // 시간 포맷팅 함수
     const formatTime = (startTime, endTime) => {
         if (!startTime || !endTime) return '';
-        // HH:MM 형식으로 변환
-        const start = startTime.substring(0, 5);
-        const end = endTime.substring(0, 5);
-        return `${start} ~ ${end}`;
+        // 간결한 HH-HH 형식으로 변환
+        const start = startTime.substring(0, 2);
+        const end = endTime.substring(0, 2);
+        return `${start} - ${end}`;
+    };
+
+    // 예약 시간 포맷팅 - 기존 reservationTime 문자열을 09-11 형식으로 변환
+    const formatReservationTime = (timeStr) => {
+        if (!timeStr) return '';
+        // 문자열 형식이 "09:00 ~ 11:00"와 같은 형태라고 가정
+        const parts = timeStr.split(' ~ ');
+        if (parts.length !== 2) return timeStr;
+        
+        const start = parts[0].substring(0, 2);
+        const end = parts[1].substring(0, 2);
+        return `${start}-${end}`;
+    };
+
+    // 채팅 예약 상태 반환 함수
+    const getChatStatus = (status) => {
+        if (!status) return '미예약';
+        
+        if (['RESERVED', 'PENDING_PAYMENT', 'COMPLETED_PAYMENT'].includes(status)) {
+            return '예약중';
+        }
+        
+        return '미예약';
     };
 
     useEffect(() => {
@@ -441,9 +512,13 @@ const MyPage = () => {
                                     {recentReservations.length > 0 ? (
                                         recentReservations.map((reservation) => (
                                             <ReservationItem key={reservation.reservationId}>
-                                                <span>{formatDate(reservation.date || reservation.reservationDate)}</span>
-                                                <span>{reservation.reservationTime || formatTime(reservation.startTime, reservation.endTime)}</span>
-                                                <span>{reservation.kitchenName}</span>
+                                                <ItemText>{formatDate(reservation.date || reservation.reservationDate)}</ItemText>
+                                                <ItemText>
+                                                    {reservation.reservationTime 
+                                                        ? formatReservationTime(reservation.reservationTime) 
+                                                        : formatTime(reservation.startTime, reservation.endTime)}
+                                                </ItemText>
+                                                <ItemText>{reservation.kitchenName}</ItemText>
                                             </ReservationItem>
                                         ))
                                     ) : (
@@ -459,13 +534,15 @@ const MyPage = () => {
                                 <ItemList>
                                     <ChatHeader>
                                         <div>채팅일자</div>
+                                        <div>예약상태</div>
                                         <div>주방명</div>
                                     </ChatHeader>
                                     {recentChats.length > 0 ? (
                                         recentChats.map((chat) => (
                                             <ChatItem key={chat.chattingRoomId}>
-                                                <span>{formatDate(chat.lastMessageTime)}</span>
-                                                <span>{chat.kitchenName}</span>
+                                                <ItemText>{formatDate(chat.lastMessageTime)}</ItemText>
+                                                <StatusText status={getChatStatus(chat.reservationStatus)}>{getChatStatus(chat.reservationStatus)}</StatusText>
+                                                <ItemText>{chat.kitchenName}</ItemText>
                                             </ChatItem>
                                         ))
                                     ) : (

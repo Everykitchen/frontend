@@ -141,7 +141,6 @@ const ItemHeader = styled.div`
     padding: 12px 0px;
     font-weight: 500;
     color: #000;
-    text-align: center;
     font-size: 16px;
     line-height: 30px;
     margin-bottom: 10px;
@@ -153,13 +152,33 @@ const ItemHeader = styled.div`
         bottom: 0;
         left: 0;
         width: 100%;
-        height: 2px;
+        height: 1.5px;
         background-color: #FF7926;
+    }
+    
+    & > div:first-child {
+        text-align: left;
+        padding-left: 10px;
+    }
+    
+    & > div:last-child {
+        text-align: right;
+        padding-right: 10px;
     }
 `;
 
 const KitchenHeader = styled(ItemHeader)`
     grid-template-columns: 1fr 1fr;
+    
+    & > div:first-child {
+        text-align: left;
+        padding-left: 10px;
+    }
+    
+    & > div:last-child {
+        text-align: right;
+        padding-right: 10px;
+    }
 `;
 
 const Item = styled.div`
@@ -169,19 +188,43 @@ const Item = styled.div`
 const ReservationItem = styled(Item)`
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    text-align: center;
     color: #333;
     height: 48px;
     align-items: center;
+    
+    & > span:first-child {
+        text-align: left;
+        padding-left: 10px;
+    }
+    
+    & > span:last-child {
+        text-align: right;
+        padding-right: 10px;
+    }
 `;
 
 const KitchenItem = styled(Item)`
     display: grid;
     grid-template-columns: 1fr 1fr;
-    text-align: center;
     color: #333;
     height: 48px;
     align-items: center;
+    
+    & > span:first-child {
+        text-align: left;
+        padding-left: 10px;
+    }
+    
+    & > span:last-child {
+        text-align: right;
+        padding-right: 10px;
+    }
+`;
+
+const ItemText = styled.span`
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
 `;
 
 const EmptyMessage = styled.div`
@@ -320,6 +363,15 @@ const HostMyPage = () => {
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return `${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
+    };
+
+    // 시간 포맷팅 함수
+    const formatTime = (startTime, endTime) => {
+        if (!startTime || !endTime) return '';
+        // 간결한 HH-HH 형식으로 변환
+        const start = startTime.substring(0, 2);
+        const end = endTime.substring(0, 2);
+        return `${start} - ${end}`;
     };
 
     // 예약 상태 변환 함수
@@ -461,10 +513,9 @@ const HostMyPage = () => {
                                     {recentReservations.length > 0 ? (
                                         recentReservations.map((reservation) => (
                                             <ReservationItem key={reservation.reservationId}>
-                                                <span>{formatDate(reservation.date)}</span>
-                                                <span>{reservation.startTime} - {reservation.endTime}</span>
-                                                <span>{reservation.clientName}</span>
-                                                
+                                                <ItemText>{formatDate(reservation.date)}</ItemText>
+                                                <ItemText>{formatTime(reservation.startTime, reservation.endTime)}</ItemText>
+                                                <ItemText>{reservation.clientName}</ItemText>
                                             </ReservationItem>
                                         ))
                                     ) : (
@@ -485,8 +536,8 @@ const HostMyPage = () => {
                                     {kitchenList.length > 0 ? (
                                         kitchenList.map((kitchen) => (
                                             <KitchenItem key={kitchen.id || kitchen.kitchenId}>
-                                                <span>{kitchen.kitchenName}</span>
-                                                <span>{formatAddress(kitchen.location)}</span>
+                                                <ItemText>{kitchen.kitchenName}</ItemText>
+                                                <ItemText>{formatAddress(kitchen.location)}</ItemText>
                                             </KitchenItem>
                                         ))
                                     ) : (
