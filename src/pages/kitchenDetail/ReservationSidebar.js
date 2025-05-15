@@ -316,7 +316,7 @@ const ReservationSidebar = ({
 
   useEffect(() => {
     if (!startDate || !kitchenData.id) return;
-    setIsDateSelected(false);
+          setIsDateSelected(false);
     setUnavailableIds([]);
     setSelectedIds([]);
     setStartBlock(null);
@@ -339,12 +339,12 @@ const ReservationSidebar = ({
         console.log(res.data);
         setTimeBlocks(blocks);
         setUnavailableIds(blocks.filter(b => b.unavailable).map(b => b.availableId));
-        setIsDateSelected(true);
+      setIsDateSelected(true);
       } catch (e) {
         setErrorMessage("예약 가능 시간 조회 실패");
         setTimeBlocks([]);
-        setIsDateSelected(false);
-      }
+      setIsDateSelected(false);
+    }
     };
     fetchAvailables();
   }, [startDate, kitchenData.id, kitchenData.openTime, kitchenData.closeTime, numBlocks, openHour]);
@@ -447,7 +447,7 @@ const ReservationSidebar = ({
         const response = await axios.get("/api/auth/user/my-information");
         setUserName(response.data.name);
         console.log(response.data);
-        setIsModalOpen(true);
+    setIsModalOpen(true);
       } catch (error) {
         console.error("사용자 정보 조회 실패:", error);
         alert("사용자 정보를 불러오는데 실패했습니다.");
@@ -579,9 +579,9 @@ const ReservationSidebar = ({
             ₩ {calculateTotalPrice().toLocaleString()}
           </h2>
           {startDate && startBlock !== null && endBlock !== null && (
-            <div style={{ fontSize: 10, color: "#666" }}>
+          <div style={{ fontSize: 10, color: "#666" }}>
               {`(${getDayPrice(startDate).toLocaleString()}원/시간 × ${endBlock - startBlock + 1}시간 × ${count}명)`}
-            </div>
+          </div>
           )}
         </div>
         <ReserveButton 

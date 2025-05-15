@@ -6,15 +6,15 @@ import { format } from 'date-fns';
 import { jwtDecode } from 'jwt-decode';
 
 const Container = styled.div`
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
   height: 100vh;
   background-color: #f9f9f9;
 `;
 
 const Header = styled.div`
-  display: flex;
-  align-items: center;
+    display: flex;
+    align-items: center;
   padding: 16px 24px;
   background-color: white;
   border-bottom: 1px solid #eee;
@@ -22,11 +22,11 @@ const Header = styled.div`
 `;
 
 const BackButton = styled.button`
-  background: none;
-  border: none;
+    background: none;
+    border: none;
   font-size: 16px;
   color: #666;
-  cursor: pointer;
+    cursor: pointer;
   margin-right: 16px;
   
   &:hover {
@@ -35,15 +35,15 @@ const BackButton = styled.button`
 `;
 
 const KitchenName = styled.h1`
-  font-size: 18px;
+    font-size: 18px;
   font-weight: 600;
-  margin: 0;
+    margin: 0;
 `;
 
 const ChatContainer = styled.div`
-  flex: 1;
+    flex: 1;
   padding: 24px;
-  overflow-y: auto;
+    overflow-y: auto;
   display: flex;
   flex-direction: column;
 `;
@@ -83,47 +83,47 @@ const MessageTime = styled.div`
 `;
 
 const InputContainer = styled.div`
-  display: flex;
-  align-items: center;
+    display: flex;
+    align-items: center;
   padding: 16px;
   background-color: white;
   border-top: 1px solid #eee;
 `;
 
 const Input = styled.input`
-  flex: 1;
-  padding: 12px 16px;
+    flex: 1;
+    padding: 12px 16px;
   border: 1px solid #ddd;
-  border-radius: 24px;
-  font-size: 14px;
+    border-radius: 24px;
+    font-size: 14px;
   outline: none;
   
-  &:focus {
-    border-color: #FFBC39;
-  }
+    &:focus {
+        border-color: #FFBC39;
+    }
 `;
 
 const SendButton = styled.button`
   background-color: #FFBC39;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
   margin-left: 12px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   
   &:hover {
     background-color: #FFB020;
   }
   
-  &:disabled {
+    &:disabled {
     background-color: #ddd;
-    cursor: not-allowed;
-  }
+        cursor: not-allowed;
+    }
 `;
 
 const EmptyState = styled.div`
@@ -179,14 +179,14 @@ const ChattingRoomComponent = ({ isHost }) => {
   const [kitchenId, setKitchenId] = useState(null);
   const [chattingRoomId, setChattingRoomId] = useState(null);
   const [kitchenName, setKitchenName] = useState('');
-  const [messages, setMessages] = useState([]);
+    const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [socket, setSocket] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [receiverId, setReceiverId] = useState(null);
-  const chatContainerRef = useRef(null);
+    const chatContainerRef = useRef(null);
 
   // Get user ID from token
   useEffect(() => {
@@ -594,7 +594,7 @@ const ChattingRoomComponent = ({ isHost }) => {
   }, [kitchenId, chattingRoomId, isHost, id, loading, location.state]);
   
   // 컴포넌트 언마운트 시 웹소켓 연결 정리
-  useEffect(() => {
+    useEffect(() => {
     return () => {
       if (socket) {
         console.log('컴포넌트 언마운트: 웹소켓 연결 종료');
@@ -861,12 +861,12 @@ const ChattingRoomComponent = ({ isHost }) => {
   };
 
   const scrollToBottom = () => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-    }
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
   };
 
-  const handleSendMessage = async () => {
+    const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
     
     // 채팅방 ID 확인
@@ -968,13 +968,13 @@ const ChattingRoomComponent = ({ isHost }) => {
         }
       }
     }
-  };
+    };
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      handleSendMessage();
-    }
-  };
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            handleSendMessage();
+        }
+    };
 
   const handleBack = () => {
     navigate(isHost ? '/host-mypage/chats' : '/mypage/chats');
@@ -1128,13 +1128,13 @@ const ChattingRoomComponent = ({ isHost }) => {
   }
 
   return (
-    <Container>
-      <Header>
+            <Container>
+                <Header>
         <BackButton onClick={handleBack}>
           &lt; 뒤로
         </BackButton>
         <KitchenName>{kitchenName || '채팅'}</KitchenName>
-      </Header>
+                </Header>
       
       {error && (
         <div style={{
@@ -1195,8 +1195,8 @@ const ChattingRoomComponent = ({ isHost }) => {
           </div>
         </div>
       )}
-      
-      <ChatContainer ref={chatContainerRef}>
+                
+                <ChatContainer ref={chatContainerRef}>
         {messages.length === 0 ? (
           <EmptyState>
             <p>아직 채팅 내역이 없습니다. 첫 메시지를 보내보세요!</p>
@@ -1214,25 +1214,25 @@ const ChattingRoomComponent = ({ isHost }) => {
             );
           })
         )}
-      </ChatContainer>
-      
-      <InputContainer>
+                </ChatContainer>
+
+                <InputContainer>
         <Input
-          type="text"
+                        type="text"
           value={inputMessage}
           onChange={(e) => setInputMessage(e.target.value)}
-          onKeyPress={handleKeyPress}
+                        onKeyPress={handleKeyPress}
           placeholder="메시지를 입력하세요..."
-        />
-        <SendButton 
-          onClick={handleSendMessage} 
+                    />
+                    <SendButton
+                        onClick={handleSendMessage}
           disabled={!inputMessage.trim() || !chattingRoomId || !socket || socket.readyState !== WebSocket.OPEN}
-        >
-          →
-        </SendButton>
-      </InputContainer>
-    </Container>
-  );
+                    >
+                        →
+                    </SendButton>
+                </InputContainer>
+            </Container>
+    );
 };
 
 export default ChattingRoomComponent; 

@@ -33,6 +33,7 @@ import {
 import KitchenForm from "../pages/host-mypage/kitchen/KitchenForm";
 
 import KitchenMap from "../pages/kitchenMap/KitchenMap";
+import ReservationCalendar from "../pages/host-mypage/ReservationCalendar";
 
 const AppRouter = () => {
     const location = useLocation();
@@ -148,6 +149,14 @@ const AppRouter = () => {
                 element={
                     <ProtectedRoute allowedRole="HOST">
                         <HostReservationDetail />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/host-mypage/reservations/calendar"
+                element={
+                    <ProtectedRoute allowedRole="HOST">
+                        <ReservationCalendar />
                     </ProtectedRoute>
                 }
             />

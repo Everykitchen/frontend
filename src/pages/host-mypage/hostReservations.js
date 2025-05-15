@@ -27,6 +27,11 @@ const Title = styled.h2`
 const TabMenu = styled.div`
     display: flex;
     margin-bottom: 24px;
+    justify-content: space-between;
+`;
+
+const TabGroup = styled.div`
+    display: flex;
 `;
 
 const Tab = styled.div`
@@ -35,6 +40,22 @@ const Tab = styled.div`
     font-weight: ${(props) => (props.active ? "700" : "500")};
     color: ${(props) => (props.active ? "#000" : "#666")};
     border-bottom: ${(props) => (props.active ? "2px solid black" : "none")};
+`;
+
+const CalendarButton = styled.button`
+    background-color: #FFBC39;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    
+    &:hover {
+        background-color: #F0AB29;
+    }
 `;
 
 const Pagination = styled.div`
@@ -131,24 +152,29 @@ const HostReservations = () => {
             <ContentWrapper>
                 <Title>예약 내역</Title>
                 <TabMenu>
-                    {["전체", "진행중", "완료"].map((tab) => (
-                        <Tab
-                            key={tab}
-                            active={activeTab === tab}
-                            onClick={() => handleTabChange(tab)}
-                        >
-                            {tab} (
-                            {tab === "전체"
-                                ? reservations.length
-                                : reservations.filter(
-                                      (item) =>
-                                        tab === "완료"
-                                            ? getStatusLabel(item.status) === "완료"
-                                            : getStatusLabel(item.status) === "진행중"
-                                  ).length}
-                            )
-                        </Tab>
-                    ))}
+                    <TabGroup>
+                        {["전체", "진행중", "완료"].map((tab) => (
+                            <Tab
+                                key={tab}
+                                active={activeTab === tab}
+                                onClick={() => handleTabChange(tab)}
+                            >
+                                {tab} (
+                                {tab === "전체"
+                                    ? reservations.length
+                                    : reservations.filter(
+                                          (item) =>
+                                            tab === "완료"
+                                                ? getStatusLabel(item.status) === "완료"
+                                                : getStatusLabel(item.status) === "진행중"
+                                      ).length}
+                                )
+                            </Tab>
+                        ))}
+                    </TabGroup>
+                    <CalendarButton onClick={() => navigate('/host-mypage/reservations/calendar')}>
+                        달력으로 조회
+                    </CalendarButton>
                 </TabMenu>
                 {loading && <div>로딩 중...</div>}
                 {error && <div style={{ color: 'red' }}>{error}</div>}

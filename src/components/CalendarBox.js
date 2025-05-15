@@ -17,12 +17,12 @@ import { addMonths, isBefore, startOfDay } from "date-fns";
 
 const StyledDatePickerWrapper = styled.div`
   .react-datepicker {
-    width: 100%;
-    border: none;
-    font-size: 18px;
-    background: #fff;
-    border-radius: 16px;
-    padding: 8px 0 24px 0;
+  width: 100%;
+  border: none;
+  font-size: 18px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 8px 0 24px 0;
     box-shadow: none;
   }
   .react-datepicker__header {
@@ -130,17 +130,17 @@ const CalendarBox = ({ value, onChange, ...props }) => {
     <StyledDatePickerWrapper>
       <DatePicker
         selected={value}
-        onChange={onChange}
+      onChange={onChange}
         inline
         locale={ko}
         renderCustomHeader={renderCustomHeader}
         dateFormat="yyyy.M"
-        minDate={new Date()}
+      minDate={new Date()}
         maxDate={addMonths(new Date(), 6)}
         dayClassName={getDayClassName}
         filterDate={date => !getDayDisabled(date)}
-        {...props}
-      />
+      {...props}
+    />
     </StyledDatePickerWrapper>
   );
 };

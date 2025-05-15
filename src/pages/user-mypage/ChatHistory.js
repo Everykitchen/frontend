@@ -150,7 +150,7 @@ const ChatHistory = () => {
                 
                 {filteredChats.length > 0 ? (
                     filteredChats.map(chat => (
-                        <HostChatCard
+                    <HostChatCard
                             key={chat.chattingRoomId}
                             chat={{
                                 id: chat.chattingRoomId,
@@ -165,7 +165,7 @@ const ChatHistory = () => {
                                 kitchenImage: chat.kitchenImage
                             }}
                             onClick={() => handleChatClick(chat)}
-                        />
+                    />
                     ))
                 ) : (
                     <NoChats>채팅 내역이 없습니다.</NoChats>

@@ -91,6 +91,16 @@ const Navbar = () => {
         }
     };
 
+    const handleCalendarClick = (e) => {
+        e.preventDefault();
+        const role = localStorage.getItem("role");
+        if (role === "HOST") {
+            navigate("/host-mypage/reservations/calendar");
+        } else {
+            navigate("/mypage/reservations");
+        }
+    };
+
     return (
         <HeaderWrapper>
             <Logo />
@@ -116,7 +126,7 @@ const Navbar = () => {
                         height={"18px"}
                     />
                 </IconLink>
-                <IconLink to="/mypage/reservations">
+                <IconLink to="#" onClick={handleCalendarClick}>
                     <IconImg
                         src={calendarIcon}
                         alt="달력"
