@@ -59,6 +59,12 @@ const Input = styled.input`
     border: 1px solid #ccc;
     border-radius: 4px;
     width: 100%;
+    // 스피너 제거
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
 `;
 
 const ButtonContainer = styled.div`
@@ -75,6 +81,13 @@ const NavButton = styled.button`
     border-radius: 8px;
     font-weight: bold;
     cursor: pointer;
+`;
+
+const Select = styled.select`
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
 `;
 
 const StepIngredient = ({
@@ -159,8 +172,7 @@ const StepIngredient = ({
                                 />
                             </td>
                             <td>
-                                <Input
-                                    placeholder="예: 1kg"
+                                <Select
                                     value={item.unit}
                                     onChange={(e) =>
                                         handleChange(
@@ -170,7 +182,14 @@ const StepIngredient = ({
                                             e.target.value
                                         )
                                     }
-                                />
+                                >
+                                    <option value="">단위 선택</option>
+                                    <option value="1g">1g</option>
+                                    <option value="10g">10g</option>
+                                    <option value="100g">100g</option>
+                                    <option value="1kg">1kg</option>
+                                    <option value="10kg">10kg</option>
+                                </Select>
                             </td>
                             <td>
                                 <Input
@@ -234,8 +253,7 @@ const StepIngredient = ({
                                 />
                             </td>
                             <td>
-                                <Input
-                                    placeholder="예: 100g"
+                                <Select
                                     value={item.unit}
                                     onChange={(e) =>
                                         handleChange(
@@ -245,7 +263,14 @@ const StepIngredient = ({
                                             e.target.value
                                         )
                                     }
-                                />
+                                >
+                                    <option value="">단위 선택</option>
+                                    <option value="1g">1g</option>
+                                    <option value="10g">10g</option>
+                                    <option value="100g">100g</option>
+                                    <option value="1kg">1kg</option>
+                                    <option value="10kg">10kg</option>
+                                </Select>
                             </td>
                             <td>
                                 <Input

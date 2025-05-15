@@ -53,6 +53,7 @@ const KitchenForm = () => {
         description: "",
         phoneNumber: "",
         location: "",
+        detailLocation: "",
         latitude: null,
         longitude: null,
         size: "",
@@ -116,18 +117,31 @@ const KitchenForm = () => {
     });
 
     const handleSubmitKitchen = async () => {
+        const form = new FormData();
+
         const payload = mapFormDataToRequestBody(formData);
+        for (const key in payload) {
+            if (key === "images") {
+                formData.imageList.forEach((file) => {
+                    form.append("images", file); // 실제 File 객체여야 함
+                });
+            } else {
+                form.append(key, JSON.stringify(payload[key]));
+            }
+        }
 
         try {
             const response = isEdit
-                ? await api.put(`/api/host/kitchen/${formData.id}`, payload)
-                : await api.post("/api/host/kitchen", payload);
+                ? await api.put(`/api/host/kitchen/${formData.id}`, form, {
+                      headers: { "Content-Type": "multipart/form-data" },
+                  })
+                : await api.post("/api/host/kitchen", form, {
+                      headers: { "Content-Type": "multipart/form-data" },
+                  });
 
             if (response.status === 200 || response.status === 201) {
                 alert(
-                    "주방이 성공적으로 " +
-                        (isEdit ? "수정" : "등록") +
-                        "되었습니다."
+                    `주방이 성공적으로 ${isEdit ? "수정" : "등록"}되었습니다.`
                 );
                 navigate("/host-mypage/kitchen-management");
             }

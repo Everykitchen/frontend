@@ -1,4 +1,7 @@
+/* global kakao, daum */
 import { useState, useEffect } from "react";
+import useKakaoLoader from "../../../hooks/useKakaoLoader";
+import useDaumPostcodeLoader from "../../../hooks/useDaumPostcodeLoader";
 import styled from "styled-components";
 
 const Container = styled.div`
@@ -125,6 +128,22 @@ const NextButton = styled.button`
     float: right;
 `;
 
+const SearchAddressButton = styled.button`
+    background-color: #444;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: px;
+    font-weight: 500;
+    cursor: pointer;
+    width: 100px;
+    height: 37px;
+
+    &:hover {
+        background-color: #666;
+    }
+`;
+
 const ImagePreviewWrapper = styled.div`
     display: flex;
     gap: 16px;
@@ -138,6 +157,28 @@ const ImageBox = styled.div`
         props.selected ? "3px solid #ffbc39" : "1px solid #ccc"};
     border-radius: 8px;
     padding: 4px;
+`;
+
+const DeleteButton = styled.button`
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background-color: rgba(255, 0, 0, 0.8);
+    }
 `;
 
 const PreviewImage = styled.img`
@@ -154,20 +195,105 @@ const PreviewText = styled.div`
     margin-top: 4px;
 `;
 
+const AddressRow = styled.div`
+    display: flex;
+    gap: 10px;
+    align-items: top;
+    margin-bottom: 16px;
+`;
+
+const PriceTable = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+`;
+
+const PriceRow = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 12px;
+`;
+
+const DayLabel = styled.label`
+    width: 50px;
+    font-weight: 500;
+`;
+
+const PriceInput = styled.input`
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    width: 120px;
+    background-color: ${(props) => (props.disabled ? "#f1f1f1" : "white")};
+
+    // 스피너 제거
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+`;
+
 const StepPrice = ({ formData, setFormData, nextStep }) => {
+    const kakaoLoaded = useKakaoLoader();
+    const daumLoaded = useDaumPostcodeLoader();
+
     const [category, setCategory] = useState(formData.category || "");
-    const [imageUrls, setImageUrls] = useState(formData.imageList || []);
-    const [representativeImage, setRepresentativeImage] = useState(
-        imageUrls[0] || ""
-    );
+    const [imageFiles, setImageFiles] = useState([]);
+    const [imageUrls, setImageUrls] = useState([]);
+    const [representativeImage, setRepresentativeImage] = useState("");
+    const [activeDays, setActiveDays] = useState([
+        "월",
+        "화",
+        "수",
+        "목",
+        "금",
+        "토",
+        "일",
+    ]);
+
+    const toggleDay = (day) => {
+        setActiveDays((prev) =>
+            prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+        );
+    };
+
+    const triggerTimePicker = (e) => {
+        e.target.showPicker?.();
+    };
 
     useEffect(() => {
         setFormData((prev) => ({
             ...prev,
             category,
-            imageList: imageUrls,
         }));
-    }, [category, imageUrls]);
+    }, [category]);
+
+    useEffect(() => {
+        const urls = imageFiles.map((file) => URL.createObjectURL(file));
+        setImageUrls(urls);
+        setRepresentativeImage((prev) =>
+            urls.includes(prev) ? prev : urls[0] || ""
+        );
+        setFormData((prev) => ({
+            ...prev,
+            imageList: imageFiles,
+        }));
+    }, [imageFiles]);
+
+    useEffect(() => {
+        const updatedPrices = {};
+        ["월", "화", "수", "목", "금", "토", "일"].forEach((day) => {
+            updatedPrices[day] = activeDays.includes(day)
+                ? formData.prices?.[day] ?? ""
+                : null;
+        });
+        setFormData((prev) => ({
+            ...prev,
+            prices: { ...updatedPrices },
+        }));
+    }, [activeDays]);
 
     const handlePriceChange = (day, value) => {
         setFormData((prev) => ({
@@ -180,22 +306,69 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
     };
 
     const handleImageUpload = (files) => {
-        const uploadedUrls = [];
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            const localUrl = URL.createObjectURL(file);
-            uploadedUrls.push(localUrl);
-        }
-        setImageUrls((prev) => [...prev, ...uploadedUrls]);
-        if (uploadedUrls.length > 0) {
-            setRepresentativeImage(uploadedUrls[0]);
-        }
+        const fileArray = Array.from(files);
+        setImageFiles((prev) => [...prev, ...fileArray]);
+    };
+
+    const handleRemoveImage = (index) => {
+        setImageFiles((prev) => prev.filter((_, i) => i !== index));
     };
 
     const categoryOptions = [
         { label: "쿠킹", value: "COOKING" },
         { label: "베이킹", value: "BAKING" },
     ];
+
+    const getCoordsFromAddress = async (address) => {
+        if (!kakaoLoaded || !window.kakao || !window.kakao.maps) return;
+
+        const geocoder = new window.kakao.maps.services.Geocoder();
+        geocoder.addressSearch(address, function (result, status) {
+            if (status === window.kakao.maps.services.Status.OK) {
+                const { y, x } = result[0];
+                setFormData((prev) => ({
+                    ...prev,
+                    location: address,
+                    latitude: y,
+                    longitude: x,
+                }));
+            }
+        });
+    };
+
+    const handleAddressSearch = () => {
+        if (!daumLoaded || !window.daum?.Postcode) {
+            alert("주소 검색 기능이 아직 로드되지 않았습니다.");
+            return;
+        }
+
+        new window.daum.Postcode({
+            oncomplete: function (data) {
+                const fullAddress = data.address;
+                setFormData((prev) => ({
+                    ...prev,
+                    location: fullAddress,
+                }));
+
+                if (kakaoLoaded && window.kakao?.maps?.services) {
+                    const geocoder = new window.kakao.maps.services.Geocoder();
+                    geocoder.addressSearch(
+                        fullAddress,
+                        function (result, status) {
+                            if (status === kakao.maps.services.Status.OK) {
+                                const { y, x } = result[0];
+                                setFormData((prev) => ({
+                                    ...prev,
+                                    latitude: y,
+                                    longitude: x,
+                                }));
+                            }
+                        }
+                    );
+                }
+            },
+        }).open();
+    };
 
     return (
         <Container>
@@ -258,6 +431,14 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                                         ? "대표 이미지"
                                         : "클릭하여 대표 설정"}
                                 </PreviewText>
+                                <DeleteButton
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleRemoveImage(index);
+                                    }}
+                                >
+                                    ×
+                                </DeleteButton>
                             </ImageBox>
                         ))}
                     </ImagePreviewWrapper>
@@ -277,27 +458,33 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
 
             <Section>
                 <SectionTitle>공간 정보</SectionTitle>
-                <Label>위치</Label>
+                <Label>주소지</Label>
+                <AddressRow>
+                    <Input
+                        type="text"
+                        value={formData.location || ""}
+                        readOnly
+                    />
+                    <SearchAddressButton onClick={handleAddressSearch}>
+                        주소 검색
+                    </SearchAddressButton>
+                </AddressRow>
+                <Label>상세 주소</Label>
                 <Input
-                    value={formData.location || ""}
+                    type="text"
+                    value={formData.detailLocation || ""}
                     onChange={(e) =>
-                        setFormData({ ...formData, location: e.target.value })
+                        setFormData({
+                            ...formData,
+                            detailLocation: e.target.value,
+                        })
                     }
                 />
+                {/* 위도/경도는 숨기거나 readonly로 표시 */}
                 <Label>위도</Label>
-                <Input
-                    value={formData.latitude || ""}
-                    onChange={(e) =>
-                        setFormData({ ...formData, latitude: e.target.value })
-                    }
-                />
+                <Input type="text" value={formData.latitude || ""} readOnly />
                 <Label>경도</Label>
-                <Input
-                    value={formData.longitude || ""}
-                    onChange={(e) =>
-                        setFormData({ ...formData, longitude: e.target.value })
-                    }
-                />
+                <Input type="text" value={formData.longitude || ""} readOnly />
                 <Label>면적</Label>
                 <Input
                     value={formData.size || ""}
@@ -335,6 +522,7 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                             openTime: e.target.value,
                         })
                     }
+                    onFocus={triggerTimePicker}
                 />
                 <Label>마감 시간</Label>
                 <Input
@@ -346,9 +534,10 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                             closeTime: e.target.value,
                         })
                     }
+                    onFocus={triggerTimePicker}
                 />
-                <Label>최소 예약시간(분)</Label>
-                <Input
+                <Label>최소 예약시간</Label>
+                <Select
                     value={formData.minReservationTime || ""}
                     onChange={(e) =>
                         setFormData({
@@ -356,49 +545,48 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                             minReservationTime: e.target.value,
                         })
                     }
-                />
+                >
+                    {[1, 2, 3, 4, 5].map((hour) => (
+                        <option key={hour} value={hour}>
+                            {hour}시간
+                        </option>
+                    ))}
+                </Select>
             </Section>
 
             <Section>
                 <SectionTitle>금액 설정</SectionTitle>
-                <Label>1시간 기준 금액</Label>
-                <Table>
-                    <thead>
-                        <tr>
-                            {["월", "화", "수", "목", "금", "토", "일"].map(
-                                (day) => (
-                                    <th key={day}>{day}</th>
-                                )
-                            )}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            {["월", "화", "수", "목", "금", "토", "일"].map(
-                                (day) => (
-                                    <td key={day}>
-                                        <Input
-                                            value={formData.prices?.[day] || ""}
-                                            onChange={(e) =>
-                                                handlePriceChange(
-                                                    day,
-                                                    e.target.value
-                                                )
-                                            }
-                                        />
-                                    </td>
-                                )
-                            )}
-                        </tr>
-                    </tbody>
-                </Table>
-                <Label>공휴일</Label>
-                <Input
-                    placeholder="공휴일 금액"
+                <Label>요일별 1시간 기준 금액</Label>
+                <PriceTable>
+                    {["월", "화", "수", "목", "금", "토", "일"].map((day) => (
+                        <PriceRow key={day}>
+                            <input
+                                type="checkbox"
+                                checked={activeDays.includes(day)}
+                                onChange={() => toggleDay(day)}
+                            />
+                            <DayLabel>{day}</DayLabel>
+                            <PriceInput
+                                type="number"
+                                value={formData.prices?.[day] || ""}
+                                onChange={(e) =>
+                                    handlePriceChange(day, e.target.value)
+                                }
+                                disabled={!activeDays.includes(day)}
+                            />
+                            <span>원</span>
+                        </PriceRow>
+                    ))}
+                </PriceTable>
+
+                <Label>공휴일 금액</Label>
+                <PriceInput
+                    type="number"
                     value={formData.prices?.["공휴일"] || ""}
                     onChange={(e) =>
                         handlePriceChange("공휴일", e.target.value)
                     }
+                    placeholder="공휴일 요금"
                 />
             </Section>
 
