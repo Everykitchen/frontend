@@ -255,6 +255,30 @@ const KitchenMap = () => {
         if (loaded) fetchStores(page);
     }, [page, loaded]);
 
+    const getSortedList = (list) => {
+        let filtered = [...list];
+
+        if (showOnlyLiked) {
+            filtered = filtered.filter((k) => k.liked);
+        }
+
+        switch (sortOption) {
+            case "rating":
+                filtered.sort((a, b) => (b.avgStar || 0) - (a.avgStar || 0));
+                break;
+            case "review":
+                filtered.sort(
+                    (a, b) => (b.reviewCount || 0) - (a.reviewCount || 0)
+                );
+                break;
+            case "distance":
+            default:
+                break;
+        }
+
+        return filtered;
+    };
+
     const handleLikeToggle = async (id) => {
         try {
             await api.post(`/api/user/kitchen/${id}/likes`);
@@ -322,8 +346,8 @@ const KitchenMap = () => {
                     </CheckboxLabel>
                 </Controls>
 
-                {storeList.map((k, i) => {
-                    const isLast = storeList.length === i + 1;
+                {getSortedList(storeList).map((k, i, arr) => {
+                    const isLast = i === arr.length - 1;
                     return (
                         <div
                             key={k.kitchenId}
