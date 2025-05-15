@@ -4,6 +4,15 @@ import api from "../../api/axiosInstance";
 import Sidebar from "../../components/UserSideBar";
 import StoreCard from "../../components/StoreCard";
 
+/**
+ * 사용자가 찜한 주방 목록을 보여주는 페이지 컴포넌트
+ * 
+ * 주요 기능:
+ * - 사용자가 찜한 주방 목록을 그리드 형태로 표시
+ * - 찜 해제 기능
+ * - 각 주방 카드를 통해 상세 정보 접근
+ */
+
 const Container = styled.div`
     display: flex;
     min-height: 100vh;
@@ -32,6 +41,17 @@ const Grid = styled.div`
 const LikedList = () => {
     const [likedStores, setLikedStores] = useState([]);
 
+    /**
+     * 주소를 간략하게 표시 (앞 두 단어만)
+     * @param {string} location 전체 주소
+     * @returns {string} 축약된 주소
+     */
+    const formatLocation = (location) => {
+        if (!location) return "";
+        const words = location.split(" ");
+        return words.slice(0, 2).join(" ");
+    };
+
     const fetchLikedKitchens = async () => {
         try {
             const response = await api.get("/api/user/like-kitchens");
@@ -40,7 +60,7 @@ const LikedList = () => {
             const transformed = contents.map((kitchen) => ({
                 id: kitchen.kitchenId,
                 imageUrl: kitchen.imageUrl,
-                location: kitchen.location,
+                location: formatLocation(kitchen.location), // 주소를 두 단어로 포맷팅
                 name: kitchen.kitchenName,
                 price: kitchen.minPrice
                     ? `${kitchen.minPrice.toLocaleString()}원~`
@@ -78,7 +98,7 @@ const LikedList = () => {
 
     return (
         <Container>
-            <Sidebar />
+            <Sidebar activeMenu="찜 목록" />
             <Content>
                 <Title>찜 목록</Title>
                 <Grid>
