@@ -5,6 +5,7 @@ import api from "../api/axiosInstance";
 import StoreCard from "../components/StoreCard";
 import { useNavigate } from "react-router-dom";
 import defaultKitchenImage from "../assets/jpg/kitchen1.jpg";
+import FilterBar from "../components/FilterBar";
 
 const PageContainer = styled.div`
     display: flex;
@@ -35,6 +36,16 @@ const MainPage = () => {
     const [page, setPage] = useState(0);
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
+    const [filters, setFilters] = useState({
+        location: "",
+        date: null,
+        count: null,
+        price: null,
+        facilities: [],
+    });
+    const { count, price, date, facilities } = filters;
+    const { location: selectedLocation } = filters;
+
     const observer = useRef();
     const navigate = useNavigate();
 
@@ -60,13 +71,27 @@ const MainPage = () => {
             setLoading(true);
             const response = await api.get("/api/common/kitchen", {
                 params: {
-                    location: "",
-                    date: "",
-                    count: "",
-                    price: "",
+                    location: selectedLocation || "",
+                    count: count || null,
+                    price: price || null,
+                    availableDate: date
+                        ? new Date(date).toISOString().split("T")[0]
+                        : null,
+                    facilities:
+                        facilities.length > 0 ? facilities.join(",") : null,
                     page: pageNum,
                     size: 12,
                 },
+            });
+
+            console.log("필터 요청 파라미터:", {
+                selectedLocation,
+                count,
+                price,
+                availableDate: date
+                    ? new Date(date).toISOString().split("T")[0]
+                    : null,
+                facilities: facilities.join(","),
             });
 
             const kitchens = response.data?.content || [];
@@ -141,8 +166,18 @@ const MainPage = () => {
         fetchStores(page);
     }, [page]);
 
+    useEffect(() => {
+        setPage(0);
+        fetchStores(0, true); // 필터 바뀌면 새로 요청
+    }, [filters]);
+
+    const handleFilterChange = (newFilters) => {
+        setFilters((prev) => ({ ...prev, ...newFilters }));
+    };
+
     return (
         <PageContainer>
+            <FilterBar onFilterChange={handleFilterChange} />
             <StoreList>
                 {storeList.map((store, index) => {
                     if (storeList.length === index + 1) {
@@ -168,7 +203,6 @@ const MainPage = () => {
                     }
                 })}
             </StoreList>
-
             {loading && <LoadingIndicator>로딩 중...</LoadingIndicator>}
             {!hasMore && storeList.length > 0 && (
                 <LoadingIndicator>더 이상 주방이 없습니다</LoadingIndicator>

@@ -5,6 +5,7 @@ import {
     FaUserFriends,
     FaWonSign,
     FaSlidersH,
+    FaTimes,
 } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import CalendarBox from "./CalendarBox";
@@ -97,6 +98,25 @@ const ActionButton = styled(CommonButton)`
     font-weight: 500;
 `;
 
+const ResetButton = styled(CommonButton)`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #ff4d4f;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+        background-color: #d9363e;
+    }
+`;
+
 const countButtonStyle = {
     width: "32px",
     height: "32px",
@@ -162,7 +182,7 @@ const FilterBar = ({ onFilterChange }) => {
         { icon: <FaCalendarAlt />, label: "날짜" },
         { icon: <FaUserFriends />, label: "인원" },
         { icon: <FaWonSign />, label: "가격" },
-        { icon: <FaSlidersH />, label: "필터" },
+        { icon: <FaSlidersH />, label: "시설" },
     ];
 
     const [selectedRegion, setSelectedRegion] = useState(null);
@@ -172,8 +192,8 @@ const FilterBar = ({ onFilterChange }) => {
     });
     const [activePopup, setActivePopup] = useState(null);
     const [selectedDate, setSelectedDate] = useState(null);
-    const [guestCount, setGuestCount] = useState(1);
-    const [priceRange, setPriceRange] = useState(50000);
+    const [guestCount, setGuestCount] = useState(null);
+    const [priceRange, setPriceRange] = useState(null);
     const [selectedFacilities, setSelectedFacilities] = useState([]);
 
     const toggleFacility = (item) => {
@@ -184,14 +204,43 @@ const FilterBar = ({ onFilterChange }) => {
         );
     };
 
-    const resetAllFilters = () => {
-        setSelectedRegion(null);
-        setSelectedLocation({ city: null, district: null });
-        setGuestCount(1);
-        setPriceRange(50000);
-        setSelectedFacilities([]);
-        setActivePopup(null);
-        onFilterChange({ location: "", count: 1, price: 50000 });
+    const resetFilter = (label) => {
+        switch (label) {
+            case "지역":
+                setSelectedLocation({ city: null, district: null });
+                break;
+            case "날짜":
+                setSelectedDate(null);
+                break;
+            case "인원":
+                setGuestCount(null);
+                break;
+            case "가격":
+                setPriceRange(null);
+                break;
+            case "시설":
+                setSelectedFacilities([]);
+                break;
+            default:
+                break;
+        }
+    };
+
+    const hasValue = (label) => {
+        switch (label) {
+            case "지역":
+                return !!selectedLocation.district;
+            case "날짜":
+                return !!selectedDate;
+            case "인원":
+                return guestCount !== null;
+            case "가격":
+                return priceRange !== null;
+            case "시설":
+                return selectedFacilities.length > 0;
+            default:
+                return false;
+        }
     };
 
     useEffect(() => {
@@ -199,10 +248,43 @@ const FilterBar = ({ onFilterChange }) => {
             location: selectedLocation.district
                 ? `${selectedLocation.city} ${selectedLocation.district}`
                 : "",
-            count: guestCount,
-            price: priceRange,
+            date: selectedDate
+                ? new Date(selectedDate).toISOString().split("T")[0]
+                : "",
+            count: guestCount || null,
+            price: priceRange || 200000,
+            facilities: selectedFacilities,
         });
-    }, [selectedLocation, guestCount, priceRange]);
+    }, [
+        selectedLocation,
+        selectedDate,
+        guestCount,
+        priceRange,
+        selectedFacilities,
+    ]);
+
+    const getFilterLabel = (label) => {
+        switch (label) {
+            case "지역":
+                return selectedLocation.district || label;
+            case "날짜":
+                return selectedDate
+                    ? new Date(selectedDate).toLocaleDateString("ko-KR")
+                    : label;
+            case "인원":
+                return guestCount > 1 ? `${guestCount}명` : label;
+            case "가격":
+                return priceRange
+                    ? `${priceRange.toLocaleString()}원 이하`
+                    : label;
+            case "시설":
+                return selectedFacilities.length > 0
+                    ? `${selectedFacilities.length}개 선택됨`
+                    : label;
+            default:
+                return label;
+        }
+    };
 
     const renderPopup = (label) => {
         if (label === "지역") {
@@ -232,8 +314,8 @@ const FilterBar = ({ onFilterChange }) => {
                                                     city: selectedRegion,
                                                     district,
                                                 });
-                                                setActivePopup(null);
                                                 setSelectedRegion(null);
+                                                setActivePopup(null);
                                             }}
                                         >
                                             {district}
@@ -248,11 +330,6 @@ const FilterBar = ({ onFilterChange }) => {
                                 >
                                     이전
                                 </ActionButton>
-                                <ActionButton
-                                    onClick={() => setActivePopup(null)}
-                                >
-                                    닫기
-                                </ActionButton>
                             </ButtonRow>
                         </>
                     )}
@@ -265,19 +342,11 @@ const FilterBar = ({ onFilterChange }) => {
                 <Popup>
                     <CalendarBox
                         value={selectedDate}
-                        onChange={setSelectedDate}
+                        onChange={(date) => {
+                            setSelectedDate(date);
+                            setActivePopup(null);
+                        }}
                     />
-                    <ButtonRow>
-                        <ActionButton
-                            reset
-                            onClick={() => setSelectedDate(null)}
-                        >
-                            초기화
-                        </ActionButton>
-                        <ActionButton onClick={() => setActivePopup(null)}>
-                            확인
-                        </ActionButton>
-                    </ButtonRow>
                 </Popup>
             );
         }
@@ -308,14 +377,6 @@ const FilterBar = ({ onFilterChange }) => {
                             +
                         </button>
                     </div>
-                    <ButtonRow>
-                        <ActionButton reset onClick={() => setGuestCount(1)}>
-                            초기화
-                        </ActionButton>
-                        <ActionButton onClick={() => setActivePopup(null)}>
-                            확인
-                        </ActionButton>
-                    </ButtonRow>
                 </Popup>
             );
         }
@@ -325,33 +386,24 @@ const FilterBar = ({ onFilterChange }) => {
                 <Popup>
                     <div style={{ fontSize: "14px", marginBottom: "12px" }}>
                         최대 가격:{" "}
-                        <strong>{priceRange.toLocaleString()}원</strong>
+                        <strong>
+                            {(priceRange ?? 200000).toLocaleString()}원
+                        </strong>
                     </div>
                     <input
                         type="range"
                         min="10000"
                         max="200000"
                         step="10000"
-                        value={priceRange}
+                        value={priceRange ?? 200000}
                         onChange={(e) => setPriceRange(Number(e.target.value))}
                         style={{ width: "100%" }}
                     />
-                    <ButtonRow>
-                        <ActionButton
-                            reset
-                            onClick={() => setPriceRange(50000)}
-                        >
-                            초기화
-                        </ActionButton>
-                        <ActionButton onClick={() => setActivePopup(null)}>
-                            확인
-                        </ActionButton>
-                    </ButtonRow>
                 </Popup>
             );
         }
 
-        if (label === "필터") {
+        if (label === "시설") {
             const facilities = [
                 "인덕션",
                 "오븐",
@@ -391,17 +443,6 @@ const FilterBar = ({ onFilterChange }) => {
                             </PopupItem>
                         ))}
                     </div>
-                    <ButtonRow>
-                        <ActionButton
-                            reset
-                            onClick={() => setSelectedFacilities([])}
-                        >
-                            초기화
-                        </ActionButton>
-                        <ActionButton onClick={() => setActivePopup(null)}>
-                            확인
-                        </ActionButton>
-                    </ButtonRow>
                 </Popup>
             );
         }
@@ -419,14 +460,21 @@ const FilterBar = ({ onFilterChange }) => {
                         }
                     >
                         {filter.icon}
-                        {filter.label}
+                        <span>{getFilterLabel(filter.label)}</span>
+                        {hasValue(filter.label) && (
+                            <FaTimes
+                                size={10}
+                                style={{ marginLeft: "6px", cursor: "pointer" }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    resetFilter(filter.label);
+                                }}
+                            />
+                        )}
                     </FilterButton>
                     {activePopup === idx && renderPopup(filter.label)}
                 </div>
             ))}
-            <ActionButton reset onClick={resetAllFilters}>
-                전체 초기화
-            </ActionButton>
         </FilterContainer>
     );
 };
