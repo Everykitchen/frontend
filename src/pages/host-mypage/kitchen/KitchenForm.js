@@ -59,11 +59,11 @@ const KitchenForm = () => {
         size: "",
         baseClientNumber: "",
         maxClientNumber: "",
-        minReservationTime: "",
+        minReservationTime: "1",
         openTime: "09:00",
         closeTime: "21:00",
         category: "",
-        imageList: [],
+        kitchenImages: [],
         account: {
             accountNumber: "",
             bankName: "",
@@ -80,7 +80,7 @@ const KitchenForm = () => {
         if (isEdit && editData) {
             setFormData({
                 ...editData,
-                imageList: editData.images || [],
+                kitchenImages: editData.kitchenImages || [],
             });
         }
     }, [isEdit, editData]);
@@ -90,7 +90,7 @@ const KitchenForm = () => {
 
     const mapFormDataToRequestBody = (data) => ({
         kitchenName: data.kitchenName,
-        images: data.imageList,
+        kitchenImages: data.kitchenImages,
         description: data.description,
         phoneNumber: data.phoneNumber,
         location: data.location,
@@ -100,8 +100,8 @@ const KitchenForm = () => {
         baseClientNumber: parseInt(data.baseClientNumber, 10),
         maxClientNumber: parseInt(data.maxClientNumber, 10),
         minReservationTime: parseInt(data.minReservationTime, 10),
-        openTime: data.openTime,
-        closeTime: data.closeTime,
+        openTime: `${data.openTime}:00`,
+        closeTime: `${data.closeTime}:00`,
         category: data.category,
         accountNumber: data.account.accountNumber,
         bankName: data.account.bankName,
@@ -117,16 +117,50 @@ const KitchenForm = () => {
     });
 
     const handleSubmitKitchen = async () => {
-        const form = new FormData();
+        if (!formData.kitchenImages || formData.kitchenImages.length === 0) {
+            alert("이미지를 최소 1장 이상 등록해주세요.");
+            return;
+        }
 
+        console.log("최종 kitchenImages:", formData.kitchenImages);
+        formData.kitchenImages.forEach((file, idx) => {
+            console.log(`image[${idx}] →`, file, typeof file);
+        });
+
+        console.log("kitchenImages 상태:");
+        formData.kitchenImages.forEach((file, i) => {
+            console.log(`kitchenImages[${i}]`, file.name, file instanceof File);
+        });
+
+        const form = new FormData();
         const payload = mapFormDataToRequestBody(formData);
+
+        console.log(payload);
+
         for (const key in payload) {
-            if (key === "images") {
-                formData.imageList.forEach((file) => {
-                    form.append("images", file); // 실제 File 객체여야 함
+            const value = payload[key];
+
+            if (key === "kitchenImages") {
+                value.forEach((file) => {
+                    if (file instanceof File) {
+                        form.append("kitchenImages", file);
+                    }
+                });
+            } else if (
+                key === "ingredients" ||
+                key === "extraIngredients" ||
+                key === "kitchenFacility" ||
+                key === "cookingTool" ||
+                key === "providedItem" ||
+                key === "defaultPrice"
+            ) {
+                value.forEach((item, index) => {
+                    for (const subKey in item) {
+                        form.append(`${key}[${index}].${subKey}`, item[subKey]);
+                    }
                 });
             } else {
-                form.append(key, JSON.stringify(payload[key]));
+                form.append(key, value);
             }
         }
 

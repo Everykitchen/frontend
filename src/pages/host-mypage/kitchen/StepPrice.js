@@ -14,6 +14,17 @@ const FieldGroup = styled.div`
     margin-bottom: 60px;
 `;
 
+const RequiredLabel = styled.label`
+    font-size: 14px;
+    display: block;
+    margin-bottom: 12px;
+    font-weight: 500;
+    color: #d9534f;
+    &::after {
+        content: " *";
+    }
+`;
+
 const Label = styled.label`
     font-size: 14px;
     display: block;
@@ -23,7 +34,7 @@ const Label = styled.label`
 
 const Input = styled.input`
     padding: 8px 12px;
-    border: 1px solid #ccc;
+    border: 1px solid ${({ isInvalid }) => (isInvalid ? "red" : "#ccc")};
     border-radius: 6px;
     width: 100%;
     margin-bottom: 16px;
@@ -240,23 +251,33 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
     const daumLoaded = useDaumPostcodeLoader();
 
     const [category, setCategory] = useState(formData.category || "");
-    const [imageFiles, setImageFiles] = useState([]);
-    const [imageUrls, setImageUrls] = useState([]);
-    const [representativeImage, setRepresentativeImage] = useState("");
-    const [activeDays, setActiveDays] = useState([
-        "월",
-        "화",
-        "수",
-        "목",
-        "금",
-        "토",
-        "일",
-    ]);
+    const [imageFiles, setImageFiles] = useState(formData.kitchenImages || []);
+    const [imageUrls, setImageUrls] = useState(
+        formData.kitchenImages?.map((file) => URL.createObjectURL(file)) || []
+    );
+    const [representativeImage, setRepresentativeImage] = useState(
+        formData.kitchenImages?.length > 0
+            ? URL.createObjectURL(formData.kitchenImages[0])
+            : ""
+    );
+    const [activeDays, setActiveDays] = useState(
+        formData.activeDays || ["월", "화", "수", "목", "금", "토", "일"]
+    );
+    const [errors, setErrors] = useState({});
 
     const toggleDay = (day) => {
-        setActiveDays((prev) =>
-            prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
-        );
+        setActiveDays((prev) => {
+            const updated = prev.includes(day)
+                ? prev.filter((d) => d !== day)
+                : [...prev, day];
+
+            setFormData((f) => ({
+                ...f,
+                activeDays: updated,
+            }));
+
+            return updated;
+        });
     };
 
     const triggerTimePicker = (e) => {
@@ -278,7 +299,7 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
         );
         setFormData((prev) => ({
             ...prev,
-            imageList: imageFiles,
+            kitchenImages: imageFiles,
         }));
     }, [imageFiles]);
 
@@ -289,9 +310,14 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                 ? formData.prices?.[day] ?? ""
                 : null;
         });
+
+        // 공휴일 금액은 그대로 유지
+        updatedPrices["공휴일"] = formData.prices?.["공휴일"] ?? "";
+
         setFormData((prev) => ({
             ...prev,
             prices: { ...updatedPrices },
+            activeDays: activeDays,
         }));
     }, [activeDays]);
 
@@ -306,8 +332,21 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
     };
 
     const handleImageUpload = (files) => {
-        const fileArray = Array.from(files);
-        setImageFiles((prev) => [...prev, ...fileArray]);
+        const fileArray = Array.from(files).filter(
+            (file) => file instanceof File
+        ); // File 타입 필터링
+
+        setImageFiles((prev) => {
+            const updated = [...prev, ...fileArray];
+
+            // formData.kitchenImages도 동기화
+            setFormData((form) => ({
+                ...form,
+                kitchenImages: updated,
+            }));
+
+            return updated;
+        });
     };
 
     const handleRemoveImage = (index) => {
@@ -370,13 +409,47 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
         }).open();
     };
 
+    const validateRequiredFields = () => {
+        const newErrors = {};
+        console.log(newErrors);
+
+        if (!formData.kitchenName) newErrors.kitchenName = true;
+        if (!formData.phoneNumber) newErrors.phoneNumber = true;
+        if (!formData.description) newErrors.description = true;
+        if (!formData.location) newErrors.location = true;
+        if (!formData.detailLocation) newErrors.detailLocation = true;
+        if (!formData.size) newErrors.size = true;
+        if (!formData.baseClientNumber) newErrors.baseClientNumber = true;
+        if (!formData.maxClientNumber) newErrors.maxClientNumber = true;
+        if (!formData.category) newErrors.category = true;
+        if (!formData.kitchenImages || formData.kitchenImages.length === 0)
+            newErrors.kitchenImages = true;
+
+        setErrors(newErrors);
+
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleNext = () => {
+        if (!validateRequiredFields()) {
+            alert("항목을 모두 입력해주세요.");
+            console.log(formData);
+            return;
+        }
+        nextStep();
+        console.log(formData);
+    };
+
     return (
         <Container>
             <FieldGroup>
                 <Label>주방명</Label>
                 <Input
-                    placeholder="예: 파이브잇 쿠킹스튜디오"
+                    placeholder="OO 쿠킹스튜디오"
                     value={formData.kitchenName || ""}
+                    $isInvalid={
+                        Object.keys(errors).length > 0 && errors.kitchenName
+                    }
                     onChange={(e) =>
                         setFormData({
                             ...formData,
@@ -388,6 +461,9 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                 <Input
                     placeholder="010-0000-0000"
                     value={formData.phoneNumber || ""}
+                    $isInvalid={
+                        Object.keys(errors).length > 0 && errors.phoneNumber
+                    }
                     onChange={(e) =>
                         setFormData({
                             ...formData,
@@ -447,6 +523,9 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                 <TextArea
                     placeholder="공간에 대한 소개를 작성해주세요."
                     value={formData.description || ""}
+                    $isInvalid={
+                        Object.keys(errors).length > 0 && errors.description
+                    }
                     onChange={(e) =>
                         setFormData({
                             ...formData,
@@ -464,6 +543,9 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                         type="text"
                         value={formData.location || ""}
                         readOnly
+                        $isInvalid={
+                            Object.keys(errors).length > 0 && errors.location
+                        }
                     />
                     <SearchAddressButton onClick={handleAddressSearch}>
                         주소 검색
@@ -473,6 +555,9 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                 <Input
                     type="text"
                     value={formData.detailLocation || ""}
+                    $isInvalid={
+                        Object.keys(errors).length > 0 && errors.detailLocation
+                    }
                     onChange={(e) =>
                         setFormData({
                             ...formData,
@@ -485,9 +570,10 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                 <Input type="text" value={formData.latitude || ""} readOnly />
                 <Label>경도</Label>
                 <Input type="text" value={formData.longitude || ""} readOnly />
-                <Label>면적</Label>
+                <Label>면적(m3)</Label>
                 <Input
                     value={formData.size || ""}
+                    $isInvalid={Object.keys(errors).length > 0 && errors.size}
                     onChange={(e) =>
                         setFormData({ ...formData, size: e.target.value })
                     }
@@ -495,6 +581,10 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                 <Label>기준 인원</Label>
                 <Input
                     value={formData.baseClientNumber || ""}
+                    $isInvalid={
+                        Object.keys(errors).length > 0 &&
+                        errors.baseClientNumber
+                    }
                     onChange={(e) =>
                         setFormData({
                             ...formData,
@@ -505,6 +595,9 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                 <Label>최대 인원</Label>
                 <Input
                     value={formData.maxClientNumber || ""}
+                    $isInvalid={
+                        Object.keys(errors).length > 0 && errors.maxClientNumber
+                    }
                     onChange={(e) =>
                         setFormData({
                             ...formData,
@@ -516,6 +609,9 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                 <Input
                     type="time"
                     value={formData.openTime || ""}
+                    $isInvalid={
+                        Object.keys(errors).length > 0 && errors.openTime
+                    }
                     onChange={(e) =>
                         setFormData({
                             ...formData,
@@ -528,6 +624,9 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                 <Input
                     type="time"
                     value={formData.closeTime || ""}
+                    $isInvalid={
+                        Object.keys(errors).length > 0 && errors.closeTime
+                    }
                     onChange={(e) =>
                         setFormData({
                             ...formData,
@@ -539,6 +638,10 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                 <Label>최소 예약시간</Label>
                 <Select
                     value={formData.minReservationTime || ""}
+                    $isInvalid={
+                        Object.keys(errors).length > 0 &&
+                        errors.minReservationTime
+                    }
                     onChange={(e) =>
                         setFormData({
                             ...formData,
@@ -653,7 +756,7 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                 </BankRow>
             </Section>
 
-            <NextButton onClick={nextStep}>다음</NextButton>
+            <NextButton onClick={handleNext}>다음</NextButton>
         </Container>
     );
 };
