@@ -41,6 +41,17 @@ const Progress = styled.div`
     width: ${(props) => `${props.percent}%`};
 `;
 
+const DAY_KOR_TO_ENG = {
+    월: "MONDAY",
+    화: "TUESDAY",
+    수: "WEDNESDAY",
+    목: "THURSDAY",
+    금: "FRIDAY",
+    토: "SATURDAY",
+    일: "SUNDAY",
+    공휴일: "HOLIDAY",
+};
+
 const KitchenForm = () => {
     const location = useLocation();
     const navigate = useNavigate();
@@ -111,7 +122,7 @@ const KitchenForm = () => {
         cookingTool: data.cookingTool,
         providedItem: data.providedItem,
         defaultPrice: Object.entries(data.prices || {}).map(([day, price]) => ({
-            week: day.toUpperCase(),
+            week: DAY_KOR_TO_ENG[day] || day.toUpperCase(),
             price: Number(price),
         })),
     });

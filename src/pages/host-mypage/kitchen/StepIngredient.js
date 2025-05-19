@@ -195,7 +195,11 @@ const StepIngredient = ({
                                 <Input
                                     type="number"
                                     placeholder="예: 4000"
-                                    value={item.price}
+                                    value={
+                                        item.price === 0 || item.price === null
+                                            ? ""
+                                            : item.price
+                                    }
                                     onChange={(e) =>
                                         handleChange(
                                             setBasicIngredients,
@@ -276,7 +280,11 @@ const StepIngredient = ({
                                 <Input
                                     type="number"
                                     placeholder="예: 5000"
-                                    value={item.price}
+                                    value={
+                                        item.price === 0 || item.price === null
+                                            ? ""
+                                            : item.price
+                                    }
                                     onChange={(e) =>
                                         handleChange(
                                             setExtraIngredients,

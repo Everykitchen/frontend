@@ -266,18 +266,9 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
     const [errors, setErrors] = useState({});
 
     const toggleDay = (day) => {
-        setActiveDays((prev) => {
-            const updated = prev.includes(day)
-                ? prev.filter((d) => d !== day)
-                : [...prev, day];
-
-            setFormData((f) => ({
-                ...f,
-                activeDays: updated,
-            }));
-
-            return updated;
-        });
+        setActiveDays((prev) =>
+            prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+        );
     };
 
     const triggerTimePicker = (e) => {
@@ -311,13 +302,12 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                 : null;
         });
 
-        // 공휴일 금액은 그대로 유지
         updatedPrices["공휴일"] = formData.prices?.["공휴일"] ?? "";
 
         setFormData((prev) => ({
             ...prev,
             prices: { ...updatedPrices },
-            activeDays: activeDays,
+            activeDays,
         }));
     }, [activeDays]);
 
@@ -445,7 +435,7 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
             <FieldGroup>
                 <Label>주방명</Label>
                 <Input
-                    placeholder="OO 쿠킹스튜디오"
+                    placeholder="예: OO 쿠킹스튜디오"
                     value={formData.kitchenName || ""}
                     $isInvalid={
                         Object.keys(errors).length > 0 && errors.kitchenName
