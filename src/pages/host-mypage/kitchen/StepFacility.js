@@ -91,40 +91,36 @@ const StepFacility = ({ formData, setFormData, nextStep, prevStep }) => {
     const [facilityStates, setFacilityStates] = useState(
         formData.kitchenFacility.length > 0
             ? formData.kitchenFacility.map((f) => ({
-                  type: f.facilityType,
-                  checked: true,
-                  quantity: f.count,
-                  detail: f.description,
+                  facilityType: f.facilityType || f.facilityName || "",
+                  count: f.count || f.amount || 1,
+                  description: f.description || f.detail || "",
               }))
             : [
                   {
-                      type: "인덕션",
-                      checked: true,
-                      quantity: 1,
-                      detail: "예: SK매직 인덕션, 4구",
+                      facilityType: "인덕션",
+                      count: 1,
+                      description: "예: SK매직 인덕션, 4구",
                   },
                   {
-                      type: "오븐",
-                      checked: true,
-                      quantity: 1,
-                      detail: "예: LG 오븐, 230도 가능",
+                      facilityType: "오븐",
+                      count: 1,
+                      description: "예: LG 오븐, 230도 가능",
                   },
                   {
-                      type: "조리대",
-                      checked: true,
-                      quantity: 1,
-                      detail: "예: 1800X900 조리대",
+                      facilityType: "조리대",
+                      count: 1,
+                      description: "예: 1800X900 조리대",
                   },
               ]
     );
 
     useEffect(() => {
         const facilitiesToSave = facilityStates
-            .filter((f) => f.checked && f.type)
+            .filter((f) => f.facilityType)
             .map((f) => ({
-                facilityType: f.type,
-                count: f.quantity,
-                description: f.detail,
+                facilityType: f.facilityType,
+                count: f.count,
+                description: f.description,
             }));
         setFormData((prev) => ({
             ...prev,
@@ -132,27 +128,17 @@ const StepFacility = ({ formData, setFormData, nextStep, prevStep }) => {
         }));
     }, [facilityStates]);
 
-    const handleCheckboxChange = (index) => {
-        const updated = [...facilityStates];
-        updated[index].checked = !updated[index].checked;
-        setFacilityStates(updated);
-    };
-
     const handleInputChange = (index, field, value) => {
         const updated = [...facilityStates];
-        updated[index][field] =
-            field === "quantity" ? parseInt(value, 10) : value;
+        updated[index][field] = field === "count" ? parseInt(value, 10) : value;
         setFacilityStates(updated);
     };
 
     const handleAddFacility = () => {
-        const newFacility = {
-            type: "",
-            checked: true,
-            quantity: 1,
-            detail: "",
-        };
-        setFacilityStates((prev) => [...prev, newFacility]);
+        setFacilityStates((prev) => [
+            ...prev,
+            { facilityType: "", count: 1, description: "" },
+        ]);
     };
 
     const handleDeleteFacility = (index) => {
@@ -183,11 +169,11 @@ const StepFacility = ({ formData, setFormData, nextStep, prevStep }) => {
                             <td>
                                 <Input
                                     type="text"
-                                    value={facility.type}
+                                    value={facility.facilityType}
                                     onChange={(e) =>
                                         handleInputChange(
                                             index,
-                                            "type",
+                                            "facilityType",
                                             e.target.value
                                         )
                                     }
@@ -196,11 +182,11 @@ const StepFacility = ({ formData, setFormData, nextStep, prevStep }) => {
                             <td>
                                 <Input
                                     type="number"
-                                    value={facility.quantity}
+                                    value={facility.count}
                                     onChange={(e) =>
                                         handleInputChange(
                                             index,
-                                            "quantity",
+                                            "count",
                                             e.target.value
                                         )
                                     }
@@ -209,11 +195,11 @@ const StepFacility = ({ formData, setFormData, nextStep, prevStep }) => {
                             <td>
                                 <Input
                                     type="text"
-                                    value={facility.detail}
+                                    value={facility.description}
                                     onChange={(e) =>
                                         handleInputChange(
                                             index,
-                                            "detail",
+                                            "description",
                                             e.target.value
                                         )
                                     }

@@ -79,14 +79,18 @@ const NavButton = styled.button`
 const StepTool = ({ formData, setFormData, nextStep, prevStep }) => {
     const [tools, setTools] = useState(
         formData.cookingTool.length > 0
-            ? formData.cookingTool
+            ? formData.cookingTool.map((t) => ({
+                  toolName: t.toolName || t.name || "",
+                  check: t.check ?? true,
+              }))
             : [{ toolName: "", check: true }]
     );
 
     useEffect(() => {
+        const filtered = tools.filter((t) => t.toolName);
         setFormData((prev) => ({
             ...prev,
-            cookingTool: tools.filter((tool) => tool.check && tool.toolName),
+            cookingTool: filtered,
         }));
     }, [tools]);
 
@@ -109,6 +113,7 @@ const StepTool = ({ formData, setFormData, nextStep, prevStep }) => {
         }
         setTools(updated);
     };
+
     return (
         <Container>
             <SectionTitle>

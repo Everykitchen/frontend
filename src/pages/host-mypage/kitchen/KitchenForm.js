@@ -84,14 +84,48 @@ const KitchenForm = () => {
         kitchenFacility: [],
         cookingTool: [],
         providedItem: [],
-        prices: {},
+        defaultPrice: {},
     });
 
     useEffect(() => {
         if (isEdit && editData) {
+            const priceMap = {};
+            (editData.defaultPrice || []).forEach((p) => {
+                const korDay = Object.entries(DAY_KOR_TO_ENG).find(
+                    ([kor, eng]) => eng === p.week
+                )?.[0];
+                if (korDay) priceMap[korDay] = p.price;
+            });
+
             setFormData({
-                ...editData,
+                id: editData.kitchenId || editData.id,
+                kitchenName: editData.kitchenName || "",
+                description: editData.description || "",
+                phoneNumber: editData.phoneNumber || "",
+                location: editData.location || "",
+                detailLocation: editData.detailLocation || "",
+                latitude: editData.latitude || "",
+                longitude: editData.longitude || "",
+                size: editData.size || "",
+                baseClientNumber: editData.baseClientNumber || "",
+                maxClientNumber: editData.maxClientNumber || "",
+                minReservationTime:
+                    editData.minReservationTime?.toString() || "1",
+                openTime: editData.openTime?.slice(0, 5) || "09:00",
+                closeTime: editData.closeTime?.slice(0, 5) || "21:00",
+                category: editData.category || "",
                 kitchenImages: editData.kitchenImages || [],
+                account: {
+                    accountNumber: editData.account?.accountNumber || "",
+                    accountHolder: editData.account?.accountHolder || "",
+                    bankName: editData.account?.bankName || "",
+                },
+                ingredients: editData.ingredients || [],
+                extraIngredients: editData.extraIngredients || [],
+                kitchenFacility: editData.kitchenFacility || [],
+                cookingTool: editData.cookingTool || [],
+                providedItem: editData.providedItem || [],
+                defaultPrice: priceMap,
             });
         }
     }, [isEdit, editData]);
@@ -121,10 +155,12 @@ const KitchenForm = () => {
         kitchenFacility: data.kitchenFacility,
         cookingTool: data.cookingTool,
         providedItem: data.providedItem,
-        defaultPrice: Object.entries(data.prices || {}).map(([day, price]) => ({
-            week: DAY_KOR_TO_ENG[day] || day.toUpperCase(),
-            price: Number(price),
-        })),
+        defaultPrice: Object.entries(data.defaultPrice || {}).map(
+            ([day, price]) => ({
+                week: DAY_KOR_TO_ENG[day] || day.toUpperCase(),
+                price: Number(price),
+            })
+        ),
     });
 
     const handleSubmitKitchen = async () => {
@@ -132,16 +168,6 @@ const KitchenForm = () => {
             alert("이미지를 최소 1장 이상 등록해주세요.");
             return;
         }
-
-        console.log("최종 kitchenImages:", formData.kitchenImages);
-        formData.kitchenImages.forEach((file, idx) => {
-            console.log(`image[${idx}] →`, file, typeof file);
-        });
-
-        console.log("kitchenImages 상태:");
-        formData.kitchenImages.forEach((file, i) => {
-            console.log(`kitchenImages[${i}]`, file.name, file instanceof File);
-        });
 
         const form = new FormData();
         const payload = mapFormDataToRequestBody(formData);
@@ -158,12 +184,15 @@ const KitchenForm = () => {
                     }
                 });
             } else if (
-                key === "ingredients" ||
-                key === "extraIngredients" ||
-                key === "kitchenFacility" ||
-                key === "cookingTool" ||
-                key === "providedItem" ||
-                key === "defaultPrice"
+                Array.isArray(value) &&
+                [
+                    "ingredients",
+                    "extraIngredients",
+                    "kitchenFacility",
+                    "cookingTool",
+                    "providedItem",
+                    "defaultPrice",
+                ].includes(key)
             ) {
                 value.forEach((item, index) => {
                     for (const subKey in item) {
@@ -177,7 +206,7 @@ const KitchenForm = () => {
 
         try {
             const response = isEdit
-                ? await api.put(`/api/host/kitchen/${formData.id}`, form, {
+                ? await api.post(`/api/host/kitchen/${formData.id}`, form, {
                       headers: { "Content-Type": "multipart/form-data" },
                   })
                 : await api.post("/api/host/kitchen", form, {

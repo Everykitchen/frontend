@@ -79,14 +79,17 @@ const NavButton = styled.button`
 const StepSupply = ({ formData, setFormData, nextStep, prevStep }) => {
     const [supplies, setSupplies] = useState(
         formData.providedItem.length > 0
-            ? formData.providedItem
+            ? formData.providedItem.map((item) => ({
+                  itemName: item.itemName || item.name || "",
+                  check: item.check ?? true,
+              }))
             : [{ itemName: "", check: true }]
     );
 
     useEffect(() => {
         setFormData((prev) => ({
             ...prev,
-            providedItem: supplies.filter((s) => s.check && s.itemName?.trim()),
+            providedItem: supplies.filter((s) => s.itemName?.trim()),
         }));
     }, [supplies]);
 

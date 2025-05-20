@@ -77,19 +77,20 @@ const KitchenManage = () => {
             .catch((err) => console.error("주방 목록 불러오기 실패", err));
     }, []);
 
-    const handleEditClick = (kitchenId) => {
-        // axios.get(`/api/kitchen/${kitchenId}`).then((res) => {
-        //     navigate("/host-mypage/kitchen-form", {
-        //         state: { isEdit: true, editData: res.data },
-        //     });
-        // });
-
-        const selectedKitchen = kitchenList.find(
-            (kitchen) => kitchen.kitchenId === kitchenId
-        );
-        navigate("/host-mypage/kitchen-form", {
-            state: { isEdit: true, editData: selectedKitchen },
-        });
+    const handleEditClick = async (kitchenId) => {
+        try {
+            const response = await api.get(`/api/common/kitchen/${kitchenId}`);
+            console.log(response);
+            navigate("/host-mypage/kitchen-form", {
+                state: {
+                    isEdit: true,
+                    editData: response.data,
+                },
+            });
+        } catch (err) {
+            console.error("주방 상세 정보 불러오기 실패", err);
+            alert("주방 정보를 불러오지 못했습니다.");
+        }
     };
 
     const handleDeleteClick = async (kitchenId) => {
@@ -137,7 +138,7 @@ const KitchenManage = () => {
                                 <TableCell>
                                     <IconButton
                                         onClick={() =>
-                                            handleEditClick(kitchen.id)
+                                            handleEditClick(kitchen.kitchenId)
                                         }
                                     >
                                         ✏️
