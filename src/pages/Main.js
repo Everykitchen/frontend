@@ -5,6 +5,7 @@ import api from "../api/axiosInstance";
 import StoreCard from "../components/StoreCard";
 import { useNavigate } from "react-router-dom";
 import defaultKitchenImage from "../assets/jpg/kitchen1.jpg";
+import NewFilterBar from "../components/NewFilterBar";
 import FilterBar from "../components/FilterBar";
 
 const PageContainer = styled.div`
@@ -12,6 +13,9 @@ const PageContainer = styled.div`
     flex-direction: column;
     align-items: center;
     padding: 24px;
+    position: relative;
+    min-height: 100vh;
+    width: 100%;
 `;
 
 const StoreList = styled.div`
@@ -29,6 +33,68 @@ const LoadingIndicator = styled.div`
     width: 100%;
     font-size: 16px;
     color: #666;
+    margin-bottom: 80px;
+`;
+
+
+// StoreList와 정렬 드롭다운을 한 줄에 배치하는 RowSection
+const RowSection = styled.div`
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 16px;
+`;
+
+// 커스텀 드롭다운 스타일
+const DropdownWrapper = styled.div`
+    position: relative;
+    width: 160px;
+    font-size: 14px;
+`;
+const DropdownButton = styled.button`
+    width: 100%;
+    height: 32px;
+    background: #fff;
+    border: 1px solid #ffa500;
+    border-radius: 6px;
+    padding: 0 12px;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #222;
+    font-size: 14px;
+    &:focus {
+        outline: 2px solid #ffa500;
+    }
+`;
+const DropdownList = styled.ul`
+    position: absolute;
+    top: 38px;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #ffa500;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    z-index: 20;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+`;
+const DropdownItem = styled.li`
+    padding: 10px 14px;
+    cursor: pointer;
+    color: ${({ selected }) => (selected ? "#ffa500" : "#222")};
+    background: ${({ selected }) => (selected ? "#fff8e1" : "#fff")};
+    font-weight: ${({ selected }) => (selected ? 700 : 400)};
+    &:hover {
+        background: #fff3d1;
+        color: #ffa500;
+    }
 `;
 
 const MainPage = () => {
@@ -45,30 +111,56 @@ const MainPage = () => {
     });
     const { count, price, date, facilities } = filters;
     const { location: selectedLocation } = filters;
+    const [isFetching, setIsFetching] = useState(false);
+    const [sortOrder, setSortOrder] = useState('');
 
     const observer = useRef();
     const navigate = useNavigate();
 
+    const sortOptions = [
+        { value: '', label: '정렬 선택' },
+        { value: 'asc', label: '낮은 가격순' },
+        { value: 'desc', label: '높은 가격순' },
+        { value: 'review', label: '후기많은순' },
+    ];
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const dropdownRef = useRef();
+
+    // 드롭다운 외부 클릭 시 닫기
+    useEffect(() => {
+        const handleClick = (e) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+                setDropdownOpen(false);
+            }
+        };
+        if (dropdownOpen) document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, [dropdownOpen]);
+
     // 마지막 요소 참조를 위한 콜백 함수
     const lastStoreElementRef = useCallback(
         (node) => {
-            if (loading) return;
+            if (loading || isFetching) return;
             if (observer.current) observer.current.disconnect();
 
             observer.current = new IntersectionObserver((entries) => {
-                if (entries[0].isIntersecting && hasMore) {
+                if (entries[0].isIntersecting && hasMore && !isFetching) {
                     setPage((prevPage) => prevPage + 1);
                 }
             });
 
             if (node) observer.current.observe(node);
         },
-        [loading, hasMore]
+        [loading, isFetching, hasMore]
     );
 
     const fetchStores = async (pageNum = 0) => {
+        if (isFetching) return;
+
         try {
+            setIsFetching(true);
             setLoading(true);
+
             const response = await api.get("/api/common/kitchen", {
                 params: {
                     location: selectedLocation || "",
@@ -126,6 +218,9 @@ const MainPage = () => {
             console.error("주방 목록 불러오기 실패", err);
         } finally {
             setLoading(false);
+            setTimeout(() => {
+                setIsFetching(false);
+            }, 1000);
         }
     };
 
@@ -175,9 +270,59 @@ const MainPage = () => {
         setFilters((prev) => ({ ...prev, ...newFilters }));
     };
 
+    const handleSortSelect = (value) => {
+        setSortOrder(value);
+        setDropdownOpen(false);
+        if (!value) {
+            // 정렬 선택(초기화) 시 원래대로 fetch
+            setPage(0);
+            fetchStores(0);
+            return;
+        }
+        setStoreList((prevList) => {
+            const sorted = [...prevList].sort((a, b) => {
+                const priceA = parseInt(a.price.replace(/[^0-9]/g, '')) || 0;
+                const priceB = parseInt(b.price.replace(/[^0-9]/g, '')) || 0;
+                if (value === 'asc') return priceA - priceB;
+                if (value === 'desc') return priceB - priceA;
+                if (value === 'review') return (b.reviewCount || 0) - (a.reviewCount || 0);
+                return 0;
+            });
+            return sorted;
+        });
+    };
+
+    // 필터/페이지 변경 시 정렬 초기화
+    useEffect(() => {
+        setSortOrder('');
+    }, [filters, page]);
+
     return (
         <PageContainer>
-            <FilterBar onFilterChange={handleFilterChange} />
+            <NewFilterBar onFilterChange={handleFilterChange} />
+            {/* <FilterBar onFilterChange={handleFilterChange} /> */}
+            <RowSection>
+                <div />
+                <DropdownWrapper ref={dropdownRef}>
+                    <DropdownButton onClick={() => setDropdownOpen((v) => !v)}>
+                        {sortOptions.find(opt => opt.value === sortOrder)?.label || '정렬 선택'}
+                        <span style={{ fontSize: 16, marginLeft: 8 }}>{dropdownOpen ? '▲' : '▼'}</span>
+                    </DropdownButton>
+                    {dropdownOpen && (
+                        <DropdownList>
+                            {sortOptions.map(opt => (
+                                <DropdownItem
+                                    key={opt.value}
+                                    selected={sortOrder === opt.value}
+                                    onClick={() => handleSortSelect(opt.value)}
+                                >
+                                    {opt.label}
+                                </DropdownItem>
+                            ))}
+                        </DropdownList>
+                    )}
+                </DropdownWrapper>
+            </RowSection>
             <StoreList>
                 {storeList.map((store, index) => {
                     if (storeList.length === index + 1) {
