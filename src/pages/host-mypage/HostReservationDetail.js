@@ -641,15 +641,26 @@ const HostReservationDetail = () => {
                                 </Labels>
                                 <Values>
                                     <span>{reservationData.prepaidAmount.toLocaleString()}원</span>
-                                    <PendingPayment>정산예정</PendingPayment>
+                                    <PendingPayment>
+                                        {reservationData.status === 'PENDING_PAYMENT' ? '호스트 승인대기' : '정산예정'}
+                                    </PendingPayment>
                                 </Values>
                             </InfoContainer>
                             
                             <ActionSection>
                                 <CancellationNotice>
-                                    예약자에게 채팅으로 사전에 고지한 뒤 예약 취소를 해주시길 바랍니다.
+                                    {reservationData.status === 'PENDING_PAYMENT'
+                                        ? '입금된 정산금을 확인한 뒤 정산완료를 클릭해주세요.'
+                                        : '예약자에게 채팅으로 사전에 고지한 뒤 예약 취소를 해주시길 바랍니다.'}
                                 </CancellationNotice>
-                                <CancelButton>
+                                <CancelButton
+                                    disabled={reservationData.status === 'PENDING_PAYMENT' || reservationData.status === 'COMPLETED_PAYMENT'}
+                                    style={
+                                        (reservationData.status === 'PENDING_PAYMENT' || reservationData.status === 'COMPLETED_PAYMENT')
+                                            ? { opacity: 0.7, cursor: 'not-allowed' }
+                                            : {}
+                                    }
+                                >
                                     예약취소
                                 </CancelButton>
                             </ActionSection>

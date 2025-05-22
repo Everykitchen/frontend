@@ -278,7 +278,7 @@ const KitchenForm = () => {
 
     return (
         <Wrapper>
-            <HostSideBar />
+            <HostSideBar activeMenu="주방 관리" />
             <Content>
                 <Title>{isEdit ? "주방 수정" : "주방 등록"}</Title>
                 <ProgressBar>
