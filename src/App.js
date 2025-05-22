@@ -52,7 +52,7 @@ function App() {
                 <FixedNavBar>
                     <NavBar />
                 </FixedNavBar>
-                <Content>
+                <Content id="main-content">
                     <AppRouter />
                 </Content>
             </AppContainer>

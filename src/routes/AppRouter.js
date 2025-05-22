@@ -188,8 +188,21 @@ const AppRouter = () => {
             <Route path="/map" element={<KitchenMap />} />
             <Route
                 path="/mypage/ingredient-settlement"
-                element={<IngredientSettlement />}
+                element={
+                    <ProtectedRoute allowedRole="USER">
+                        <IngredientSettlement />
+                    </ProtectedRoute>
+                }
             />
+            <Route 
+                path="/host-mypage/reservations/calendar" 
+                element={
+                    <ProtectedRoute allowedRole="HOST">
+                        <ReservationCalendar />
+                    </ProtectedRoute>
+                }
+            /> 
+
         </Routes>
     );
 };

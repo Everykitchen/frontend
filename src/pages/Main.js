@@ -2,6 +2,7 @@ import { useSearch } from "../contexts/SearchContext";
 import { useEffect, useState, useRef, useCallback } from "react";
 import styled from "styled-components";
 import api from "../api/axiosInstance";
+import NewStoreCard from "../components/NewStoreCard";
 import StoreCard from "../components/StoreCard";
 import { useNavigate } from "react-router-dom";
 import defaultKitchenImage from "../assets/jpg/kitchen1.jpg";
@@ -22,9 +23,8 @@ const StoreList = styled.div`
     display: flex;
     flex-wrap: wrap;
     gap: 24px;
-    justify-content: left;
-    max-width: 1200px;
-    margin-left: 168px;
+    justify-content: center;
+    max-width: 1400px;
 `;
 
 const LoadingIndicator = styled.div`
@@ -57,7 +57,9 @@ const DropdownButton = styled.button`
     width: 100%;
     height: 32px;
     background: #fff;
-    border: 1px solid #ffa500;
+    border: 1px solid
+        ${({ active, open }) =>
+            !active && !open ? '#999' : '#ffa500'};
     border-radius: 6px;
     padding: 0 12px;
     text-align: left;
@@ -68,7 +70,9 @@ const DropdownButton = styled.button`
     color: #222;
     font-size: 14px;
     &:focus {
-        outline: 2px solid #ffa500;
+        outline: 1.5px solid
+            ${({ active, open }) =>
+                !active && !open ? '#888' : '#ffa500'};
     }
 `;
 const DropdownList = styled.ul`
@@ -79,7 +83,7 @@ const DropdownList = styled.ul`
     background: #fff;
     border: 1px solid #ffa500;
     border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     z-index: 20;
     margin: 0;
     padding: 0;
@@ -94,6 +98,48 @@ const DropdownItem = styled.li`
     &:hover {
         background: #fff3d1;
         color: #ffa500;
+    }
+`;
+
+const ScrollTopBtn = styled.button`
+    margin-left: 16px;
+    padding: 7px 18px;
+    background: #f5f5f5;
+    color: #888;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s;
+    &:hover {
+        background: #eee;
+        color: #555;
+    }
+`;
+
+const FloatingTopBtn = styled.button`
+    position: fixed;
+    right: 36px;
+    bottom: 36px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    color: #555;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    cursor: pointer;
+    z-index: 2000;
+    opacity: 0.85;
+    transition: opacity 0.2s;
+    &:hover {
+        opacity: 1;
+        background: #fcfcfc;
+        color: #333;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     }
 `;
 
@@ -113,6 +159,7 @@ const MainPage = () => {
     const { location: selectedLocation } = filters;
     const [isFetching, setIsFetching] = useState(false);
     const [sortOrder, setSortOrder] = useState('');
+    const [showFloatingTop, setShowFloatingTop] = useState(false);
 
     const observer = useRef();
     const navigate = useNavigate();
@@ -121,7 +168,7 @@ const MainPage = () => {
         { value: '', label: '정렬 선택' },
         { value: 'asc', label: '낮은 가격순' },
         { value: 'desc', label: '높은 가격순' },
-        { value: 'review', label: '후기많은순' },
+        { value: 'review', label: '후기 많은순' },
     ];
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const dropdownRef = useRef();
@@ -297,6 +344,44 @@ const MainPage = () => {
         setSortOrder('');
     }, [filters, page]);
 
+    const handleScrollTop = () => {
+        const content = document.getElementById("main-content");
+        if (content) {
+            content.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+    };
+
+    useEffect(() => {
+        const content = document.getElementById("main-content");
+        const handleScroll = () => {
+            const scrollTop = content ? content.scrollTop : window.scrollY;
+            setShowFloatingTop(scrollTop > 100);
+        };
+        if (content) {
+            content.addEventListener("scroll", handleScroll);
+        } else {
+            window.addEventListener("scroll", handleScroll);
+        }
+        return () => {
+            if (content) {
+                content.removeEventListener("scroll", handleScroll);
+            } else {
+                window.removeEventListener("scroll", handleScroll);
+            }
+        };
+    }, []);
+
+    const handleFloatingTop = () => {
+        const content = document.getElementById("main-content");
+        if (content) {
+            content.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+    };
+
     return (
         <PageContainer>
             <NewFilterBar onFilterChange={handleFilterChange} />
@@ -304,9 +389,13 @@ const MainPage = () => {
             <RowSection>
                 <div />
                 <DropdownWrapper ref={dropdownRef}>
-                    <DropdownButton onClick={() => setDropdownOpen((v) => !v)}>
+                    <DropdownButton
+                        onClick={() => setDropdownOpen((v) => !v)}
+                        active={!!sortOrder}
+                        open={dropdownOpen}
+                    >
                         {sortOptions.find(opt => opt.value === sortOrder)?.label || '정렬 선택'}
-                        <span style={{ fontSize: 16, marginLeft: 8 }}>{dropdownOpen ? '▲' : '▼'}</span>
+                        <span style={{ fontSize: 14, marginLeft: 8, color: (!sortOrder && !dropdownOpen) ? '#888' : '#ffa500' }}>{dropdownOpen ? '▲' : '▼'}</span>
                     </DropdownButton>
                     {dropdownOpen && (
                         <DropdownList>
@@ -329,7 +418,7 @@ const MainPage = () => {
                         // 마지막 요소에는 ref 전달
                         return (
                             <div key={store.id} ref={lastStoreElementRef}>
-                                <StoreCard
+                                <NewStoreCard
                                     store={store}
                                     onLikeToggle={handleLikeToggle}
                                     onClick={() => handleStoreClick(store.id)}
@@ -338,7 +427,7 @@ const MainPage = () => {
                         );
                     } else {
                         return (
-                            <StoreCard
+                            <NewStoreCard
                                 key={store.id}
                                 store={store}
                                 onLikeToggle={handleLikeToggle}
@@ -350,7 +439,17 @@ const MainPage = () => {
             </StoreList>
             {loading && <LoadingIndicator>로딩 중...</LoadingIndicator>}
             {!hasMore && storeList.length > 0 && (
-                <LoadingIndicator>더 이상 주방이 없습니다</LoadingIndicator>
+                <LoadingIndicator>
+                    더 이상 주방이 없습니다
+                    <ScrollTopBtn onClick={handleScrollTop}>
+                        맨위로 이동
+                    </ScrollTopBtn>
+                </LoadingIndicator>
+            )}
+            {showFloatingTop && (
+                <FloatingTopBtn onClick={handleFloatingTop} aria-label="맨 위로">
+                    <span style={{fontSize:28, fontWeight:700, lineHeight:1}}>&#94;</span>
+                </FloatingTopBtn>
             )}
         </PageContainer>
     );
