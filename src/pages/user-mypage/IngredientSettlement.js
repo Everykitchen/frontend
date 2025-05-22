@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled, { css } from "styled-components";
 import UserSideBar from "../../components/UserSideBar";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
+import api from "../../api/axiosInstance";
 
 const Container = styled.div`
   display: flex;
@@ -152,22 +154,6 @@ const SubmitButton = styled.button`
   cursor: pointer;
 `;
 
-// 임시 데이터 (단위 랜덤)
-const initialBasic = [
-  { name: "밀가루", unit: "1kg", price: 2000 },
-  { name: "설탕", unit: "100g", price: 180 },
-  { name: "소금", unit: "100g", price: 100 },
-  { name: "베이킹파우더", unit: "1kg", price: 3000 },
-  { name: "드라이이스트", unit: "100g", price: 250 },
-  { name: "호밀가루", unit: "1kg", price: 3500 },
-];
-const initialAdditional = [
-  { name: "코코넛분말", unit: "10g", price: 4000 },
-  { name: "분유", unit: "10g", price: 3500 },
-  { name: "슈가파우더", unit: "1kg", price: 4000 },
-  { name: "크림치즈", unit: "10g", price: 6000 },
-];
-
 function parseUnit(unit) {
   // Extract number and unit (e.g., '1kg', '100g')
   const match = unit.match(/(\d+)(kg|g)/i);
@@ -210,16 +196,37 @@ function getUnitGram(unit) {
 }
 
 const IngredientSettlement = () => {
-  const [basic, setBasic] = useState(initialBasic.map(i => ({ ...i, amount: "" })));
-  const [additional, setAdditional] = useState(initialAdditional.map(i => ({ ...i, amount: "" })));
+  const { id: reservationId } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const kitchenId = location.state?.kitchenId;
+
+  const [basic, setBasic] = useState([]);
+  const [additional, setAdditional] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!kitchenId || !reservationId) return;
+    setLoading(true);
+    api.get(`/user/kitchen/${kitchenId}/reservation/${reservationId}/settlement-list`)
+      .then(res => {
+        setBasic((res.data.ingredients || []).map(i => ({ ...i, amount: "" })));
+        setAdditional((res.data.extraIngredients || []).map(i => ({ ...i, amount: "" })));
+        setError(null);
+      })
+      .catch(err => {
+        setError("정산 재료 정보를 불러오지 못했습니다.");
+      })
+      .finally(() => setLoading(false));
+  }, [kitchenId, reservationId]);
 
   // 사용금액 계산
   const getUsedPrice = (item) => {
     const usedGram = toGram(item.amount, item.unit); // always in grams
-    const unitGram = getUnitGram(item.unit); // e.g., 1000 for '1kg', 100 for '100g'
+    const unitGram = getUnitGram(item.unit);
     if (unitGram === 0) return 0;
-    // price is for unitGram, so (usedGram / unitGram) * price
-    return Math.round((usedGram / unitGram) * item.price);
+    return Math.round((usedGram / unitGram) * item.unitPrice);
   };
 
   const total =
@@ -227,8 +234,7 @@ const IngredientSettlement = () => {
     additional.reduce((sum, i) => sum + getUsedPrice(i), 0);
 
   const handleAmountChange = (type, idx, value) => {
-    // 최대 7자리로 제한 (단위 제외)
-    const limitedValue = value.slice(0, 10); // 단위 포함 가능성 고려해 길이 늘림
+    const limitedValue = value.slice(0, 10);
     if (type === "basic") {
       setBasic(basic.map((item, i) => (i === idx ? { ...item, amount: limitedValue } : item)));
     } else {
@@ -237,23 +243,44 @@ const IngredientSettlement = () => {
   };
 
   const handleBlur = (type, idx, value) => {
-    if (!value) return; // 빈 값이면 처리하지 않음
-
-    // 이미 단위가 있는지 확인
+    if (!value) return;
     const hasUnit = /[a-zA-Z]$/i.test(value);
-    
-    // 숫자만 있고 단위가 없으면 'g' 추가
     let finalValue = value;
     if (!hasUnit && !isNaN(parseFloat(value))) {
       finalValue = value + "g";
     }
-    
     if (type === "basic") {
       setBasic(basic.map((item, i) => (i === idx ? { ...item, amount: finalValue } : item)));
     } else {
       setAdditional(additional.map((item, i) => (i === idx ? { ...item, amount: finalValue } : item)));
     }
   };
+
+  const handleSubmit = async () => {
+    if (!kitchenId || !reservationId) return;
+    const usedIngredients = [
+      ...basic,
+      ...additional
+    ].filter(i => i.amount && toGram(i.amount, i.unit) > 0)
+      .map(i => ({
+        name: i.name,
+        quantityUsed: i.amount,
+        price: getUsedPrice(i)
+      }));
+    try {
+      await api.post(`/user/kitchen/${kitchenId}/reservation/${reservationId}/settlement`, {
+        usedIngredients,
+        totalUsedPrice: total
+      });
+      alert("정산이 완료되었습니다.");
+      navigate(`/mypage/reservations/${reservationId}`);
+    } catch (err) {
+      alert("정산 요청에 실패했습니다.");
+    }
+  };
+
+  if (loading) return <div>로딩 중...</div>;
+  if (error) return <div style={{ color: 'red' }}>{error}</div>;
 
   return (
     <Container>
@@ -333,7 +360,7 @@ const IngredientSettlement = () => {
           <TotalBoxRow>
             <TotalBox>
               총 사용 금액: &nbsp; <span style={{ fontWeight: 700, color: '#FFBC39', fontSize: '24px' }}>{total.toLocaleString()}원</span>
-              <SubmitButton>송금하기</SubmitButton>
+              <SubmitButton onClick={handleSubmit}>송금하기</SubmitButton>
             </TotalBox>
           </TotalBoxRow>
         </TableSection>

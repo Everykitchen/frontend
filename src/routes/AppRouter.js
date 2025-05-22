@@ -187,7 +187,7 @@ const AppRouter = () => {
             <Route path="/kitchen/:id" element={<KitchenDetailPage />} />
             <Route path="/map" element={<KitchenMap />} />
             <Route
-                path="/mypage/ingredient-settlement"
+                path="/mypage/ingredient-settlement/:id"
                 element={
                     <ProtectedRoute allowedRole="USER">
                         <IngredientSettlement />

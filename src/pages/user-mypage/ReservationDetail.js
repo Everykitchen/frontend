@@ -76,6 +76,7 @@ const DetailCard = styled.div`
     border-radius: 12px;
     padding: 18px 30px 0px 30px;
     min-width: 700px;
+    max-width: 1500px;
     width: 100%;
 `;
 
@@ -519,7 +520,13 @@ const ReservationDetail = () => {
     };
 
     const handleSettlementClick = () => {
-        navigate(`/mypage/ingredient-settlement`);
+        if (reservation?.reservationId && reservation?.kitchenId) {
+            navigate(`/mypage/ingredient-settlement/${reservation.reservationId}`, {
+                state: { kitchenId: reservation.kitchenId }
+            });
+        } else {
+            alert('정산에 필요한 정보가 없습니다.');
+        }
     };
     
     const handleCopyAddress = () => {
@@ -628,7 +635,9 @@ const ReservationDetail = () => {
                                 </Labels>
                                 <Values>
                                     <span>{reservation.prepaidAmount.toLocaleString()}원</span>
-                                    <PendingPayment>정산예정</PendingPayment>
+                                    <PendingPayment>
+                                        {reservation.status === 'PENDING_PAYMENT' ? '호스트 승인대기' : '정산예정'}
+                                    </PendingPayment>
                                 </Values>
                             </InfoContainer>
                             
