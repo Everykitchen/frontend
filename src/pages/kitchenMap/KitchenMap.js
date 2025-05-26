@@ -361,6 +361,7 @@ const KitchenMap = () => {
                                         markerMap.current[k.kitchenId];
                                     if (marker && mapInstance) {
                                         mapInstance.panTo(marker.getPosition());
+                                        mapInstance.setLevel(3);
                                     }
                                 }}
                                 onLikeToggle={() =>

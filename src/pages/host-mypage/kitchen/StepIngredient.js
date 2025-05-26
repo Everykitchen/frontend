@@ -98,13 +98,21 @@ const StepIngredient = ({
 }) => {
     const [basicIngredients, setBasicIngredients] = useState(
         formData.ingredients.length > 0
-            ? formData.ingredients
+            ? formData.ingredients.map((i) => ({
+                  ingredientName: i.ingredientName || i.name || "",
+                  unit: i.unit || i.baseUnit || "",
+                  price: i.price ?? 0,
+              }))
             : [{ ingredientName: "", unit: "", price: 0 }]
     );
 
     const [extraIngredients, setExtraIngredients] = useState(
         formData.extraIngredients.length > 0
-            ? formData.extraIngredients
+            ? formData.extraIngredients.map((i) => ({
+                  ingredientName: i.ingredientName || i.name || "",
+                  unit: i.unit || i.baseUnit || "",
+                  price: i.price ?? 0,
+              }))
             : [{ ingredientName: "", unit: "", price: 0 }]
     );
 
@@ -124,7 +132,7 @@ const StepIngredient = ({
         setter((prev) => {
             const updated = [...prev];
             updated[index][field] =
-                field === "price" ? parseInt(value, 10) : value;
+                field === "price" ? parseInt(value, 10) || 0 : value;
             return updated;
         });
     };
@@ -195,11 +203,7 @@ const StepIngredient = ({
                                 <Input
                                     type="number"
                                     placeholder="예: 4000"
-                                    value={
-                                        item.price === 0 || item.price === null
-                                            ? ""
-                                            : item.price
-                                    }
+                                    value={item.price === 0 ? "" : item.price}
                                     onChange={(e) =>
                                         handleChange(
                                             setBasicIngredients,
@@ -280,11 +284,7 @@ const StepIngredient = ({
                                 <Input
                                     type="number"
                                     placeholder="예: 5000"
-                                    value={
-                                        item.price === 0 || item.price === null
-                                            ? ""
-                                            : item.price
-                                    }
+                                    value={item.price === 0 ? "" : item.price}
                                     onChange={(e) =>
                                         handleChange(
                                             setExtraIngredients,

@@ -3,9 +3,9 @@ import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axiosInstance";
 import HostSideBar from "../../components/HostSideBar";
-import { ReactComponent as EditIcon } from '../../assets/icons/edit.svg';
-import { ReactComponent as TrashIcon } from '../../assets/icons/trash.svg';
-import informationIcon from '../../assets/icons/information.png';
+import { ReactComponent as EditIcon } from "../../assets/icons/edit.svg";
+import { ReactComponent as TrashIcon } from "../../assets/icons/trash.svg";
+import informationIcon from "../../assets/icons/information.png";
 
 const Container = styled.div`
     display: flex;
@@ -163,8 +163,12 @@ const KitchenManage = () => {
                         <TableRow>
                             <TableHeader>주방명</TableHeader>
                             <TableHeader>주소</TableHeader>
-                            <TableHeader className="center">리뷰(개)</TableHeader>
-                            <TableHeader className="center">상세정보</TableHeader>
+                            <TableHeader className="center">
+                                리뷰(개)
+                            </TableHeader>
+                            <TableHeader className="center">
+                                상세정보
+                            </TableHeader>
                             <TableHeader className="center">수정</TableHeader>
                             <TableHeader className="center">삭제</TableHeader>
                         </TableRow>
@@ -174,22 +178,38 @@ const KitchenManage = () => {
                             <TableRow key={kitchen.id}>
                                 <TableCell>{kitchen.kitchenName}</TableCell>
                                 <TableCell>{kitchen.location}</TableCell>
-                                <TableCell className="center">{kitchen.reviewCount}</TableCell>
                                 <TableCell className="center">
-                                    <InfoIconButton onClick={() => handleDetailClick(kitchen.kitchenId)}>
-                                        <InfoIconImg src={informationIcon} alt="상세조회" />
+                                    {kitchen.reviewCount}
+                                </TableCell>
+                                <TableCell className="center">
+                                    <InfoIconButton
+                                        onClick={() =>
+                                            handleDetailClick(kitchen.kitchenId)
+                                        }
+                                    >
+                                        <InfoIconImg
+                                            src={informationIcon}
+                                            alt="상세조회"
+                                        />
                                     </InfoIconButton>
                                 </TableCell>
                                 <TableCell className="center">
                                     <IconButton
-                                        onClick={() => handleEditClick(kitchen.kitchenId)}
+                                        onClick={() =>
+                                            handleEditClick(kitchen.kitchenId)
+                                        }
+                                        onClick={() =>
+                                            handleEditClick(kitchen.kitchenId)
+                                        }
                                     >
                                         <EditIcon width={16} height={16} />
                                     </IconButton>
                                 </TableCell>
                                 <TableCell className="center">
                                     <IconButton
-                                        onClick={() => handleDeleteClick(kitchen.kitchenId)}
+                                        onClick={() =>
+                                            handleDeleteClick(kitchen.kitchenId)
+                                        }
                                     >
                                         <TrashIcon width={16} height={16} />
                                     </IconButton>

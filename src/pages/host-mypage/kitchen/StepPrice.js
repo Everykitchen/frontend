@@ -253,12 +253,12 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
     const [category, setCategory] = useState(formData.category || "");
     const [imageFiles, setImageFiles] = useState(formData.kitchenImages || []);
     const [imageUrls, setImageUrls] = useState(
-        formData.kitchenImages?.map((file) => URL.createObjectURL(file)) || []
+        formData.kitchenImages?.map((file) =>
+            file instanceof File ? URL.createObjectURL(file) : file
+        ) || []
     );
     const [representativeImage, setRepresentativeImage] = useState(
-        formData.kitchenImages?.length > 0
-            ? URL.createObjectURL(formData.kitchenImages[0])
-            : ""
+        imageUrls.length > 0 ? imageUrls[0] : ""
     );
     const [activeDays, setActiveDays] = useState(
         formData.activeDays || ["월", "화", "수", "목", "금", "토", "일"]
@@ -283,7 +283,9 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
     }, [category]);
 
     useEffect(() => {
-        const urls = imageFiles.map((file) => URL.createObjectURL(file));
+        const urls = imageFiles.map((file) =>
+            file instanceof File ? URL.createObjectURL(file) : file
+        );
         setImageUrls(urls);
         setRepresentativeImage((prev) =>
             urls.includes(prev) ? prev : urls[0] || ""
@@ -295,18 +297,17 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
     }, [imageFiles]);
 
     useEffect(() => {
-        const updatedPrices = {};
+        const updatedPrice = {};
         ["월", "화", "수", "목", "금", "토", "일"].forEach((day) => {
-            updatedPrices[day] = activeDays.includes(day)
-                ? formData.prices?.[day] ?? ""
+            updatedPrice[day] = activeDays.includes(day)
+                ? formData.defaultPrice?.[day] ?? ""
                 : null;
         });
-
-        updatedPrices["공휴일"] = formData.prices?.["공휴일"] ?? "";
+        updatedPrice["공휴일"] = formData.defaultPrice?.["공휴일"] ?? "";
 
         setFormData((prev) => ({
             ...prev,
-            prices: { ...updatedPrices },
+            defaultPrice: { ...updatedPrice },
             activeDays,
         }));
     }, [activeDays]);
@@ -314,8 +315,8 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
     const handlePriceChange = (day, value) => {
         setFormData((prev) => ({
             ...prev,
-            prices: {
-                ...prev.prices,
+            defaultPrice: {
+                ...prev.defaultPrice,
                 [day]: value,
             },
         }));
@@ -324,17 +325,13 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
     const handleImageUpload = (files) => {
         const fileArray = Array.from(files).filter(
             (file) => file instanceof File
-        ); // File 타입 필터링
-
+        );
         setImageFiles((prev) => {
             const updated = [...prev, ...fileArray];
-
-            // formData.kitchenImages도 동기화
             setFormData((form) => ({
                 ...form,
                 kitchenImages: updated,
             }));
-
             return updated;
         });
     };
@@ -401,8 +398,6 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
 
     const validateRequiredFields = () => {
         const newErrors = {};
-        console.log(newErrors);
-
         if (!formData.kitchenName) newErrors.kitchenName = true;
         if (!formData.phoneNumber) newErrors.phoneNumber = true;
         if (!formData.description) newErrors.description = true;
@@ -416,18 +411,15 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
             newErrors.kitchenImages = true;
 
         setErrors(newErrors);
-
         return Object.keys(newErrors).length === 0;
     };
 
     const handleNext = () => {
         if (!validateRequiredFields()) {
             alert("항목을 모두 입력해주세요.");
-            console.log(formData);
             return;
         }
         nextStep();
-        console.log(formData);
     };
 
     return (
@@ -661,7 +653,7 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                             <DayLabel>{day}</DayLabel>
                             <PriceInput
                                 type="number"
-                                value={formData.prices?.[day] || ""}
+                                value={formData.defaultPrice?.[day] || ""}
                                 onChange={(e) =>
                                     handlePriceChange(day, e.target.value)
                                 }
@@ -675,7 +667,7 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                 <Label>공휴일 금액</Label>
                 <PriceInput
                     type="number"
-                    value={formData.prices?.["공휴일"] || ""}
+                    value={formData.defaultPrice?.["공휴일"] || ""}
                     onChange={(e) =>
                         handlePriceChange("공휴일", e.target.value)
                     }
@@ -701,13 +693,13 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                     />
                     <Input
                         placeholder="예금주명"
-                        value={formData.account?.accountHolder || ""}
+                        value={formData.account?.accountHolderName || ""}
                         onChange={(e) =>
                             setFormData({
                                 ...formData,
                                 account: {
                                     ...formData.account,
-                                    accountHolder: e.target.value,
+                                    accountHolderName: e.target.value,
                                 },
                             })
                         }
