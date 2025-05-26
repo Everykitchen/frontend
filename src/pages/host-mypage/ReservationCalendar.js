@@ -268,7 +268,7 @@ const ReservationCalendar = () => {
         const fetchReservations = async () => {
             setLoading(true);
             try {
-                const res = await axios.get('/api/host/reservation?page=0&size=100');
+                const res = await axios.get('/api/host/reservation?page=0&size=200');
                 setReservations(res.data.content || []);
                 
                 // 예약이 있는 날짜들 추출

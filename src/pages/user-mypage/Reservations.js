@@ -87,8 +87,7 @@ const EmptyMessage = styled.div`
 const Reservation = () => {
     const [activeTab, setActiveTab] = useState("전체");
     const [reservationList, setReservationList] = useState([]);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
+    const [currentPage, setCurrentPage] = useState(0); // 0부터 시작
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const itemsPerPage = 5; // 한 페이지당 5개 항목 표시
@@ -101,21 +100,15 @@ const Reservation = () => {
         완료: ["COMPLETED_PAYMENT"],
     };
 
-    /**
-     * 예약 목록 데이터를 로드하는 함수
-     * 페이지 번호가 변경될 때마다 실행됨
-     */
     useEffect(() => {
         const fetchReservations = async () => {
             setLoading(true);
             setError(null);
             try {
                 const response = await api.get(
-                    `/api/user/reservation?page=${currentPage - 1}&size=${itemsPerPage}`
+                    `/api/user/reservation?page=0&size=500`
                 );
-                // 서버에서 받은 데이터를 그대로 사용
                 setReservationList(response.data.content || []);
-                setTotalPages(response.data.totalPages || 1);
             } catch (error) {
                 console.error("예약 목록 불러오기 실패:", error);
                 setError("예약 내역을 불러오지 못했습니다.");
@@ -125,37 +118,32 @@ const Reservation = () => {
         };
 
         fetchReservations();
-    }, [currentPage]);
+    }, []); // currentPage 의존성 제거
 
-    /**
-     * 선택된 탭에 따라 예약 목록 필터링
-     * 전체 탭: 모든 예약
-     * 진행중 탭: RESERVED, PENDING_PAYMENT 상태의 예약
-     * 완료 탭: COMPLETED_PAYMENT 상태의 예약
-     */
+    // 선택된 탭에 따라 예약 목록 필터링
     const filteredList = statusMap[activeTab]
         ? reservationList.filter((item) =>
               statusMap[activeTab].includes(item.status)
           )
         : reservationList;
+
+    // 현재 페이지에 해당하는 항목들만 선택
+    const currentItems = filteredList.slice(
+        currentPage * itemsPerPage,
+        (currentPage + 1) * itemsPerPage
+    );
+
+    // 전체 페이지 수 계산
+    const totalPages = Math.ceil(filteredList.length / itemsPerPage);
     
-    /**
-     * 페이지 변경 핸들러
-     * @param {number} pageNumber 이동할 페이지 번호
-     */
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
-        window.scrollTo(0, 0); // 페이지 상단으로 스크롤
+        window.scrollTo(0, 0);
     };
 
-    /**
-     * 탭 변경 핸들러
-     * 탭 변경 시 페이지를 1로 리셋
-     * @param {string} tab 선택한 탭 이름
-     */
     const handleTabChange = (tab) => {
         setActiveTab(tab);
-        setCurrentPage(1);
+        setCurrentPage(0); // 페이지를 0으로 리셋
     };
 
     return (
@@ -188,12 +176,12 @@ const Reservation = () => {
                 {error && <EmptyMessage style={{ color: 'red' }}>{error}</EmptyMessage>}
                 
                 {/* 결과가 없을 때 안내 메시지 표시 */}
-                {!loading && !error && filteredList.length === 0 && (
+                {!loading && !error && currentItems.length === 0 && (
                     <EmptyMessage>예약 내역이 없습니다.</EmptyMessage>
                 )}
 
                 {/* 예약 목록 표시 */}
-                {filteredList.map((reservation) => (
+                {currentItems.map((reservation) => (
                     <ReservationCard 
                         key={reservation.reservationId}
                         reservation={reservation}
@@ -205,22 +193,22 @@ const Reservation = () => {
                     <Pagination>
                         <PageButton
                             onClick={() => handlePageChange(currentPage - 1)}
-                            disabled={currentPage === 1}
+                            disabled={currentPage === 0}
                         >
                             이전
                         </PageButton>
                         {[...Array(totalPages)].map((_, index) => (
                             <PageButton
-                                key={index + 1}
-                                onClick={() => handlePageChange(index + 1)}
-                                active={currentPage === index + 1}
+                                key={index}
+                                onClick={() => handlePageChange(index)}
+                                active={currentPage === index}
                             >
                                 {index + 1}
                             </PageButton>
                         ))}
                         <PageButton
                             onClick={() => handlePageChange(currentPage + 1)}
-                            disabled={currentPage === totalPages}
+                            disabled={currentPage === totalPages - 1}
                         >
                             다음
                         </PageButton>
