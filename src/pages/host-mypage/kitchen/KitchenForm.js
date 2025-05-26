@@ -117,7 +117,8 @@ const KitchenForm = () => {
                 kitchenImages: editData.kitchenImages || [],
                 account: {
                     accountNumber: editData.account?.accountNumber || "",
-                    accountHolder: editData.account?.accountHolder || "",
+                    accountHolderName:
+                        editData.account?.accountHolderName || "",
                     bankName: editData.account?.bankName || "",
                 },
                 ingredients: editData.ingredients || [],
@@ -149,6 +150,7 @@ const KitchenForm = () => {
         closeTime: `${data.closeTime}:00`,
         category: data.category,
         accountNumber: data.account.accountNumber,
+        accountHolderName: data.account.accountHolderName,
         bankName: data.account.bankName,
         ingredients: data.ingredients,
         extraIngredients: data.extraIngredients,

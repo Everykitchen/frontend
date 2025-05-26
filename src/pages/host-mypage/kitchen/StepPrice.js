@@ -693,13 +693,13 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                     />
                     <Input
                         placeholder="예금주명"
-                        value={formData.account?.accountHolder || ""}
+                        value={formData.account?.accountHolderName || ""}
                         onChange={(e) =>
                             setFormData({
                                 ...formData,
                                 account: {
                                     ...formData.account,
-                                    accountHolder: e.target.value,
+                                    accountHolderName: e.target.value,
                                 },
                             })
                         }
