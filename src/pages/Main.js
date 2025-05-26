@@ -267,7 +267,7 @@ const MainPage = () => {
             setLoading(false);
             setTimeout(() => {
                 setIsFetching(false);
-            }, 1000);
+            }, 4000);
         }
     };
 

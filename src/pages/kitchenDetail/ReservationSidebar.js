@@ -87,24 +87,35 @@ const DatePickerWrapper = styled.div`
     margin-top: 4px;
   }
 
+
   .react-datepicker__day-name {
     color: #666;
     font-size: 12px;
-    width: 28px;
+    width: 30px;
     line-height: 28px;
+    margin: 0px;
+    margin-top: 15px;
+    margin-left: 5px;
+    &:first-child {
+      color: #ff0000;
+    }
   }
 
   .react-datepicker__day {
-    width: 28px;
+    width: 30px;
     height: 28px;
     line-height: 28px;
-    margin: 2px;
+    margin: 2px 2px;
     font-size: 12px;
     color: #333;
     
     &:hover {
       background-color: #fff5e6;
       border-radius: 50%;
+    }
+
+    &:first-child {
+      color: #ff0000;
     }
   }
 
@@ -116,11 +127,19 @@ const DatePickerWrapper = styled.div`
     &:hover {
       background-color: #ffbc39;
     }
+
+    &:first-child {
+      color: white;
+    }
   }
 
   .react-datepicker__day--disabled {
     color: #ccc;
     cursor: default;
+
+    &:first-child {
+      color: #ccc;
+    }
   }
 `;
 
@@ -486,6 +505,13 @@ const ReservationSidebar = ({
     }
   };
 
+  const filterDates = (date) => {
+    const days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+    const dayName = days[date.getDay()];
+    const priceInfo = kitchenData.defaultPrice.find(p => p.week === dayName);
+    return priceInfo ? priceInfo.enabled : false;
+  };
+
   return (
     <RightSection>
       <ScrollableContent>
@@ -506,6 +532,7 @@ const ReservationSidebar = ({
             locale={ko}
             dateFormat="yyyy년 MM월"
             placeholderText="날짜를 선택해주세요"
+            filterDate={filterDates}
           />
         </DatePickerWrapper>
         <TimeContainer>
