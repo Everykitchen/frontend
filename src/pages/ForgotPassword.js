@@ -156,19 +156,15 @@ const ForgotPassword = () => {
         if (!validateForm()) {
             return;
         }
-        
         try {
             await axios.put("/api/auth/reset-password", {
                 email: email,
-                newPassword: password
+                password: password
             });
-            
             setSuccess(true);
-            
-            // 3초 후 로그인 페이지로 이동
             setTimeout(() => {
                 navigate("/login");
-            }, 3000);
+            }, 1000);
         } catch (error) {
             const msg = error?.response?.data?.result?.resultMessage;
             if (msg) {
