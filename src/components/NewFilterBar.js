@@ -17,7 +17,7 @@ const BarWrapper = styled.div`
     width: 100%;
     max-width: 700px;
     margin: 0 auto 20px auto;
-    background: #fff;
+    background: #fefefe;
     border: 1.7px solid ${MAIN_ORANGE};
     border-radius: 24px;
     display: flex;
@@ -41,9 +41,9 @@ const ItemButton = styled.button`
     outline: none;
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 15px;
-    color: ${({ selected }) => (selected ? MAIN_ORANGE : "#888")};
+    gap: 18px;
+    font-size: 16.5px;
+    color: ${({ selected }) => (selected ? "#ff6f1f" : "#444")};
     font-weight: 500;
     cursor: pointer;
     padding: 0 22px;
@@ -53,26 +53,26 @@ const ItemButton = styled.button`
     z-index: 2;
     background: none;
     svg {
-        color: ${({ selected }) => (selected ? MAIN_ORANGE : "#b0b0b0")};
+        color: ${({ selected }) => (selected ? "#ff6f1f" : "#444")};
         font-size: 17px;
         transition: color 0.2s;
     }
     &:hover {
-        color: ${({ selected }) => (selected ? MAIN_ORANGE : "#222")};
-        svg { color: ${({ selected }) => (selected ? MAIN_ORANGE : "#222")}; }
+        color: #ff6f1f;
+        svg { color: #ff6f1f; }
     }
 `;
 
 const CancelIcon = styled(FaTimes)`
     margin-left: 2px;
     font-size: 12px;
-    color: ${({ selected }) => (selected ? MAIN_ORANGE : "#bbb")};
+    color: ${({ selected }) => (selected ? "#ff6f1f" : "#bbb")};
     cursor: pointer;
-    &:hover { color: #ffa500; }
+    &:hover { color: #ff6f1f; }
 `;
 
 const Divider = styled.div`
-    width: 1px;
+    width: 1.2px;
     height: 22px;
     background: ${MAIN_ORANGE};
 `;
@@ -85,7 +85,7 @@ const Popup = styled.div`
     min-width: 360px;
     max-width: 500px;
     background: #fff;
-    border-radius: 14px;
+    border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.10);
     padding: 18px 24px;
     z-index: 10;
@@ -115,21 +115,30 @@ const ButtonRow = styled.div`
     width: 100%;
 `;
 const ActionButton = styled(CommonButton)`
-    background-color: ${(props) => (props.reset ? "#eee" : "#ffbc39")};
-    color: ${(props) => (props.reset ? "#444" : "white")};
+    background-color: rgb(255, 242, 217);
+    color: #444;
     font-size: 13px;
     font-weight: 500;
+    &:hover {
+        background-color: rgb(255, 229, 177);
+        color: #000;
+    }
 `;
 
-const countButtonStyle = {
-    width: "32px",
-    height: "32px",
-    borderRadius: "50%",
-    border: "1px solid #ccc",
-    background: "#fff",
-    fontSize: "16px",
-    cursor: "pointer",
-};
+const StyledCountButton = styled.button`
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid #ccc;
+    background: #fff;
+    font-size: 17px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;
+
+`;
 
 const regions = {
     서울: [
@@ -139,13 +148,58 @@ const regions = {
         "수원시", "성남시", "고양시", "용인시", "부천시", "안산시", "안양시", "남양주시", "화성시", "평택시", "의정부시", "시흥시", "파주시", "김포시",
     ],
     인천: ["중구", "동구", "연수구", "부평구", "계양구", "서구"],
-    부산: ["해운대구", "부산진구", "동래구", "수영구"],
+    부산: ["해운대구", "부산진구", "동래구", "수영구","강서구", "사상구","사하구","서구","동구","영도구","연제구","금정구"],
     제주: ["제주시", "서귀포시"],
 };
 
 const facilities = [
     "인덕션", "오븐", "가스레인지", "제빙기", "믹서기", "에어프라이기", "냉장고", "식기세척기",
 ];
+
+const StyledRegionItem = styled.div`
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-align: center;
+    background: #f5f5f5;
+    cursor: pointer;
+    font-size: 13px;
+    margin-bottom: 2px;
+    transition: background 0.15s, color 0.15s;
+    &:hover {
+        background:rgb(255, 248, 233);
+        color: #ff6f1f;
+    }
+`;
+const StyledDistrictItem = styled.div`
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-align: center;
+    background: #f5f5f5;
+    cursor: pointer;
+    font-size: 13px;
+    margin-bottom: 2px;
+    transition: background 0.15s, color 0.15s;
+    &:hover {
+        background:rgb(255, 248, 233);
+        color: #ff6f1f;
+    }
+`;
+const StyledFacilityItem = styled.div`
+    padding: 6px 18px;
+    border-radius: 6px;
+    text-align: center;
+    background: none;
+    cursor: pointer;
+    font-size: 13px;
+    margin-bottom: 2px;
+    color: ${({ selected }) => (selected ? "#ff6f1f" : "#000")};
+    font-weight: ${({ selected }) => (selected ? 700 : 600)};
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+    &:hover {
+        color: #ff6f1f;
+    }
+`;
 
 const NewFilterBar = ({ onFilterChange }) => {
     const filters = [
@@ -245,13 +299,12 @@ const NewFilterBar = ({ onFilterChange }) => {
                     {!selectedRegion ? (
                         <RegionGrid>
                             {Object.keys(regions).map((region, i) => (
-                                <div
+                                <StyledRegionItem
                                     key={region}
-                                    style={{ padding: "6px 12px", borderRadius: 6, textAlign: "center", background: "#f5f5f5", cursor: "pointer", fontSize: 13, marginBottom: 2 }}
                                     onClick={() => setSelectedRegion(region)}
                                 >
                                     {region}
-                                </div>
+                                </StyledRegionItem>
                             ))}
                         </RegionGrid>
                     ) : (
@@ -259,9 +312,8 @@ const NewFilterBar = ({ onFilterChange }) => {
                             <RegionTitle>{selectedRegion}</RegionTitle>
                             <RegionGrid>
                                 {regions[selectedRegion].map((district, i) => (
-                                    <div
+                                    <StyledDistrictItem
                                         key={district}
-                                        style={{ padding: "6px 12px", borderRadius: 6, textAlign: "center", background: "#f5f5f5", cursor: "pointer", fontSize: 13, marginBottom: 2 }}
                                         onClick={() => {
                                             setSelectedLocation({ city: selectedRegion, district });
                                             setSelectedRegion(null);
@@ -269,7 +321,7 @@ const NewFilterBar = ({ onFilterChange }) => {
                                         }}
                                     >
                                         {district}
-                                    </div>
+                                    </StyledDistrictItem>
                                 ))}
                             </RegionGrid>
                             <ButtonRow>
@@ -297,19 +349,17 @@ const NewFilterBar = ({ onFilterChange }) => {
             return (
                 <Popup>
                     <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-                        <button
-                            style={countButtonStyle}
+                        <StyledCountButton
                             onClick={() => setGuestCount(Math.max(1, (guestCount || 1) - 1))}
                         >
                             -
-                        </button>
-                        <span style={{ fontSize: "16px" }}>{guestCount ? `${guestCount}명` : "인원 선택"}</span>
-                        <button
-                            style={countButtonStyle}
+                        </StyledCountButton>
+                        <span style={{ fontSize: "15px", fontWeight: "600" }}>{guestCount ? `${guestCount} 명 ` : "인원"}</span>
+                        <StyledCountButton
                             onClick={() => setGuestCount((guestCount || 1) + 1)}
                         >
                             +
-                        </button>
+                        </StyledCountButton>
                     </div>
                 </Popup>
             );
@@ -317,7 +367,7 @@ const NewFilterBar = ({ onFilterChange }) => {
         if (label === "가격") {
             return (
                 <Popup>
-                    <div style={{ fontSize: "14px", marginBottom: "12px" }}>
+                    <div style={{ fontSize: "15px",fontWeight: "700", marginBottom: "10px" }}>
                         최대 가격: <strong>{(priceRange ?? 200000).toLocaleString()}원</strong>
                     </div>
                     <input
@@ -337,24 +387,13 @@ const NewFilterBar = ({ onFilterChange }) => {
                 <Popup style={{ minWidth: "360px" }}>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", width: "100%" }}>
                         {facilities.map((item, i) => (
-                            <div
+                            <StyledFacilityItem
                                 key={item}
-                                style={{
-                                    padding: "6px 18px",
-                                    borderRadius: 6,
-                                    textAlign: "center",
-                                    background: "none",
-                                    cursor: "pointer",
-                                    fontSize: 13,
-                                    marginBottom: 2,
-                                    color: selectedFacilities.includes(item) ? MAIN_ORANGE : "#000",
-                                    fontWeight: selectedFacilities.includes(item) ? "bold" : "normal",
-                                    whiteSpace: "nowrap"
-                                }}
+                                selected={selectedFacilities.includes(item)}
                                 onClick={() => toggleFacility(item)}
                             >
                                 {item}
-                            </div>
+                            </StyledFacilityItem>
                         ))}
                     </div>
                 </Popup>
