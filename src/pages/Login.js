@@ -82,17 +82,17 @@ const LoginLinksSection = styled.div`
 
 const LinkGroup = styled.div`
     display: flex;
-    gap: 24px;
-    margin-left: 50px;
+    gap: 10px;
+    margin-left: 30px;
 `;
 
 const SetLink = styled(Link)`
     color: #868686;
     text-decoration: underline;
-    padding: 0px 10px;
-
-    &:hover {
-        text-decoration: underline;
+    padding: 3px 10px;
+    font-size: 15px;
+    &:first-child {
+        margin-right: 60px;
     }
 `;
 
@@ -181,7 +181,7 @@ function Login() {
 
                 <LoginLinksSection>
                     <LinkGroup>
-                        <SetLink to="/signup">회원가입</SetLink>
+                        <SetLink to="/signup">회원가입 </SetLink>
                         <SetLink to="/forgot-email">이메일 찾기</SetLink>
                         <SetLink to="/forgot-password">비밀번호 찾기</SetLink>
                     </LinkGroup>
