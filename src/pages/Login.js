@@ -73,11 +73,17 @@ const LoginCheck = styled.span`
     text-align: center;
 `;
 
-const LoginLinks = styled.div`
-    margin-top: 10px;
+const LoginLinksSection = styled.div`
+    width: 400px;
+    margin: 10px;
     display: flex;
-    justify-content: space-between;
-    width: 361px;
+    justify-content: flex;
+`;
+
+const LinkGroup = styled.div`
+    display: flex;
+    gap: 24px;
+    margin-left: 50px;
 `;
 
 const SetLink = styled(Link)`
@@ -173,10 +179,13 @@ function Login() {
                     </LoginForm>
                 </LoginBox>
 
-                <LoginLinks>
-                    <SetLink to="/signup">회원가입</SetLink>
-                    <SetLink to="/forgot-password">비밀번호 찾기</SetLink>
-                </LoginLinks>
+                <LoginLinksSection>
+                    <LinkGroup>
+                        <SetLink to="/signup">회원가입</SetLink>
+                        <SetLink to="/forgot-email">이메일 찾기</SetLink>
+                        <SetLink to="/forgot-password">비밀번호 찾기</SetLink>
+                    </LinkGroup>
+                </LoginLinksSection>
             </LoginContainer>
         </div>
     );

@@ -1,6 +1,7 @@
 import { Routes, Route, useLocation } from "react-router-dom";
 import Main from "../pages/Main";
 import Login from "../pages/Login";
+import ForgotEmail from "../pages/ForgotEmail";
 import ForgotPassword from "../pages/ForgotPassword";
 import KitchenDetailPage from "../pages/kitchenDetail/KitchenDetailPage";
 import SignupChoicePage from "../pages/signup/SignupChoicePage";
@@ -42,6 +43,7 @@ const AppRouter = () => {
         <Routes key={location.pathname} location={location}>
             <Route path="/" element={<Main />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/forgot-email" element={<ForgotEmail />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/signup" element={<SignupChoicePage />} />
             <Route path="/signup/user" element={<UserSignupPage />} />
