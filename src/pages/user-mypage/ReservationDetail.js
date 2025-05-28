@@ -170,16 +170,26 @@ const SmallActionButton = styled.button`
     border-radius: 8px;
     font-size: clamp(16px, 0.9vw, 18px);
     font-weight: 600;
-    cursor: pointer;
+    cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
     border: none;
-    background: ${props => props.variant === 'primary' ? '#FFBC39' : '#F6F6F6'};
-    color: ${props => props.variant === 'primary' ? 'white' : '#666'};
+    background: ${props => {
+        if (props.disabled) return '#F6F6F6';
+        return props.variant === 'primary' ? '#FFBC39' : '#F6F6F6';
+    }};
+    color: ${props => {
+        if (props.disabled) return '#BDBDBD';
+        return props.variant === 'primary' ? 'white' : '#666';
+    }};
+    opacity: ${props => props.disabled ? 0.7 : 1};
 
     svg {
         width: clamp(30px, 3.5vw, 40px);
         height: clamp(30px, 3.5vw, 40px);
         path {
-            fill: ${props => props.variant === 'primary' ? 'white' : '#666'};
+            fill: ${props => {
+                if (props.disabled) return '#BDBDBD';
+                return props.variant === 'primary' ? 'white' : '#666';
+            }};
         }
     }
 
@@ -187,14 +197,24 @@ const SmallActionButton = styled.button`
         width: clamp(30px, 3.5vw, 40px);
         height: clamp(30px, 3.5vw, 40px);
         object-fit: contain;
+        opacity: ${props => props.disabled ? 0.7 : 1};
     }
 
     &:hover {
-        background: ${props => props.variant === 'primary' ? '#FFB020' : '#EEEEEE'};
-        color: ${props => props.variant === 'primary' ? 'white' : '#333'};
+        background: ${props => {
+            if (props.disabled) return '#F6F6F6';
+            return props.variant === 'primary' ? '#FFB020' : '#EEEEEE';
+        }};
+        color: ${props => {
+            if (props.disabled) return '#BDBDBD';
+            return props.variant === 'primary' ? 'white' : '#333';
+        }};
         
         svg path {
-            fill: ${props => props.variant === 'primary' ? 'white' : '#333'};
+            fill: ${props => {
+                if (props.disabled) return '#BDBDBD';
+                return props.variant === 'primary' ? 'white' : '#333';
+            }};
         }
     }
     
@@ -260,6 +280,12 @@ const Values = styled.div`
 const PendingPayment = styled.span`
     color: #FF7926;
     font-weight: 700;
+`;
+
+const TotalPayment = styled.span`
+    color: #333;
+    font-weight: 700;
+    font-size: 18px;
 `;
 
 const CancellationNotice = styled.p`
@@ -597,7 +623,11 @@ const ReservationDetail = () => {
                                     <MessageIcon />
                                     채팅하기
                                 </SmallActionButton>
-                                <SmallActionButton variant="primary" onClick={handleSettlementClick}>
+                                <SmallActionButton 
+                                    variant="primary" 
+                                    onClick={handleSettlementClick}
+                                    disabled={reservation.status === 'COMPLETED_PAYMENT'}
+                                >
                                     <MoneyIcon />
                                     정산하기
                                 </SmallActionButton>
@@ -631,20 +661,39 @@ const ReservationDetail = () => {
                             <InfoContainer>
                                 <Labels>
                                     <span>선결제 금액</span>
-                                    <span>후결제 금액</span>
+                                    {reservation.status === 'COMPLETED_PAYMENT' && (
+                                        <>
+                                            <span>후결제 금액</span>
+                                            <span>최종 결제 금액</span>
+                                        </>
+                                    )}
+                                    {reservation.status !== 'COMPLETED_PAYMENT' && (
+                                        <span>후결제 금액</span>
+                                    )}
                                 </Labels>
                                 <Values>
                                     <span>{reservation.prepaidAmount.toLocaleString()}원</span>
-                                    <PendingPayment>
-                                        {reservation.status === 'PENDING_PAYMENT' ? '호스트 승인대기' : '정산예정'}
-                                    </PendingPayment>
+                                    {reservation.status === 'COMPLETED_PAYMENT' ? (
+                                        <>
+                                            <span>{reservation.postpaidAmount.toLocaleString()}원</span>
+                                            <TotalPayment>
+                                                {(reservation.prepaidAmount + reservation.postpaidAmount).toLocaleString()}원
+                                            </TotalPayment>
+                                        </>
+                                    ) : (
+                                        <PendingPayment>
+                                            {reservation.status === 'PENDING_PAYMENT' ? '호스트 승인대기' : '정산예정'}
+                                        </PendingPayment>
+                                    )}
                                 </Values>
                             </InfoContainer>
                             
                             <ActionSection>
-                                <CancellationNotice>
-                                    예약 취소는 채팅으로 문의해주세요.
-                                </CancellationNotice>
+                                {reservation.status !== 'COMPLETED_PAYMENT' && (
+                                    <CancellationNotice>
+                                        예약 취소는 채팅으로 문의해주세요.
+                                    </CancellationNotice>
+                                )}
                                 <CancelButton disabled>
                                     예약취소
                                 </CancelButton>

@@ -171,16 +171,26 @@ const SmallActionButton = styled.button`
     border-radius: 8px;
     font-size: clamp(16px, 0.9vw, 18px);
     font-weight: 600;
-    cursor: pointer;
+    cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
     border: none;
-    background: ${props => props.variant === 'primary' ? '#FFBC39' : '#F6F6F6'};
-    color: ${props => props.variant === 'primary' ? 'white' : '#666'};
+    background: ${props => {
+        if (props.disabled) return '#F6F6F6';
+        return props.variant === 'primary' ? '#FFBC39' : '#F6F6F6';
+    }};
+    color: ${props => {
+        if (props.disabled) return '#BDBDBD';
+        return props.variant === 'primary' ? 'white' : '#666';
+    }};
+    opacity: ${props => props.disabled ? 0.7 : 1};
 
     svg {
         width: clamp(30px, 3.5vw, 40px);
         height: clamp(30px, 3.5vw, 40px);
         path {
-            fill: ${props => props.variant === 'primary' ? 'white' : '#666'};
+            fill: ${props => {
+                if (props.disabled) return '#BDBDBD';
+                return props.variant === 'primary' ? 'white' : '#666';
+            }};
         }
     }
 
@@ -188,14 +198,24 @@ const SmallActionButton = styled.button`
         width: clamp(30px, 3.5vw, 40px);
         height: clamp(30px, 3.5vw, 40px);
         object-fit: contain;
+        opacity: ${props => props.disabled ? 0.7 : 1};
     }
 
     &:hover {
-        background: ${props => props.variant === 'primary' ? '#FFB020' : '#EEEEEE'};
-        color: ${props => props.variant === 'primary' ? 'white' : '#333'};
+        background: ${props => {
+            if (props.disabled) return '#F6F6F6';
+            return props.variant === 'primary' ? '#FFB020' : '#EEEEEE';
+        }};
+        color: ${props => {
+            if (props.disabled) return '#BDBDBD';
+            return props.variant === 'primary' ? 'white' : '#333';
+        }};
         
         svg path {
-            fill: ${props => props.variant === 'primary' ? 'white' : '#333'};
+            fill: ${props => {
+                if (props.disabled) return '#BDBDBD';
+                return props.variant === 'primary' ? 'white' : '#333';
+            }};
         }
     }
     
@@ -262,6 +282,12 @@ const Values = styled.div`
 const PendingPayment = styled.span`
     color: #FF7926;
     font-weight: 700;
+`;
+
+const TotalPayment = styled.span`
+    color: #333;
+    font-weight: 700;
+    font-size: 18px;
 `;
 
 const CancellationNotice = styled.p`
@@ -603,7 +629,11 @@ const HostReservationDetail = () => {
                                     <MessageIcon />
                                     채팅하기
                                 </SmallActionButton>
-                                <SmallActionButton variant="primary" onClick={handleCompletedPayment}>
+                                <SmallActionButton 
+                                    variant="primary" 
+                                    onClick={handleCompletedPayment}
+                                    disabled={reservationData.status === 'COMPLETED_PAYMENT'}
+                                >
                                     <MoneyIcon />
                                     정산완료
                                 </SmallActionButton>
@@ -637,27 +667,46 @@ const HostReservationDetail = () => {
                             <InfoContainer>
                                 <Labels>
                                     <span>선결제 금액</span>
-                                    <span>후결제 금액</span>
+                                    {reservationData.status === 'COMPLETED_PAYMENT' && (
+                                        <>
+                                            <span>후결제 금액</span>
+                                            <span>최종 결제 금액</span>
+                                        </>
+                                    )}
+                                    {reservationData.status !== 'COMPLETED_PAYMENT' && (
+                                        <span>후결제 금액</span>
+                                    )}
                                 </Labels>
                                 <Values>
                                     <span>{reservationData.prepaidAmount.toLocaleString()}원</span>
-                                    <PendingPayment>
-                                        {reservationData.status === 'PENDING_PAYMENT' ? '호스트 승인대기' : '정산예정'}
-                                    </PendingPayment>
+                                    {reservationData.status === 'COMPLETED_PAYMENT' ? (
+                                        <>
+                                            <span>{reservationData.postpaidAmount.toLocaleString()}원</span>
+                                            <TotalPayment>
+                                                {(reservationData.prepaidAmount + reservationData.postpaidAmount).toLocaleString()}원
+                                            </TotalPayment>
+                                        </>
+                                    ) : (
+                                        <PendingPayment>
+                                            {reservationData.status === 'PENDING_PAYMENT' ? '호스트 승인대기' : '정산예정'}
+                                        </PendingPayment>
+                                    )}
                                 </Values>
                             </InfoContainer>
                             
                             <ActionSection>
-                                <CancellationNotice>
-                                    {reservationData.status === 'PENDING_PAYMENT'
-                                        ? '입금된 정산금을 확인한 뒤 정산완료를 클릭해주세요.'
-                                        : '예약자에게 채팅으로 사전에 고지한 뒤 예약 취소를 해주시길 바랍니다.'}
-                                </CancellationNotice>
+                                {reservationData.status !== 'COMPLETED_PAYMENT' && (
+                                    <CancellationNotice>
+                                        {reservationData.status === 'PENDING_PAYMENT'
+                                            ? '입금된 정산금을 확인한 뒤 정산완료를 클릭해주세요.'
+                                            : '예약자에게 채팅으로 사전에 고지한 뒤 예약 취소를 해주시길 바랍니다.'}
+                                    </CancellationNotice>
+                                )}
                                 <CancelButton
-                                    disabled={reservationData.status === 'PENDING_PAYMENT' || reservationData.status === 'COMPLETED_PAYMENT'}
+                                    disabled={reservationData.status === 'COMPLETED_PAYMENT'}
                                     style={
-                                        (reservationData.status === 'PENDING_PAYMENT' || reservationData.status === 'COMPLETED_PAYMENT')
-                                            ? { opacity: 0.7, cursor: 'not-allowed' }
+                                        reservationData.status === 'COMPLETED_PAYMENT'
+                                            ? { opacity: 0.7, cursor: 'not-allowed', backgroundColor: '#F6F6F6', color: '#BDBDBD' }
                                             : {}
                                     }
                                 >

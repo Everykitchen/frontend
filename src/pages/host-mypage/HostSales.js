@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../api/axiosInstance';
 import HostSideBar from '../../components/HostSideBar';
 import { ReactComponent as CheckIcon } from '../../assets/icons/check.svg';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
@@ -71,7 +71,7 @@ const KitchenItem = styled.div`
     padding: 16px;
     cursor: pointer;
     color: var(--grey-1, #9B9B9B);
-    font-size: 22px;
+    font-size: 19px;
     font-weight: 400;
     letter-spacing: -0.44px;
     
@@ -208,11 +208,55 @@ const YearSelectWrapper = styled.div`
     margin-bottom: 16px;
 `;
 
-const YearSelect = styled.select`
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 12px;
+const DropdownWrapper = styled.div`
+    position: relative;
+    width: 120px;
+    font-size: 14px;
+`;
+
+const DropdownButton = styled.button`
+    width: 100%;
+    height: 32px;
+    background: #fff;
+    border: 1px solid
+        ${({ value }) => value === 'recent' ? '#999' : '#ffa500'};
+    border-radius: 6px;
+    padding: 0 12px;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: ${({ value }) => value === 'recent' ? '#888' : '#222'};
+    font-size: 14px;
+
+`;
+
+const DropdownList = styled.ul`
+    position: absolute;
+    top: 38px;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #ffa500;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    z-index: 20;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+`;
+
+const DropdownItem = styled.li`
+    padding: 10px 14px;
+    cursor: pointer;
+    color: ${({ selected }) => (selected ? "#ffa500" : "#222")};
+    background: ${({ selected }) => (selected ? "#fff8e1" : "#fff")};
+    font-weight: ${({ selected }) => (selected ? 700 : 400)};
+    &:hover {
+        background: #fff3d1;
+        color: #ffa500;
+    }
 `;
 
 const KitchenHeader = styled.div`
@@ -222,9 +266,8 @@ const KitchenHeader = styled.div`
     padding: 16px;
     color: #767676;
     font-size: 14px;
-
     svg path {
-        fill: ${props => props.selected ? '#FF7926' : '#9B9B9B'};
+        fill: ${({ selected }) => selected ? '#FF7926' : '#9B9B9B'};
     }
 `;
 
@@ -267,130 +310,147 @@ const CustomTooltip = ({ active, payload, label }) => {
 const HostSales = () => {
     const navigate = useNavigate();
     const [selectedKitchens, setSelectedKitchens] = useState([]);
+    const [kitchenId, setKitchenId] = useState(null);
     const [kitchens, setKitchens] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
-    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const [selectedYear, setSelectedYear] = useState('recent');
     const [reservations, setReservations] = useState([]);
     const [totalPages, setTotalPages] = useState(1);
     const [monthlyData, setMonthlyData] = useState([]);
     const itemsPerPage = 5;
-
-    // 임시 데이터
-    const tempKitchens = [
-        { kitchenId: 123, kitchenName: "파이브잇 쿠킹스튜디오 홍대점" },
-        { kitchenId: 124, kitchenName: "마이 키친" },
-        { kitchenId: 125, kitchenName: "쿠킹 아카데미 강남센터" },
-        { kitchenId: 126, kitchenName: "달달한 주방" },
-        { kitchenId: 127, kitchenName: "쿠킹 스튜디오 더 테이블" },
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const dropdownRef = useRef();
+    const currentYear = new Date().getFullYear();
+    const yearOptions = [
+        { value: 'recent', label: '최근' },
+        { value: currentYear, label: `${currentYear}년` },
+        { value: currentYear - 1, label: `${currentYear - 1}년` },
+        { value: currentYear - 2, label: `${currentYear - 2}년` },
     ];
 
-    const tempReservations = [
-        { reservationId: "20240301", userName: "문민선", date: "2024-03-26" },
-        { reservationId: "20240302", userName: "김태희", date: "2024-03-25" },
-        { reservationId: "20240303", userName: "전지현", date: "2024-03-24" },
-        { reservationId: "20240304", userName: "송혜교", date: "2024-03-23" },
-        { reservationId: "20240305", userName: "한가인", date: "2024-03-22" },
-        { reservationId: "20240306", userName: "이영애", date: "2024-03-21" },
-        { reservationId: "20240307", userName: "수지", date: "2024-03-20" },
-        { reservationId: "20240308", userName: "아이유", date: "2024-03-19" },
-        { reservationId: "20240309", userName: "윤아", date: "2024-03-18" },
-        { reservationId: "20240310", userName: "태연", date: "2024-03-17" },
-        { reservationId: "20240311", userName: "서현", date: "2024-03-16" },
-        { reservationId: "20240312", userName: "티파니", date: "2024-03-15" },
-        { reservationId: "20240313", userName: "제시카", date: "2024-03-14" },
-        { reservationId: "20240314", userName: "써니", date: "2024-03-13" },
-        { reservationId: "20240315", userName: "효연", date: "2024-03-12" },
-        { reservationId: "20240316", userName: "유리", date: "2024-03-11" },
-        { reservationId: "20240317", userName: "수영", date: "2024-03-10" },
-        { reservationId: "20240318", userName: "윤아", date: "2024-03-09" },
-    ];
-
-    const tempMonthlyData = [
-        { month: "1월", revenue: 150 },
-        { month: "2월", revenue: 120 },
-        { month: "3월", revenue: 180 },
-        { month: "4월", revenue: 160 },
-        { month: "5월", revenue: 200 },
-        { month: "6월", revenue: 140 },
-        { month: "7월", revenue: 220 },
-        { month: "8월", revenue: 190 },
-        { month: "9월", revenue: 170 },
-        { month: "10월", revenue: 210 },
-        { month: "11월", revenue: 230 },
-        { month: "12월", revenue: 250 },
-    ];
-
-    // API 호출 함수들 (현재는 주석처리)
+    // 주방 목록 조회
     const fetchKitchens = async () => {
         try {
-            // const response = await axios.get('/api/host/sales');
-            // setKitchens(response.data.kitchen);
-            // if (response.data.kitchen.length > 0) {
-            //     setSelectedKitchens([response.data.kitchen[0].kitchenId]);
-            // }
-            
-            // 임시 데이터 사용
-            setKitchens(tempKitchens);
-            setSelectedKitchens([tempKitchens[0].kitchenId]);
+            const response = await api.get('/api/host/my-kitchens');
+            setKitchens(response.data);
+            // 초기에는 첫 번째 주방만 선택
+            if (response.data.length > 0) {
+                setSelectedKitchens([response.data[0].kitchenId]);
+                setKitchenId(response.data[0].kitchenId);
+            }
         } catch (error) {
             console.error('주방 정보 조회 실패:', error);
         }
     };
 
-    const fetchReservations = async (kitchenId, page) => {
+    // 미정산 내역 조회
+    const fetchReservations = async (page) => {
         try {
-            // const response = await axios.get(`/api/host/awaiting-payment?kitchenId=${kitchenId}&page=${page}`);
-            // setReservations(response.data.reservations);
-            // setTotalPages(response.data.totalPages);
-            
-            // 임시 데이터 사용 - 페이지당 5개씩 표시
-            const startIndex = (page - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const filteredReservations = tempReservations.slice(startIndex, endIndex);
-            setReservations(filteredReservations);
-            setTotalPages(Math.ceil(tempReservations.length / itemsPerPage));
+            const params = {
+                page: page - 1,
+                size: itemsPerPage
+            };
+            if (kitchenId) {
+                params.kitchenId = kitchenId;
+            }
+            const response = await api.get('/host/awaiting-payment', { params });
+            // contents가 배열 안의 배열 형태로 오므로 첫 번째 배열을 사용
+            setReservations(response.data.contents[0] || []);
+            setTotalPages(response.data.totalPages);
         } catch (error) {
             console.error('미정산 내역 조회 실패:', error);
         }
     };
 
-    const fetchMonthlyData = async (kitchenId, year) => {
+    // 통계 데이터 조회
+    const fetchStatistics = async () => {
         try {
-            // const response = await axios.get(`/api/host/graph?kitchenId=${kitchenId}&year=${year}`);
-            // const formattedData = response.data.monthlyRevenue.map(item => ({
-            //     month: item.month.replace('Jan', '1월').replace('Feb', '2월')... // 월 변환
-            //     revenue: item.revenue / 10000 // 만원 단위로 변환
-            // }));
-            // setMonthlyData(formattedData);
+            // 오늘 날짜를 YYYY-MM-DD 형식으로 가져오기
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const todayStr = `${year}-${month}-${day}`;
+
+            const params = {
+                // '최근' 선택 시 오늘 날짜, 그 외에는 선택된 연도의 12월 31일
+                end: selectedYear === 'recent' ? todayStr : selectedYear === 'recent' ? todayStr : `${selectedYear}-12-31`,
+                interval: 'MONTH'
+            };
+
+            if (kitchenId) {
+                params.kitchenId = kitchenId;
+            }
+
+            console.log('통계 API 파라미터:', params);
+
+            const response = await api.get('/api/host/statistics', { params });
             
-            // 임시 데이터 사용
-            setMonthlyData(tempMonthlyData);
+            const formattedData = response.data.map(item => {
+                const [year, month] = item.term.split('-');
+                if (month === '01') {
+                    return {
+                        month: `${year.slice(2)}.01`, // X축용
+                        monthLabel: `${year.slice(2)}.01`, // 그래프용
+                        tableLabel: `${year.slice(2)}년 1월`, // 표용
+                        revenue: Math.round(item.revenue / 10000)
+                    };
+                } else {
+                    return {
+                        month: `${parseInt(month, 10)}`, // X축용
+                        monthLabel: `${parseInt(month, 10)}`,
+                        tableLabel: `${parseInt(month, 10)}월`,
+                        revenue: Math.round(item.revenue / 10000)
+                    };
+                }
+            });
+            
+            setMonthlyData(formattedData);
         } catch (error) {
-            console.error('매출 그래프 데이터 조회 실패:', error);
+            console.error('통계 데이터 조회 실패:', error);
         }
     };
+
+    // 드롭다운 외부 클릭 시 닫기
+    useEffect(() => {
+        const handleClick = (e) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+                setDropdownOpen(false);
+            }
+        };
+        if (dropdownOpen) document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, [dropdownOpen]);
 
     useEffect(() => {
         fetchKitchens();
     }, []);
 
     useEffect(() => {
-        if (selectedKitchens.length > 0) {
-            // 실제 API에서는 선택된 모든 주방의 데이터를 조합해야 함
-            fetchReservations(selectedKitchens[0], currentPage);
-            fetchMonthlyData(selectedKitchens[0], selectedYear);
+        if (kitchens.length > 0) {
+            fetchReservations(currentPage);
+            fetchStatistics();
         }
-    }, [selectedKitchens, currentPage, selectedYear]);
+    }, [selectedKitchens, kitchenId, currentPage, selectedYear]);
 
-    const handleKitchenSelect = (kitchenId) => {
-        if (kitchenId === 'all') {
-            setSelectedKitchens(selectedKitchens.length === kitchens.length ? [] : kitchens.map(k => k.kitchenId));
+    const handleKitchenSelect = (kitchenIdClicked) => {
+        if (kitchenIdClicked === 'all') {
+            // 전체선택 토글
+            if (selectedKitchens.length === kitchens.length) {
+                // 전체선택 해제 → 첫 주방만 선택
+                if (kitchens.length > 0) {
+                    setSelectedKitchens([kitchens[0].kitchenId]);
+                    setKitchenId(kitchens[0].kitchenId);
+                }
+            } else {
+                // 전체선택 → 모두 선택, kitchenId는 null
+                setSelectedKitchens(kitchens.map(k => k.kitchenId));
+                setKitchenId(null);
+            }
         } else {
-            setSelectedKitchens(prev => 
-                prev.includes(kitchenId) 
-                    ? prev.filter(id => id !== kitchenId)
-                    : [...prev, kitchenId] // 다중 선택 가능하도록 수정
-            );
+            // 단일 주방 선택
+            setSelectedKitchens([kitchenIdClicked]);
+            setKitchenId(kitchenIdClicked);
         }
     };
 
@@ -407,6 +467,34 @@ const HostSales = () => {
         return `${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
     };
 
+    // BarChart x축 라벨 홀수월만 표시
+    const oddMonthLabels = ['01', '03', '05', '07', '09', '11'];
+    const xTickFormatter = (tick) => {
+        if (tick.includes('.')) return tick; // 25.01
+        if (oddMonthLabels.includes(tick.padStart(2, '0'))) return tick;
+        return '';
+    };
+
+    // 드롭다운 화살표 색상 조건부 스타일
+    const getDropdownArrowColor = (selectedYear, dropdownOpen) => {
+        return selectedYear === 'recent' && !dropdownOpen ? '#888' : '#ffa500';
+    };
+
+    // 전체선택/주방 아이콘 색상 조건
+    const isAllSelected = selectedKitchens.length === kitchens.length && kitchens.length > 0;
+
+    // 전체선택 텍스트 버튼 스타일 추가
+    const SelectAllButton = styled.button`
+        background: none;
+        border: none;
+        color: ${({ active }) => active ? '#FF7926' : '#9B9B9B'};
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 0 0 0 0;
+        margin-bottom: 8px;
+    `;
+
     return (
         <Container>
             <HostSideBar />
@@ -415,17 +503,16 @@ const HostSales = () => {
                     <KitchenSection>
                         <SectionTitle>운영 중인 주방</SectionTitle>
                         <KitchenList>
-                            <SelectAllLabel>전체선택</SelectAllLabel>
-                            <KitchenHeader selected={selectedKitchens.length === kitchens.length}>
+                            <KitchenHeader>
                                 <KitchenName>주방명</KitchenName>
-                                <CheckIconWrapper>
-                                    <CheckIcon 
-                                        onClick={() => handleKitchenSelect('all')} 
-                                        style={{ cursor: 'pointer' }}
-                                    />
-                                </CheckIconWrapper>
+                                <SelectAllButton
+                                    active={isAllSelected}
+                                    onClick={() => handleKitchenSelect('all')}
+                                >
+                                    전체선택
+                                </SelectAllButton>
                             </KitchenHeader>
-                            {kitchens.map(kitchen => (
+                            {[...kitchens].map((kitchen) => (
                                 <KitchenItem
                                     key={kitchen.kitchenId}
                                     onClick={() => handleKitchenSelect(kitchen.kitchenId)}
@@ -433,7 +520,7 @@ const HostSales = () => {
                                 >
                                     <span className="kitchen-name">{kitchen.kitchenName}</span>
                                     <CheckIconWrapper>
-                                        <CheckIcon />
+                                        <CheckIcon style={{ fill: selectedKitchens.includes(kitchen.kitchenId) ? '#FF7926' : '#9B9B9B' }} />
                                     </CheckIconWrapper>
                                 </KitchenItem>
                             ))}
@@ -490,35 +577,59 @@ const HostSales = () => {
                 <BottomSection>
                     <ChartSection>
                         <YearSelectWrapper>
-                            <YearSelect
-                                value={selectedYear}
-                                onChange={(e) => setSelectedYear(Number(e.target.value))}
-                            >
-                                <option value={2024}>2024년</option>
-                                <option value={2023}>2023년</option>
-                            </YearSelect>
+                            <DropdownWrapper ref={dropdownRef}>
+                                <DropdownButton
+                                    onClick={() => setDropdownOpen((v) => !v)}
+                                    value={selectedYear}
+                                >
+                                    {yearOptions.find(opt => opt.value === selectedYear)?.label || '연도 선택'}
+                                    <span style={{ fontSize: 14, marginLeft: 8, color: getDropdownArrowColor(selectedYear, dropdownOpen) }}>{dropdownOpen ? '▲' : '▼'}</span>
+                                </DropdownButton>
+                                {dropdownOpen && (
+                                    <DropdownList>
+                                        {yearOptions.map(opt => (
+                                            <DropdownItem
+                                                key={opt.value}
+                                                selected={selectedYear === opt.value}
+                                                onClick={() => {
+                                                    setSelectedYear(opt.value);
+                                                    setDropdownOpen(false);
+                                                }}
+                                            >
+                                                {opt.label}
+                                            </DropdownItem>
+                                        ))}
+                                    </DropdownList>
+                                )}
+                            </DropdownWrapper>
                         </YearSelectWrapper>
-                        <BarChart
-                            width={400}
-                            height={300}
-                            data={monthlyData}
-                            margin={{
-                                top: 5,
-                                right: 20,
-                                left: 20,
-                                bottom: 5,
-                            }}
-                            barSize={12}
-                        >
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="month" />
-                            <YAxis />
-                            <Tooltip 
-                                cursor={false}
-                                content={<CustomTooltip />}
-                            />
-                            <Bar dataKey="revenue" fill="#FFBC39" />
-                        </BarChart>
+                        <div style={{ position: 'relative', width: 450, height: 320 }}>
+                            <BarChart
+                                width={450}
+                                height={300}
+                                data={monthlyData}
+                                margin={{
+                                    top: 5,
+                                    right: 20,
+                                    left: 20,
+                                    bottom: 30,
+                                }}
+                                barSize={12}
+                            >
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="monthLabel" tickFormatter={xTickFormatter} />
+                                <YAxis />
+                                <Tooltip 
+                                    cursor={false}
+                                    content={<CustomTooltip />}
+                                />
+                                <Bar dataKey="revenue" fill="#FFBC39" />
+                            </BarChart>
+                            {/* y축 정보 */}
+                            <div style={{ position: 'absolute', left: 10, top: 0, fontSize: 13, color: '#888' }}>매출액</div>
+                            {/* x축 정보 */}
+                            <div style={{ position: 'absolute', right: 0, bottom: 30, fontSize: 13, color: '#888' }}>월</div>
+                        </div>
                     </ChartSection>
 
                     <TableSection>
@@ -530,7 +641,7 @@ const HostSales = () => {
                                 </TableRow>
                                 {monthlyData.slice(0, 6).map((data, index) => (
                                     <TableRow key={index}>
-                                        <span>{data.month}</span>
+                                        <span>{data.tableLabel}</span>
                                         <span>{data.revenue.toLocaleString()}만원</span>
                                     </TableRow>
                                 ))}
@@ -542,12 +653,15 @@ const HostSales = () => {
                                 </TableRow>
                                 {monthlyData.slice(6).map((data, index) => (
                                     <TableRow key={index + 6}>
-                                        <span>{data.month}</span>
+                                        <span>{data.tableLabel}</span>
                                         <span>{data.revenue.toLocaleString()}만원</span>
                                     </TableRow>
                                 ))}
                             </div>
                         </SalesTable>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16, width: '100%' }}>
+                            <span style={{ fontWeight: 600, fontSize: 16, textAlign: 'right', width: '100%' }}>총 매출액: {monthlyData.reduce((sum, d) => sum + d.revenue, 0).toLocaleString()}만원</span>
+                        </div>
                     </TableSection>
                 </BottomSection>
             </ContentWrapper>
