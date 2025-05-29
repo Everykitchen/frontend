@@ -86,64 +86,63 @@ const DatePickerWrapper = styled.div`
     .react-datepicker__day-names {
         margin-top: 4px;
     }
-  .react-datepicker__day-names {
-    margin-top: 4px;
-  }
-
-
-  .react-datepicker__day-name {
-    color: #666;
-    font-size: 12px;
-    width: 30px;
-    line-height: 28px;
-    margin: 0px;
-    margin-top: 15px;
-    margin-left: 5px;
-    &:first-child {
-      color: #ff0000;
-    }
-  }
-
-  .react-datepicker__day {
-    width: 30px;
-    height: 28px;
-    line-height: 28px;
-    margin: 2px 2px;
-    font-size: 12px;
-    color: #333;
-    
-    &:hover {
-      background-color: #fff5e6;
-      border-radius: 50%;
+    .react-datepicker__day-names {
+        margin-top: 4px;
     }
 
-    &:first-child {
-      color: #ff0000;
+    .react-datepicker__day-name {
+        color: #666;
+        font-size: 12px;
+        width: 30px;
+        line-height: 28px;
+        margin: 0px;
+        margin-top: 15px;
+        margin-left: 5px;
+        &:first-child {
+            color: #ff0000;
+        }
     }
-  }
 
-  .react-datepicker__day--selected {
-    background-color: #ffbc39;
-    color: white;
-    border-radius: 50%;
-    
-    &:hover {
-      background-color: #ffbc39;
+    .react-datepicker__day {
+        width: 30px;
+        height: 28px;
+        line-height: 28px;
+        margin: 2px 2px;
+        font-size: 12px;
+        color: #333;
+
+        &:hover {
+            background-color: #fff5e6;
+            border-radius: 50%;
+        }
+
+        &:first-child {
+            color: #ff0000;
+        }
     }
 
-    &:first-child {
-      color: white;
-    }
-  }
+    .react-datepicker__day--selected {
+        background-color: #ffbc39;
+        color: white;
+        border-radius: 50%;
 
-  .react-datepicker__day--disabled {
-    color: #ccc;
-    cursor: default;
+        &:hover {
+            background-color: #ffbc39;
+        }
 
-    &:first-child {
-      color: #ccc;
+        &:first-child {
+            color: white;
+        }
     }
-  }
+
+    .react-datepicker__day--disabled {
+        color: #ccc;
+        cursor: default;
+
+        &:first-child {
+            color: #ccc;
+        }
+    }
 `;
 
 const TimeContainer = styled.div`
@@ -524,155 +523,194 @@ const ReservationSidebar = ({
         }
     };
 
-  const handleConfirm = async () => {
-    try {
-      console.log("예약 요청 payload:", {
-        availableIds: selectedIds.map(id => Number(id)),
-        clientNumber: count,
-      });
-      await axios.post(`/api/user/kitchen/${kitchenData.id}/reservation`, {
-        availableIds: selectedIds.map(id => Number(id)),
-        clientNumber: count,
-      });
-      setIsModalOpen(false);
-      navigate("/mypage/reservations");
-    } catch (error) {
-      alert("예약에 실패했습니다. 다시 시도해주세요.");
-      console.error("예약 에러:", error);
-      if (error.response) {
-        console.error("서버 응답:", error.response.data);
-        alert("서버 응답: " + JSON.stringify(error.response.data));
-      }
-    }
-  };
+    const filterDates = (date) => {
+        const days = [
+            "SUNDAY",
+            "MONDAY",
+            "TUESDAY",
+            "WEDNESDAY",
+            "THURSDAY",
+            "FRIDAY",
+            "SATURDAY",
+        ];
+        const dayName = days[date.getDay()];
+        const priceInfo = kitchenData.defaultPrice.find(
+            (p) => p.week === dayName
+        );
+        return priceInfo ? priceInfo.enabled : false;
+    };
 
-  const filterDates = (date) => {
-    const days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
-    const dayName = days[date.getDay()];
-    const priceInfo = kitchenData.defaultPrice.find(p => p.week === dayName);
-    return priceInfo ? priceInfo.enabled : false;
-  };
-
-  return (
-    <RightSection>
-      <ScrollableContent>
-        <SectionTitle>예약 날짜 선택</SectionTitle>
-        <DatePickerWrapper>
-          <DatePicker
-            selected={startDate}
-            onChange={(date) => {
-              setStartDate(date);
-              setStartBlock(null);
-              setEndBlock(null);
-              setSelectedIds([]);
-              setErrorMessage("");
-            }}
-            minDate={new Date()}
-            maxDate={addYears(new Date(), 1)}
-            inline
-            locale={ko}
-            dateFormat="yyyy년 MM월"
-            placeholderText="날짜를 선택해주세요"
-            filterDate={filterDates}
-          />
-        </DatePickerWrapper>
-        <TimeContainer>
-          <SectionTitle>예약 시간 선택</SectionTitle>
-          <TimeScrollContainer>
-            <div style={{ display: 'flex', paddingTop: '20px' }}>
-              <div style={{ width: '15px', position: 'relative' }}>
-                <FirstTimeLabel>{openHour}</FirstTimeLabel>
-              </div>
-              {timeBlocks.map((block, i) => {
-                const isSelected = startBlock !== null && endBlock !== null && i >= startBlock && i <= endBlock;
-                const isUnavailable = block.unavailable;
-                const isDisabled = !isDateSelected;
-                return (
-                  <TimeBlockContainer key={block.availableId || i}>
-                    {i < timeBlocks.length && (
-                      <>
-                        <TimeLabel>{block.hour + 1}</TimeLabel>
-                        <TimeBlock
-                          selected={isSelected}
-                          unavailable={isUnavailable}
-                          disabled={isDisabled}
-                          onClick={() => handleTimeBlockClick(i)}
-                        />
-                      </>
+    return (
+        <RightSection>
+            <ScrollableContent>
+                <SectionTitle>예약 날짜 선택</SectionTitle>
+                <DatePickerWrapper>
+                    <DatePicker
+                        selected={startDate}
+                        onChange={(date) => {
+                            setStartDate(date);
+                            setStartBlock(null);
+                            setEndBlock(null);
+                            setSelectedIds([]);
+                            setErrorMessage("");
+                        }}
+                        minDate={new Date()}
+                        maxDate={addYears(new Date(), 1)}
+                        inline
+                        locale={ko}
+                        dateFormat="yyyy년 MM월"
+                        placeholderText="날짜를 선택해주세요"
+                        filterDate={filterDates}
+                    />
+                </DatePickerWrapper>
+                <TimeContainer>
+                    <SectionTitle>예약 시간 선택</SectionTitle>
+                    <TimeScrollContainer>
+                        <div style={{ display: "flex", paddingTop: "20px" }}>
+                            <div
+                                style={{ width: "15px", position: "relative" }}
+                            >
+                                <FirstTimeLabel>{openHour}</FirstTimeLabel>
+                            </div>
+                            {timeBlocks.map((block, i) => {
+                                const isSelected =
+                                    startBlock !== null &&
+                                    endBlock !== null &&
+                                    i >= startBlock &&
+                                    i <= endBlock;
+                                const isUnavailable = block.unavailable;
+                                const isDisabled = !isDateSelected;
+                                return (
+                                    <TimeBlockContainer
+                                        key={block.availableId || i}
+                                    >
+                                        {i < timeBlocks.length && (
+                                            <>
+                                                <TimeLabel>
+                                                    {block.hour + 1}
+                                                </TimeLabel>
+                                                <TimeBlock
+                                                    selected={isSelected}
+                                                    unavailable={isUnavailable}
+                                                    disabled={isDisabled}
+                                                    onClick={() =>
+                                                        handleTimeBlockClick(i)
+                                                    }
+                                                />
+                                            </>
+                                        )}
+                                    </TimeBlockContainer>
+                                );
+                            })}
+                            <div style={{ width: "20px" }} />
+                        </div>
+                    </TimeScrollContainer>
+                    {errorMessage && (
+                        <ErrorMessage>{errorMessage}</ErrorMessage>
                     )}
-                  </TimeBlockContainer>
-                );
-              })}
-              <div style={{ width: '20px' }} />
-            </div>
-          </TimeScrollContainer>
-          {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
-        </TimeContainer>
-        <PriceInfo>
-          <PriceItem>
-            <ColorIndicator color="#f6f6f6" />
-            <span>가능</span>
-          </PriceItem>
-          <PriceItem>
-            <ColorIndicator color="#b8b8b8" />
-            <span>예약불가</span>
-          </PriceItem>
-          <PriceItem>
-            <ColorIndicator color="#ffbc39" />
-            <span>선택</span>
-          </PriceItem>
-        </PriceInfo>
-        <TimeRange>{renderReservationTime()}</TimeRange>
-        <div style={{ marginTop: 32 }}>
-          <SectionTitle>예약 인원</SectionTitle>
-          <CounterWrapper>
-            <CounterButton 
-              onClick={() => setCount((c) => Math.max(kitchenData.baseClientNumber, c - 1))}
-              disabled={count <= kitchenData.baseClientNumber}
-            >
-              -
-            </CounterButton>
-            <div style={{ fontSize: '12px' }}>{count}</div>
-            <CounterButton 
-              onClick={() => setCount((c) => Math.min(kitchenData.maxClientNumber, c + 1))}
-              disabled={count >= kitchenData.maxClientNumber}
-            >
-              +
-            </CounterButton>
-          </CounterWrapper>
-        </div>
-        <div style={{ marginTop: 32 }}>
-          <div style={{ fontSize: 12, color: "#666" }}>공간 대여료</div>
-          <h2 style={{ color: "#ffbc39", margin: "4px 0", fontSize: "20px", fontWeight: "700" }}>
-            ₩ {calculateTotalPrice().toLocaleString()}
-          </h2>
-          {startDate && startBlock !== null && endBlock !== null && (
-          <div style={{ fontSize: 10, color: "#666" }}>
-              {`(${getDayPrice(startDate).toLocaleString()}원/시간 × ${endBlock - startBlock + 1}시간 × ${count}명)`}
-          </div>
-          )}
-        </div>
-        <ReserveButton 
-          disabled={startBlock === null || endBlock === null || selectedIds.length === 0}
-          onClick={handleReserveClick}
-        >
-          예약하기
-        </ReserveButton>
-      </ScrollableContent>
-      <ReservationModal
-        isOpen={isModalOpen}
-        onClose={handleConfirm}
-        kitchenName={kitchenData.kitchenName}
-        reservationDate={startDate}
-        startTime={startBlock !== null ? timeBlocks[startBlock].hour : null}
-        endTime={endBlock !== null ? timeBlocks[endBlock].hour + 1 : null}
-        guestCount={count}
-        totalPrice={calculateTotalPrice()}
-        selectedIds={selectedIds}
-        userName={userName}
-      />
-    </RightSection>
-  );
+                </TimeContainer>
+                <PriceInfo>
+                    <PriceItem>
+                        <ColorIndicator color="#f6f6f6" />
+                        <span>가능</span>
+                    </PriceItem>
+                    <PriceItem>
+                        <ColorIndicator color="#b8b8b8" />
+                        <span>예약불가</span>
+                    </PriceItem>
+                    <PriceItem>
+                        <ColorIndicator color="#ffbc39" />
+                        <span>선택</span>
+                    </PriceItem>
+                </PriceInfo>
+                <TimeRange>{renderReservationTime()}</TimeRange>
+                <div style={{ marginTop: 32 }}>
+                    <SectionTitle>예약 인원</SectionTitle>
+                    <CounterWrapper>
+                        <CounterButton
+                            onClick={() =>
+                                setCount((c) =>
+                                    Math.max(
+                                        kitchenData.baseClientNumber,
+                                        c - 1
+                                    )
+                                )
+                            }
+                            disabled={count <= kitchenData.baseClientNumber}
+                        >
+                            -
+                        </CounterButton>
+                        <div style={{ fontSize: "12px" }}>{count}</div>
+                        <CounterButton
+                            onClick={() =>
+                                setCount((c) =>
+                                    Math.min(kitchenData.maxClientNumber, c + 1)
+                                )
+                            }
+                            disabled={count >= kitchenData.maxClientNumber}
+                        >
+                            +
+                        </CounterButton>
+                    </CounterWrapper>
+                </div>
+                <div style={{ marginTop: 32 }}>
+                    <div style={{ fontSize: 12, color: "#666" }}>
+                        공간 대여료
+                    </div>
+                    <h2
+                        style={{
+                            color: "#ffbc39",
+                            margin: "4px 0",
+                            fontSize: "20px",
+                            fontWeight: "700",
+                        }}
+                    >
+                        ₩ {calculateTotalPrice().toLocaleString()}
+                    </h2>
+                    {startDate && startBlock !== null && endBlock !== null && (
+                        <div style={{ fontSize: 10, color: "#666" }}>
+                            {`(${getDayPrice(
+                                startDate
+                            ).toLocaleString()}원/시간 × ${
+                                endBlock - startBlock + 1
+                            }시간 × ${count}명)`}
+                        </div>
+                    )}
+                </div>
+                <ReserveButton
+                    disabled={
+                        startBlock === null ||
+                        endBlock === null ||
+                        selectedIds.length === 0
+                    }
+                    onClick={handleReserveClick}
+                >
+                    예약하기
+                </ReserveButton>
+            </ScrollableContent>
+            <ReservationModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                kitchenId={kitchenData.id}
+                kitchenName={kitchenData.kitchenName}
+                reservationDate={startDate}
+                startTime={
+                    startBlock !== null ? timeBlocks[startBlock].hour : null
+                }
+                endTime={
+                    endBlock !== null ? timeBlocks[endBlock].hour + 1 : null
+                }
+                guestCount={count}
+                totalPrice={calculateTotalPrice()}
+                selectedIds={selectedIds}
+                userName={userName}
+                accountNumber={kitchenData.accountNumber}
+                bankName={kitchenData.bankName}
+                accountHolderName={kitchenData.accountHolderName}
+                onReservationSuccess={() => navigate("/mypage/reservations")}
+            />
+        </RightSection>
+    );
 };
 
 export default ReservationSidebar;

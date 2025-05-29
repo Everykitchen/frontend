@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 import styled from "styled-components";
 import { format } from "date-fns";
 import useKakaoLink from "../../hooks/useKakaoLink";
+import axios from "../../api/axiosInstance";
 
 const ModalOverlay = styled.div`
     position: fixed;
@@ -82,6 +83,7 @@ const ConfirmButton = styled.button`
 const ReservationModal = ({
     isOpen,
     onClose,
+    kitchenId,
     kitchenName,
     reservationDate,
     startTime,
@@ -93,6 +95,7 @@ const ReservationModal = ({
     accountNumber,
     bankName,
     accountHolderName,
+    onReservationSuccess,
 }) => {
     useKakaoLink();
 
@@ -151,6 +154,27 @@ const ReservationModal = ({
         });
     };
 
+    const handleReservation = async () => {
+        try {
+            const payload = {
+                availableIds: selectedIds,
+                clientNumber: guestCount,
+            };
+
+            const response = await axios.post(
+                `/api/user/kitchen/${kitchenId}/reservation`,
+                payload
+            );
+
+            alert("예약이 완료되었습니다.");
+            if (onReservationSuccess) onReservationSuccess(response.data); // 성공 콜백 실행
+            onClose();
+        } catch (error) {
+            console.error("예약 실패:", error);
+            alert("예약에 실패했습니다. 다시 시도해주세요.");
+        }
+    };
+
     // Portal을 사용하여 모달을 root 레벨에서 렌더링
     return ReactDOM.createPortal(
         <ModalOverlay onClick={onClose}>
@@ -198,6 +222,9 @@ const ReservationModal = ({
                     style={{ backgroundColor: "#44c400" }}
                 >
                     카카오톡으로 송금 안내 받기
+                </ConfirmButton>
+                <ConfirmButton onClick={handleReservation}>
+                    예약 확정하기
                 </ConfirmButton>
             </ModalContent>
         </ModalOverlay>,
