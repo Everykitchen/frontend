@@ -158,9 +158,10 @@ const KitchenForm = () => {
         cookingTool: data.cookingTool,
         providedItem: data.providedItem,
         defaultPrice: Object.entries(data.defaultPrice || {}).map(
-            ([day, price]) => ({
+            ([day, value]) => ({
                 week: DAY_KOR_TO_ENG[day] || day.toUpperCase(),
-                price: Number(price),
+                price: value.enabled ? Number(value.price) : 0,
+                enabled: String(value.enabled === true),
             })
         ),
     });
@@ -185,6 +186,27 @@ const KitchenForm = () => {
                         form.append("kitchenImages", file);
                     }
                 });
+            } else if (key === "defaultPrice") {
+                value.forEach((item, index) => {
+                    const { week, enabled, price } = item;
+
+                    form.append(`defaultPrice[${index}].week`, week ?? "");
+                    form.append(
+                        `defaultPrice[${index}].enabled`,
+                        String(enabled)
+                    );
+
+                    if (
+                        String(enabled) === "true" &&
+                        price != null &&
+                        price !== ""
+                    ) {
+                        form.append(
+                            `defaultPrice[${index}].price`,
+                            String(price)
+                        );
+                    }
+                });
             } else if (
                 Array.isArray(value) &&
                 [
@@ -193,7 +215,6 @@ const KitchenForm = () => {
                     "kitchenFacility",
                     "cookingTool",
                     "providedItem",
-                    "defaultPrice",
                 ].includes(key)
             ) {
                 value.forEach((item, index) => {

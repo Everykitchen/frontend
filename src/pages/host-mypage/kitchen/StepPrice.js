@@ -299,15 +299,23 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
     useEffect(() => {
         const updatedPrice = {};
         ["월", "화", "수", "목", "금", "토", "일"].forEach((day) => {
-            updatedPrice[day] = activeDays.includes(day)
-                ? formData.defaultPrice?.[day] ?? ""
-                : null;
+            updatedPrice[day] = {
+                price: activeDays.includes(day)
+                    ? formData.defaultPrice?.[day]?.price ?? ""
+                    : "",
+
+                enabled: activeDays.includes(day),
+            };
         });
-        updatedPrice["공휴일"] = formData.defaultPrice?.["공휴일"] ?? "";
+
+        updatedPrice["공휴일"] = {
+            price: formData.defaultPrice?.["공휴일"]?.price ?? "",
+            enabled: true,
+        };
 
         setFormData((prev) => ({
             ...prev,
-            defaultPrice: { ...updatedPrice },
+            defaultPrice: updatedPrice,
             activeDays,
         }));
     }, [activeDays]);
@@ -317,7 +325,10 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
             ...prev,
             defaultPrice: {
                 ...prev.defaultPrice,
-                [day]: value,
+                [day]: {
+                    ...prev.defaultPrice[day],
+                    price: value,
+                },
             },
         }));
     };
@@ -653,11 +664,15 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                             <DayLabel>{day}</DayLabel>
                             <PriceInput
                                 type="number"
-                                value={formData.defaultPrice?.[day] || ""}
+                                value={
+                                    formData.defaultPrice?.[day]?.price || ""
+                                }
                                 onChange={(e) =>
                                     handlePriceChange(day, e.target.value)
                                 }
-                                disabled={!activeDays.includes(day)}
+                                disabled={
+                                    !formData.defaultPrice?.[day]?.enabled
+                                }
                             />
                             <span>원</span>
                         </PriceRow>
@@ -667,7 +682,7 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                 <Label>공휴일 금액</Label>
                 <PriceInput
                     type="number"
-                    value={formData.defaultPrice?.["공휴일"] || ""}
+                    value={formData.defaultPrice?.["공휴일"]?.price || ""}
                     onChange={(e) =>
                         handlePriceChange("공휴일", e.target.value)
                     }
