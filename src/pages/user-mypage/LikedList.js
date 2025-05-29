@@ -42,6 +42,22 @@ const LikedList = () => {
     const [likedStores, setLikedStores] = useState([]);
 
     /**
+     * 카테고리를 한글로 변환
+     * @param {string} category 영문 카테고리
+     * @returns {string} 한글 카테고리
+     */
+    const convertCategoryToKorean = (category) => {
+        switch (category?.toUpperCase()) {
+            case 'COOKING':
+                return '쿠킹';
+            case 'BAKING':
+                return '베이킹';
+            default:
+                return category;
+        }
+    };
+
+    /**
      * 주소를 간략하게 표시 (앞 두 단어만)
      * @param {string} location 전체 주소
      * @returns {string} 축약된 주소
@@ -60,13 +76,13 @@ const LikedList = () => {
             const transformed = contents.map((kitchen) => ({
                 id: kitchen.kitchenId,
                 imageUrl: kitchen.imageUrl,
-                location: formatLocation(kitchen.location), // 주소를 두 단어로 포맷팅
+                location: formatLocation(kitchen.location),
                 name: kitchen.kitchenName,
                 price: kitchen.minPrice
                     ? `${kitchen.minPrice.toLocaleString()}원~`
                     : "가격 정보 없음",
                 time: `${kitchen.minReservationTime}분`,
-                tags: kitchen.category ? [kitchen.category] : [],
+                tags: kitchen.category ? [convertCategoryToKorean(kitchen.category)] : [],
                 isLiked: true,
                 review: kitchen.avgStar,
                 reviewCount: kitchen.reviewCount,

@@ -15,92 +15,125 @@ export const Content = styled.div`
 
 export const ProfileSection = styled.div`
     display: flex;
-    align-items: center;
-    gap: 20px;
+    gap: 40px;
     padding-bottom: 20px;
     border-bottom: 2px solid #eee;
+    margin-bottom: 40px;
+`;
+
+export const ProfileImageSection = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 200px;
 `;
 
 export const ProfileImage = styled.img`
-    width: 120px;
-    height: 120px;
+    width: 150px;
+    height: 150px;
     border-radius: 50%;
-    align-items: center;
     object-fit: cover;
 `;
 
-export const ProfileInfo = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex: 1;
-`;
-
-export const EditIcon = styled.img`
-    width: 40px;
-    height: 40px;
-    cursor: pointer;
-    margin-right: 10px;
-`;
-
-export const UserName = styled.h2`
-    font-size: 30px;
-    font-weight: bold;
-    margin-bottom: 10px;
-`;
-
 export const InfoSection = styled.div`
-    margin-top: 30px;
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 2px;
+    min-width: 300px;
+`;
+
+export const ActionSection = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: space-between;
+    min-width: 100px;
+    padding: 8px 0;
 `;
 
 export const InfoRow = styled.div`
     display: flex;
     align-items: center;
+    gap: 20px;
+    min-height: 30px;
+`;
+
+export const NameRow = styled(InfoRow)`
     margin-bottom: 5px;
 `;
 
 export const Label = styled.div`
-    width: 200px;
-    font-weight: bold;
-    padding: 10px 0px;
+    color: #666;
+    font-size: 14px;
+    min-width: 80px;
+    font-weight: 500;
 `;
 
 export const Data = styled.div`
-    color: #555;
-    padding-left: 5px;
+    color: #333;
     font-size: 14px;
+    text-align: right;
+    flex: 1;
+    padding-right: 500px;
 `;
 
-export const TagContainer = styled.div`
+export const EditIcon = styled.img`
+    width: 48px;
+    height: 48px;
+    cursor: pointer;
+    margin-right: 30px;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+        transform: scale(1.1);
+    }
+`;
+
+export const ImageInput = styled.div`
+    margin-top: 12px;
+    width: 100%;
     display: flex;
-    gap: 10px;
+    justify-content: center;
 `;
 
-export const Tag = styled.span`
-    background: #ddd;
-    padding: 5px 10px;
-    border-radius: 10px;
+export const ChangeImageButton = styled.button`
+    background:rgb(243, 243, 243);
+    color: black;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
     font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background:rgb(238, 238, 238);
+    }
+`;
+
+export const UserName = styled.h2`
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 14px;
 `;
 
 export const LogoutWrapper = styled.div`
     display: flex;
     justify-content: flex-end;
-    margin-top: 40px;
 `;
 
 export const LogoutButton = styled.button`
-    background: #ff4d4f;
+    background:rgb(255, 95, 77);
     padding: 10px 24px;
     border: none;
     border-radius: 10px;
-    font-weight: bold;
+    font-weight: 700;
     cursor: pointer;
     color: white;
-    font-size: 14px;
+    font-size: 15px;
+    margin-right: 10px;
     box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
     transition: background-color 0.2s ease;
 
@@ -109,9 +142,208 @@ export const LogoutButton = styled.button`
     }
 `;
 
-export const LogoutActionButton = () => {
-    const navigate = useNavigate();
+export const Button = styled.button`
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 13px;
+    background: #ffbc39;
+    color: white;
 
+    &:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
+
+    &.cancel {
+        background: #f5f5f5;
+        color: #333;
+    }
+`;
+
+export const NameInput = styled.input`
+    font-size: 32px;
+    font-weight: 600;
+    border: none;
+    background: transparent;
+    border-bottom: 1.5px solid #eee;
+    margin-bottom: 16px;
+    width: auto;
+    color: #222;
+    padding: 0 4px;
+    &:focus {
+        outline: none;
+        border-color: #FF7926;
+    }
+`;
+
+export const PhoneInputGroup = styled.div`
+    display: flex;
+    gap: 6px;
+    align-items: center;
+`;
+
+export const BirthdayInputGroup = styled.div`
+    display: flex;
+    gap: 6px;
+    align-items: center;
+`;
+
+export const Separator = styled.span`
+    color: #666;
+    font-size: 14px;
+`;
+
+export const PhoneInput = styled.input`
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    width: 60px;
+    text-align: center;
+
+    &:focus {
+        outline: none;
+        border-color: #FF7926;
+    }
+`;
+
+export const BirthdayInput = styled(PhoneInput)``;
+
+export const SectionRow = styled.div`
+    display: flex;
+    gap: 40px;
+    width: 100%;
+`;
+
+export const SectionColumn = styled.div`
+    flex: 1;
+    width: 100%;
+`;
+
+export const SectionTitle = styled.h3`
+    font-size: 20px;
+    margin-bottom: 16px;
+    color: #000;
+    font-weight: 600;
+`;
+
+export const Card = styled.div`
+    width: 100%;
+    background: #FCFCFC;
+    border: 1px solid #E0E0E0;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    transition: box-shadow 0.2s;
+    height: 330px;
+
+    &:hover {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+`;
+
+export const ItemList = styled.div`
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: hidden;
+`;
+
+export const ItemHeader = styled.div`
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    padding: 12px 0px;
+    font-weight: 500;
+    color: #000;
+    font-size: 16px;
+    line-height: 30px;
+    margin-bottom: 10px;
+    position: relative;
+
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 1.5px;
+        background-color: #FF7926;
+    }
+    
+    & > div:first-child {
+        text-align: left;
+        padding-left: 10px;
+    }
+    
+    & > div:last-child {
+        text-align: right;
+        padding-right: 10px;
+    }
+`;
+
+export const KitchenHeader = styled(ItemHeader)`
+    grid-template-columns: 1fr 1fr;
+`;
+
+export const Item = styled.div`
+    padding: 12px 0px;
+`;
+
+export const ReservationItem = styled(Item)`
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    color: #333;
+    height: 48px;
+    align-items: center;
+    
+    & > span:first-child {
+        text-align: left;
+        padding-left: 10px;
+    }
+    
+    & > span:last-child {
+        text-align: right;
+        padding-right: 10px;
+    }
+`;
+
+export const KitchenItem = styled(Item)`
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    color: #333;
+    height: 48px;
+    align-items: center;
+    
+    & > span:first-child {
+        text-align: left;
+        padding-left: 10px;
+    }
+    
+    & > span:last-child {
+        text-align: right;
+        padding-right: 10px;
+    }
+`;
+
+export const ItemText = styled.span`
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+`;
+
+export const EmptyMessage = styled.div`
+    padding: 30px 0;
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+`;
+
+export const LogoutActionButton = () => {
     const handleLogout = async () => {
         const accessToken = localStorage.getItem("token");
 
