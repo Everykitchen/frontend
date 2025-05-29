@@ -7,7 +7,7 @@ import api from "../../api/axiosInstance";
 
 /**
  * 사용자의 예약 내역 목록을 보여주는 페이지 컴포넌트
- * 
+ *
  * 주요 기능:
  * - 사용자의 예약 목록을 페이징 처리하여 표시 (5개씩)
  * - 전체/진행중/완료 필터링 기능
@@ -59,14 +59,14 @@ const Pagination = styled.div`
 const PageButton = styled.button`
     padding: 8px 12px;
     border: none;
-    background: ${props => props.active ? '#FFBC39' : 'white'};
-    color: ${props => props.active ? 'white' : '#666'};
-    cursor: ${props => props.disabled ? 'default' : 'pointer'};
+    background: ${(props) => (props.active ? "#FFBC39" : "white")};
+    color: ${(props) => (props.active ? "white" : "#666")};
+    cursor: ${(props) => (props.disabled ? "default" : "pointer")};
     border-radius: 4px;
-    font-weight: ${props => props.active ? 'bold' : 'normal'};
+    font-weight: ${(props) => (props.active ? "bold" : "normal")};
 
     &:hover {
-        background: ${props => props.active ? '#FFBC39' : '#f5f5f5'};
+        background: ${(props) => (props.active ? "#FFBC39" : "#f5f5f5")};
     }
 
     &:disabled {
@@ -96,7 +96,7 @@ const Reservation = () => {
     // 상태 필터링을 위한 매핑 객체
     const statusMap = {
         전체: null,
-        진행중: ["RESERVED", "PENDING_PAYMENT"],
+        진행중: ["PENDING_RESERVED", "RESERVED", "PENDING_PAYMENT"],
         완료: ["COMPLETED_PAYMENT"],
     };
 
@@ -135,7 +135,7 @@ const Reservation = () => {
 
     // 전체 페이지 수 계산
     const totalPages = Math.ceil(filteredList.length / itemsPerPage);
-    
+
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
         window.scrollTo(0, 0);
@@ -171,10 +171,14 @@ const Reservation = () => {
 
                 {/* 로딩 중 표시 */}
                 {loading && <EmptyMessage>로딩 중...</EmptyMessage>}
-                
+
                 {/* 에러 메시지 표시 */}
-                {error && <EmptyMessage style={{ color: 'red' }}>{error}</EmptyMessage>}
-                
+                {error && (
+                    <EmptyMessage style={{ color: "red" }}>
+                        {error}
+                    </EmptyMessage>
+                )}
+
                 {/* 결과가 없을 때 안내 메시지 표시 */}
                 {!loading && !error && currentItems.length === 0 && (
                     <EmptyMessage>예약 내역이 없습니다.</EmptyMessage>
@@ -182,38 +186,45 @@ const Reservation = () => {
 
                 {/* 예약 목록 표시 */}
                 {currentItems.map((reservation) => (
-                    <ReservationCard 
+                    <ReservationCard
                         key={reservation.reservationId}
                         reservation={reservation}
                     />
                 ))}
 
                 {/* 페이지네이션 (필터링된 예약이 있고 총 페이지가 1 이상일 때만 표시) */}
-                {!loading && !error && filteredList.length > 0 && totalPages > 1 && (
-                    <Pagination>
-                        <PageButton
-                            onClick={() => handlePageChange(currentPage - 1)}
-                            disabled={currentPage === 0}
-                        >
-                            이전
-                        </PageButton>
-                        {[...Array(totalPages)].map((_, index) => (
+                {!loading &&
+                    !error &&
+                    filteredList.length > 0 &&
+                    totalPages > 1 && (
+                        <Pagination>
                             <PageButton
-                                key={index}
-                                onClick={() => handlePageChange(index)}
-                                active={currentPage === index}
+                                onClick={() =>
+                                    handlePageChange(currentPage - 1)
+                                }
+                                disabled={currentPage === 0}
                             >
-                                {index + 1}
+                                이전
                             </PageButton>
-                        ))}
-                        <PageButton
-                            onClick={() => handlePageChange(currentPage + 1)}
-                            disabled={currentPage === totalPages - 1}
-                        >
-                            다음
-                        </PageButton>
-                    </Pagination>
-                )}
+                            {[...Array(totalPages)].map((_, index) => (
+                                <PageButton
+                                    key={index}
+                                    onClick={() => handlePageChange(index)}
+                                    active={currentPage === index}
+                                >
+                                    {index + 1}
+                                </PageButton>
+                            ))}
+                            <PageButton
+                                onClick={() =>
+                                    handlePageChange(currentPage + 1)
+                                }
+                                disabled={currentPage === totalPages - 1}
+                            >
+                                다음
+                            </PageButton>
+                        </Pagination>
+                    )}
             </ContentWrapper>
         </Container>
     );
