@@ -7,7 +7,7 @@ import axios from "../../api/axiosInstance";
 
 /**
  * 호스트의 예약 내역 목록을 보여주는 페이지 컴포넌트
- * 
+ *
  * 주요 기능:
  * - 호스트의 예약 목록을 페이징 처리하여 표시
  * - 전체/진행중/완료 필터링 기능
@@ -54,7 +54,7 @@ const Tab = styled.div`
 `;
 
 const CalendarButton = styled.button`
-    background-color: #FF7926;
+    background-color: #ff7926;
     color: white;
     border: none;
     padding: 8px 16px;
@@ -63,7 +63,7 @@ const CalendarButton = styled.button`
     cursor: pointer;
     display: flex;
     align-items: center;
-    
+
     &:hover {
         background-color: #ff6b0f;
     }
@@ -80,31 +80,20 @@ const Pagination = styled.div`
 const PageButton = styled.button`
     padding: 8px 12px;
     border: none;
-    background: ${props => props.active ? '#FFBC39' : 'white'};
-    color: ${props => props.active ? 'white' : '#666'};
-    cursor: ${props => props.disabled ? 'default' : 'pointer'};
+    background: ${(props) => (props.active ? "#FFBC39" : "white")};
+    color: ${(props) => (props.active ? "white" : "#666")};
+    cursor: ${(props) => (props.disabled ? "default" : "pointer")};
     border-radius: 4px;
-    font-weight: ${props => props.active ? 'bold' : 'normal'};
+    font-weight: ${(props) => (props.active ? "bold" : "normal")};
 
     &:hover {
-        background: ${props => props.active ? '#FFBC39' : '#f5f5f5'};
+        background: ${(props) => (props.active ? "#FFBC39" : "#f5f5f5")};
     }
 
     &:disabled {
         opacity: 0.5;
     }
 `;
-
-/**
- * 예약 상태 코드를 UI에 표시할 라벨로 변환
- * @param {string} status 예약 상태 코드
- * @returns {string} UI에 표시할 상태 텍스트
- */
-const getStatusLabel = (status) => {
-    if (status === "RESERVED" || status === "PENDING_PAYMENT") return "진행중";
-    if (status === "COMPLETED_PAYMENT") return "완료";
-    return status;
-};
 
 const HostReservations = () => {
     const [activeTab, setActiveTab] = useState("전체");
@@ -115,12 +104,20 @@ const HostReservations = () => {
     const itemsPerPage = 5; // 한 페이지당 5개 항목 표시
     const navigate = useNavigate();
 
+    const statusMap = {
+        전체: null,
+        진행중: ["PENDING_RESERVED", "RESERVED", "PENDING_PAYMENT"],
+        완료: ["COMPLETED_PAYMENT"],
+    };
+
     useEffect(() => {
         const fetchReservations = async () => {
             setLoading(true);
             setError(null);
             try {
-                const res = await axios.get(`/api/host/reservation?page=0&size=500`);
+                const res = await axios.get(
+                    `/api/host/reservation?page=0&size=500`
+                );
                 setReservations(res.data.content || []);
             } catch (err) {
                 setError("예약 내역을 불러오지 못했습니다.");
@@ -132,14 +129,19 @@ const HostReservations = () => {
     }, []); // currentPage 의존성 제거
 
     // 선택된 탭에 따라 예약 목록 필터링
-    const filteredList =
-        activeTab === "전체"
-            ? reservations
-            : reservations.filter((item) =>
-                activeTab === "완료"
-                    ? getStatusLabel(item.status) === "완료"
-                    : getStatusLabel(item.status) === "진행중"
-            );
+    const filteredList = statusMap[activeTab]
+        ? reservations.filter((item) =>
+              statusMap[activeTab].includes(item.status)
+          )
+        : reservations;
+
+    const getStatusLabel = (status) => {
+        if (status === "PENDING_RESERVED") return "예약대기";
+        if (status === "RESERVED") return "예약완료";
+        if (status === "PENDING_PAYMENT") return "정산대기";
+        if (status === "COMPLETED_PAYMENT") return "정산완료";
+        return status;
+    };
 
     // 현재 페이지에 해당하는 항목들만 선택
     const currentItems = filteredList.slice(
@@ -176,37 +178,44 @@ const HostReservations = () => {
                                 {tab} (
                                 {tab === "전체"
                                     ? reservations.length
-                                    : reservations.filter(
-                                          (item) =>
-                                            tab === "완료"
-                                                ? getStatusLabel(item.status) === "완료"
-                                                : getStatusLabel(item.status) === "진행중"
+                                    : reservations.filter((item) =>
+                                          tab === "완료"
+                                              ? getStatusLabel(item.status) ===
+                                                "완료"
+                                              : getStatusLabel(item.status) ===
+                                                "진행중"
                                       ).length}
                                 )
                             </Tab>
                         ))}
                     </TabGroup>
-                    <CalendarButton onClick={() => navigate('/host-mypage/reservations/calendar')}>
+                    <CalendarButton
+                        onClick={() =>
+                            navigate("/host-mypage/reservations/calendar")
+                        }
+                    >
                         달력으로 조회
                     </CalendarButton>
                 </TabMenu>
-                
+
                 {loading && <div>로딩 중...</div>}
-                {error && <div style={{ color: 'red' }}>{error}</div>}
+                {error && <div style={{ color: "red" }}>{error}</div>}
                 {!loading && !error && currentItems.length === 0 && (
-                    <div style={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        height: '300px',
-                        fontSize: '24px',
-                        color: '#666',
-                        fontWeight: '500'
-                    }}>
+                    <div
+                        style={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            height: "300px",
+                            fontSize: "24px",
+                            color: "#666",
+                            fontWeight: "500",
+                        }}
+                    >
                         예약 내역이 없습니다.
                     </div>
                 )}
-                
+
                 {currentItems.map((reservation) => (
                     <HostReservationCard
                         key={reservation.reservationId}
@@ -222,39 +231,48 @@ const HostReservations = () => {
                             status: getStatusLabel(reservation.status),
                         }}
                         onClick={() =>
-                            navigate(`/host-mypage/reservations/${reservation.reservationId}`)
+                            navigate(
+                                `/host-mypage/reservations/${reservation.reservationId}`
+                            )
                         }
                     />
                 ))}
-                
-                {!loading && !error && filteredList.length > 0 && totalPages > 1 && (
-                    <Pagination>
-                        <PageButton
-                            onClick={() => handlePageChange(currentPage - 1)}
-                            disabled={currentPage === 0}
-                        >
-                            이전
-                        </PageButton>
-                        {[...Array(totalPages)].map((_, index) => (
+
+                {!loading &&
+                    !error &&
+                    filteredList.length > 0 &&
+                    totalPages > 1 && (
+                        <Pagination>
                             <PageButton
-                                key={index}
-                                onClick={() => handlePageChange(index)}
-                                active={currentPage === index}
+                                onClick={() =>
+                                    handlePageChange(currentPage - 1)
+                                }
+                                disabled={currentPage === 0}
                             >
-                                {index + 1}
+                                이전
                             </PageButton>
-                        ))}
-                        <PageButton
-                            onClick={() => handlePageChange(currentPage + 1)}
-                            disabled={currentPage === totalPages - 1}
-                        >
-                            다음
-                        </PageButton>
-                    </Pagination>
-                )}
+                            {[...Array(totalPages)].map((_, index) => (
+                                <PageButton
+                                    key={index}
+                                    onClick={() => handlePageChange(index)}
+                                    active={currentPage === index}
+                                >
+                                    {index + 1}
+                                </PageButton>
+                            ))}
+                            <PageButton
+                                onClick={() =>
+                                    handlePageChange(currentPage + 1)
+                                }
+                                disabled={currentPage === totalPages - 1}
+                            >
+                                다음
+                            </PageButton>
+                        </Pagination>
+                    )}
             </ContentWrapper>
         </Container>
     );
 };
 
-export default HostReservations; 
+export default HostReservations;
