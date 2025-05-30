@@ -522,6 +522,23 @@ const HostReservationDetail = () => {
         return map[status] || status;
     };
 
+    const handleConfirmReservation = async () => {
+        try {
+            await axios.post(
+                `/api/host/reservation/${reservationId}/reserved`,
+                {
+                    reservationId: reservationData.reservationId,
+                    status: "RESERVED", // RESERVED 상태로 변경
+                }
+            );
+            alert("예약이 확정되었습니다.");
+            window.location.reload();
+        } catch (error) {
+            console.error("예약 확정 실패:", error);
+            alert("예약 확정 처리에 실패했습니다.");
+        }
+    };
+
     const handleChatClick = () => {
         if (reservationData) {
             // 토큰이 있는지 확인
@@ -683,17 +700,28 @@ const HostReservationDetail = () => {
                                     <MessageIcon />
                                     채팅하기
                                 </SmallActionButton>
-                                <SmallActionButton
-                                    variant="primary"
-                                    onClick={handleCompletedPayment}
-                                    disabled={
-                                        reservationData.status ===
-                                        "COMPLETED_PAYMENT"
-                                    }
-                                >
-                                    <MoneyIcon />
-                                    정산완료
-                                </SmallActionButton>
+                                {reservationData.status ===
+                                "PENDING_RESERVED" ? (
+                                    <SmallActionButton
+                                        variant="primary"
+                                        onClick={handleConfirmReservation}
+                                    >
+                                        <MoneyIcon />
+                                        예약확정
+                                    </SmallActionButton>
+                                ) : (
+                                    <SmallActionButton
+                                        variant="primary"
+                                        onClick={handleCompletedPayment}
+                                        disabled={
+                                            reservationData.status ===
+                                            "COMPLETED_PAYMENT"
+                                        }
+                                    >
+                                        <MoneyIcon />
+                                        정산완료
+                                    </SmallActionButton>
+                                )}
                             </ActionButtons>
                         </KitchenInfo>
                     </TopSection>
