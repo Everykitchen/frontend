@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Logo from "./Logo";
 import { useSearch } from "../contexts/SearchContext";
@@ -75,11 +75,38 @@ const Navbar = () => {
     const { setSearchKeyword } = useSearch();
     const [searchText, setSearchText] = useState("");
     const navigate = useNavigate();
+    const isSearching = useRef(false);
+    const searchInputRef = useRef(null);
 
-    const handleSearch = () => {
-        setSearchKeyword(searchText);
-        navigate("/");
-    };
+    const handleSearch = useCallback(() => {
+        if (isSearching.current) return;
+        
+        const trimmedSearch = searchText.trim();
+        if (!trimmedSearch) return;
+        
+        isSearching.current = true;
+        setSearchKeyword(trimmedSearch);
+        navigate("/search");
+        
+        requestAnimationFrame(() => {
+            setSearchText("");
+            if (searchInputRef.current) {
+                searchInputRef.current.value = "";
+            }
+            isSearching.current = false;
+        });
+    }, [searchText, setSearchKeyword, navigate]);
+
+    const handleKeyDown = useCallback((e) => {
+        if (e.key === "Enter") {
+            e.preventDefault(); // 폼 제출 방지
+            handleSearch();
+        }
+    }, [handleSearch]);
+
+    const handleInputChange = useCallback((e) => {
+        setSearchText(e.target.value);
+    }, []);
 
     const handleMypageClick = (e) => {
         e.preventDefault();
@@ -106,13 +133,10 @@ const Navbar = () => {
             <Logo />
             <SearchSection>
                 <SearchInput
+                    ref={searchInputRef}
                     value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                            handleSearch();
-                        }
-                    }}
+                    onChange={handleInputChange}
+                    onKeyDown={handleKeyDown}
                     placeholder="찾으시는 주방을 검색해보세요!"
                 />
                 <SearchIcon src={searchIcon} onClick={handleSearch} />

@@ -15,6 +15,7 @@ import HostSales from "../pages/host-mypage/HostSales";
 import ChatHistory from "../pages/host-mypage/ChatHistory";
 import ChattingRoom from "../pages/host-mypage/ChattingRoom";
 import IngredientSettlement from "../pages/user-mypage/IngredientSettlement";
+import SearchResult from "../pages/SearchResult";
 
 import ProtectedRoute from "./ProtectedRoute";
 import {
@@ -42,6 +43,7 @@ const AppRouter = () => {
     return (
         <Routes key={location.pathname} location={location}>
             <Route path="/" element={<Main />} />
+            <Route path="/search" element={<SearchResult />} />
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-email" element={<ForgotEmail />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
