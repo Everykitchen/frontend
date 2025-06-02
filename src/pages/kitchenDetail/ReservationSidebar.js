@@ -204,18 +204,18 @@ const TimeBlock = styled.div`
     width: 40px;
     height: 36px;
     background-color: ${(props) => {
-        if (props.disabled || props.unavailable) return "#b8b8b8";
+        if (props.disabled || props.$unavailable) return "#b8b8b8";
         if (props.selected) return "#ffbc39";
         return "#f6f6f6";
     }};
     border: 1px solid #ccc;
     cursor: ${(props) =>
-        props.disabled || props.unavailable ? "default" : "pointer"};
+        props.disabled || props.$unavailable ? "default" : "pointer"};
     position: relative;
 
     &:hover {
         background-color: ${(props) => {
-            if (props.disabled || props.unavailable) return null;
+            if (props.disabled || props.$unavailable) return null;
             if (props.selected) return "#ffbc39";
             return "#ffe4b3";
         }};
@@ -307,7 +307,6 @@ const ReservationSidebar = ({
     setCount,
     kitchenData,
 }) => {
-    const [unavailableIds, setUnavailableIds] = useState([]);
     const [isDateSelected, setIsDateSelected] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const [selectedIds, setSelectedIds] = useState([]);
@@ -334,12 +333,11 @@ const ReservationSidebar = ({
             });
         }
         setTimeBlocks(blocks);
-    }, [kitchenData.openTime, kitchenData.closeTime]);
+    }, [kitchenData.openTime, kitchenData.closeTime, numBlocks, openHour]);
 
     useEffect(() => {
         if (!startDate || !kitchenData.id) return;
         setIsDateSelected(false);
-        setUnavailableIds([]);
         setSelectedIds([]);
         setStartBlock(null);
         setEndBlock(null);
@@ -350,9 +348,24 @@ const ReservationSidebar = ({
                 const res = await axios.get(
                     `/api/common/kitchen/${kitchenData.id}/availables?date=${dateStr}`
                 );
+                console.log("API Response:", {
+                    date: dateStr,
+                    kitchenId: kitchenData.id,
+                    response: res.data,
+                    firstItem: res.data[0],
+                    availableId: res.data[0]?.availableId
+                });
+                
                 const blocks = [];
                 for (let i = 0; i < numBlocks; i++) {
                     const item = res.data[i];
+                    console.log(`Block ${i}:`, {
+                        hour: openHour + i,
+                        item: item,
+                        availableId: item?.availableId,
+                        status: item?.status
+                    });
+                    
                     blocks.push({
                         label: `${openHour + i}:00 ~ ${openHour + i + 1}:00`,
                         hour: openHour + i,
@@ -360,15 +373,10 @@ const ReservationSidebar = ({
                         unavailable: item?.status === true,
                     });
                 }
-                console.log(res.data);
                 setTimeBlocks(blocks);
-                setUnavailableIds(
-                    blocks
-                        .filter((b) => b.unavailable)
-                        .map((b) => b.availableId)
-                );
                 setIsDateSelected(true);
             } catch (e) {
+                console.error("예약 가능 시간 조회 실패:", e);
                 setErrorMessage("예약 가능 시간 조회 실패");
                 setTimeBlocks([]);
                 setIsDateSelected(false);
@@ -591,7 +599,7 @@ const ReservationSidebar = ({
                                                 </TimeLabel>
                                                 <TimeBlock
                                                     selected={isSelected}
-                                                    unavailable={isUnavailable}
+                                                    $unavailable={isUnavailable}
                                                     disabled={isDisabled}
                                                     onClick={() =>
                                                         handleTimeBlockClick(i)
@@ -713,4 +721,4 @@ const ReservationSidebar = ({
     );
 };
 
-export default ReservationSidebar;
+export default ReservationSidebar; 

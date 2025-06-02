@@ -4,6 +4,7 @@ import { useSearch } from "../contexts/SearchContext";
 import api from "../api/axiosInstance";
 import NewStoreCard from "../components/NewStoreCard";
 import defaultKitchenImage from "../assets/jpg/kitchen1.jpg";
+import LoadingOverlay from "../components/LoadingOverlay";
 
 const PageContainer = styled.div`
     display: flex;
@@ -53,36 +54,6 @@ const StoreList = styled.div`
     max-width: 1400px;
 `;
 
-const LoadingOverlay = styled.div`
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    opacity: ${({ show }) => (show ? 1 : 0)};
-    visibility: ${({ show }) => (show ? 'visible' : 'hidden')};
-    transition: opacity 0.3s, visibility 0.3s;
-`;
-
-const LoadingSpinner = styled.div`
-    width: 50px;
-    height: 50px;
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #FF7926;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-`;
-
 const LoadingIndicator = styled.div`
     text-align: center;
     padding: 20px;
@@ -120,15 +91,6 @@ const SearchResult = () => {
         [loading, isFetching, hasMore]
     );
 
-    // 검색어가 변경될 때마다 ref 업데이트
-    useEffect(() => {
-        searchKeywordRef.current = searchKeyword;
-        setPage(0);
-        setStoreList([]);
-        setTotalResults(0);
-        fetchStores(0);
-    }, [searchKeyword]);
-
     const fetchStores = async (pageNum = 0) => {
         if (isFetching) return;
 
@@ -140,7 +102,7 @@ const SearchResult = () => {
             const response = await api.get("/api/common/kitchen", {
                 params: {
                     page: pageNum,
-                    size: 6,
+                    size: 50,
                 },
             });
 
@@ -150,9 +112,9 @@ const SearchResult = () => {
             const filteredKitchens = kitchens.filter(kitchen => {
                 if (!currentSearchKeyword) return true;
                 
-                const searchTerm = currentSearchKeyword.trim();
-                const kitchenName = String(kitchen.kitchenName || '').trim();
-                const location = String(kitchen.location || '').trim();
+                const searchTerm = currentSearchKeyword.trim().toLowerCase();
+                const kitchenName = String(kitchen.kitchenName || '').trim().toLowerCase();
+                const location = String(kitchen.location || '').trim().toLowerCase();
                 
                 return kitchenName.includes(searchTerm) || location.includes(searchTerm);
             });
@@ -180,10 +142,7 @@ const SearchResult = () => {
                 setStoreList((prev) => [...prev, ...transformed]);
             }
 
-            setTotalResults((prev) => 
-                pageNum === 0 ? transformed.length : prev + transformed.length
-            );
-
+            setTotalResults(filteredKitchens.length);
             setHasMore(filteredKitchens.length > 0 && !response.data.last);
         } catch (err) {
             console.error("주방 목록 불러오기 실패", err);
@@ -194,6 +153,21 @@ const SearchResult = () => {
             }, 500);
         }
     };
+
+    // 검색어가 변경될 때마다 ref 업데이트
+    useEffect(() => {
+        searchKeywordRef.current = searchKeyword;
+        setPage(0);
+        setStoreList([]);
+        setTotalResults(0);
+        fetchStores(0);
+    }, [searchKeyword]);
+
+    useEffect(() => {
+        if (page > 0) {
+            fetchStores(page);
+        }
+    }, [page]);
 
     const formatLocation = (location) => {
         if (!location) return "";
@@ -219,12 +193,6 @@ const SearchResult = () => {
         }
     };
 
-    useEffect(() => {
-        if (page > 0) {
-            fetchStores(page);
-        }
-    }, [page]);
-
     return (
         <PageContainer>
             <Header>
@@ -234,17 +202,18 @@ const SearchResult = () => {
                         <>
                             <span>:</span>
                             <SearchKeyword>"{searchKeyword}"</SearchKeyword>
+                            <ResultCount>({totalResults}건)</ResultCount>
                         </>
                     )}
-                    <ResultCount>({totalResults}건)</ResultCount>
                 </Title>
             </Header>
 
             <StoreList>
                 {storeList.map((store, index) => {
+                    const uniqueKey = `${store.id}-${index}`;
                     if (storeList.length === index + 1) {
                         return (
-                            <div key={store.id} ref={lastStoreElementRef}>
+                            <div key={uniqueKey} ref={lastStoreElementRef}>
                                 <NewStoreCard
                                     store={store}
                                     onLikeToggle={handleLikeToggle}
@@ -254,7 +223,7 @@ const SearchResult = () => {
                     } else {
                         return (
                             <NewStoreCard
-                                key={store.id}
+                                key={uniqueKey}
                                 store={store}
                                 onLikeToggle={handleLikeToggle}
                             />
@@ -263,9 +232,13 @@ const SearchResult = () => {
                 })}
             </StoreList>
 
-            <LoadingOverlay show={loading}>
-                <LoadingSpinner />
-            </LoadingOverlay>
+            <LoadingOverlay show={loading} />
+
+            {!loading && storeList.length === 0 && (
+                <LoadingIndicator>
+                    검색 결과가 없습니다
+                </LoadingIndicator>
+            )}
 
             {!hasMore && storeList.length > 0 && (
                 <LoadingIndicator>더 이상 주방이 없습니다</LoadingIndicator>

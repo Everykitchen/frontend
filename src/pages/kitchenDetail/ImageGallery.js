@@ -24,8 +24,8 @@ const CarouselTrack = styled.div`
   display: flex;
   align-items: center;
   height: 100%;
-  ${({ animate, offset }) => css`
-    transition: ${animate ? 'transform 0.5s cubic-bezier(0.77, 0, 0.175, 1)' : 'none'};
+  ${({ $animate, offset }) => css`
+    transition: ${$animate ? 'transform 0.5s cubic-bezier(0.77, 0, 0.175, 1)' : 'none'};
     transform: translateX(${offset}px);
   `}
 `;
@@ -58,9 +58,11 @@ const ArrowButton = styled.button`
     opacity: 1;
   }
 `;
+
 const LeftArrow = styled(ArrowButton)`
   left: 24px;
 `;
+
 const RightArrow = styled(ArrowButton)`
   right: 24px;
 `;
@@ -73,10 +75,12 @@ const GradientOverlay = styled.div`
   pointer-events: none;
   z-index: 4;
 `;
+
 const LeftGradient = styled(GradientOverlay)`
   left: 0;
   background: linear-gradient(to right, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.0) 100%);
 `;
+
 const RightGradient = styled(GradientOverlay)`
   right: 0;
   background: linear-gradient(to left, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.0) 100%);
@@ -154,7 +158,7 @@ const ImageGallery = ({ images = [] }) => {
       <RightArrow onClick={() => slide(1)} aria-label="다음 이미지">
         <FaChevronRight />
       </RightArrow>
-      <CarouselTrack animate={animating} offset={getOffset()}>
+      <CarouselTrack $animate={animating} offset={getOffset()}>
         {displayImages.map((img, idx) => (
           <GalleryImage key={idx} src={img} alt={`주방 이미지 ${idx}`} draggable={false} />
         ))}
@@ -163,4 +167,4 @@ const ImageGallery = ({ images = [] }) => {
   );
 };
 
-export default ImageGallery;
+export default ImageGallery; 

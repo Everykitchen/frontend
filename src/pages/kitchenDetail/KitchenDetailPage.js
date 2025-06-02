@@ -1,10 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
-import ImageGallery from "./ImageGallery";
-import ReservationSidebar from "./ReservationSidebar";
-import InfoSection from "./InfoSection";
-import starIcon from "../../assets/icons/starIcon.svg";
-import shareIcon from "../../assets/icons/shareIcon.svg";
+import ImageGallery from './ImageGallery';
+import ReservationSidebar from './ReservationSidebar';
+import InfoSection from './InfoSection';
 import { useParams } from "react-router-dom";
 import axios from "../../api/axiosInstance";
 
@@ -22,30 +20,6 @@ const ContentWrapper = styled.div`
 
 const LeftSection = styled.div`
     flex: 2;
-`;
-
-const KitchenName = styled.h1`
-    font-size: 32px;
-    font-weight: 700;
-    line-height: 100%;
-    letter-spacing: -0.64px;
-`;
-
-const ShareButton = styled.button`
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: #f5f5f5;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background-color 0.2s;
-
-    &:hover {
-        background-color: #ebebeb;
-    }
 `;
 
 const ShareModal = styled.div`

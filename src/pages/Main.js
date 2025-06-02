@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import defaultKitchenImage from "../assets/jpg/kitchen1.jpg";
 import NewFilterBar from "../components/NewFilterBar";
 import FilterBar from "../components/FilterBar";
+import LoadingOverlay from "../components/LoadingOverlay";
 
 const PageContainer = styled.div`
     display: flex;
@@ -58,8 +59,8 @@ const DropdownButton = styled.button`
     height: 32px;
     background: #fff;
     border: 1px solid
-        ${({ active, open }) =>
-            !active && !open ? '#999' : '#ffa500'};
+        ${({ $active, $open }) =>
+            !$active && !$open ? '#999' : '#ffa500'};
     border-radius: 6px;
     padding: 0 12px;
     text-align: left;
@@ -71,8 +72,8 @@ const DropdownButton = styled.button`
     font-size: 14px;
     &:focus {
         outline: 1.5px solid
-            ${({ active, open }) =>
-                !active && !open ? '#888' : '#ffa500'};
+            ${({ $active, $open }) =>
+                !$active && !$open ? '#888' : '#ffa500'};
     }
 `;
 const DropdownList = styled.ul`
@@ -223,22 +224,12 @@ const MainPage = () => {
                 },
             });
 
-            console.log("필터 요청 파라미터:", {
-                selectedLocation,
-                count,
-                price,
-                availableDate: date
-                    ? new Date(date).toISOString().split("T")[0]
-                    : null,
-                facilities: facilities.join(","),
-            });
-
             const kitchens = response.data?.content || [];
 
             const transformed = kitchens.map((kitchen) => ({
                 id: kitchen.kitchenId ?? kitchen.id,
-                imageUrl: kitchen.imageUrl || defaultKitchenImage, // import한 이미지 사용
-                location: formatLocation(kitchen.location), // 주소 포맷 변경
+                imageUrl: kitchen.imageUrl || defaultKitchenImage,
+                location: formatLocation(kitchen.location),
                 name: kitchen.kitchenName,
                 price: kitchen.minPrice
                     ? `${kitchen.minPrice.toLocaleString()}원~`
@@ -391,8 +382,8 @@ const MainPage = () => {
                 <DropdownWrapper ref={dropdownRef}>
                     <DropdownButton
                         onClick={() => setDropdownOpen((v) => !v)}
-                        active={!!sortOrder}
-                        open={dropdownOpen}
+                        $active={!!sortOrder}
+                        $open={dropdownOpen}
                     >
                         {sortOptions.find(opt => opt.value === sortOrder)?.label || '정렬 선택'}
                         <span style={{ fontSize: 14, marginLeft: 8, color: (!sortOrder && !dropdownOpen) ? '#888' : '#ffa500' }}>{dropdownOpen ? '▲' : '▼'}</span>
@@ -414,10 +405,10 @@ const MainPage = () => {
             </RowSection>
             <StoreList>
                 {storeList.map((store, index) => {
+                    const uniqueKey = `${store.id}-${index}`;  // 고유한 key 생성
                     if (storeList.length === index + 1) {
-                        // 마지막 요소에는 ref 전달
                         return (
-                            <div key={store.id} ref={lastStoreElementRef}>
+                            <div key={uniqueKey} ref={lastStoreElementRef}>
                                 <NewStoreCard
                                     store={store}
                                     onLikeToggle={handleLikeToggle}
@@ -428,7 +419,7 @@ const MainPage = () => {
                     } else {
                         return (
                             <NewStoreCard
-                                key={store.id}
+                                key={uniqueKey}
                                 store={store}
                                 onLikeToggle={handleLikeToggle}
                                 onClick={() => handleStoreClick(store.id)}
@@ -437,7 +428,9 @@ const MainPage = () => {
                     }
                 })}
             </StoreList>
-            {loading && <LoadingIndicator>로딩 중...</LoadingIndicator>}
+
+            <LoadingOverlay show={loading} />
+
             {!hasMore && storeList.length > 0 && (
                 <LoadingIndicator>
                     더 이상 주방이 없습니다

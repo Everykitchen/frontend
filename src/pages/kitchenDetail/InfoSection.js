@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import useKakaoLoader from "../../hooks/useKakaoLoader";
 import starIcon from "../../assets/icons/starIcon.svg";
@@ -30,8 +30,8 @@ const TabItem = styled.button`
     border: none;
     background: none;
     cursor: pointer;
-    color: ${(props) => (props.active ? "black" : "#aaa")};
-    border-bottom: ${(props) => (props.active ? "3px solid #ffbc39" : "none")};
+    color: ${(props) => (props.$active ? "black" : "#aaa")};
+    border-bottom: ${(props) => (props.$active ? "3px solid #ffbc39" : "none")};
     padding: 8px 0;
     margin-bottom: -1px;
 `;
@@ -305,32 +305,35 @@ const PaginationContainer = styled.div`
 
 const PageButton = styled.button`
     padding: 8px 12px;
-    border: 1px solid ${(props) => (props.active ? "#ffbc39" : "#ddd")};
-    background-color: ${(props) => (props.active ? "#ffbc39" : "white")};
-    color: ${(props) => (props.active ? "white" : "#333")};
+    border: 1px solid ${(props) => (props.$active ? "#ffbc39" : "#ddd")};
+    background-color: ${(props) => (props.$active ? "#ffbc39" : "white")};
+    color: ${(props) => (props.$active ? "white" : "#333")};
     border-radius: 4px;
     cursor: pointer;
-    font-weight: ${(props) => (props.active ? "bold" : "normal")};
+    font-weight: ${(props) => (props.$active ? "bold" : "normal")};
 
     &:hover {
-        background-color: ${(props) => (props.active ? "#ffbc39" : "#f5f5f5")};
+        background-color: ${(props) => (props.$active ? "#ffbc39" : "#f5f5f5")};
     }
 `;
 
 const TopInfoWrapper = styled.div`
     margin-bottom: 16px;
 `;
+
 const TopRow = styled.div`
     display: flex;
     align-items: center;
     gap: 80px;
 `;
+
 const KitchenName = styled.h1`
     font-size: 32px;
     font-weight: 700;
     line-height: 100%;
     letter-spacing: -0.64px;
 `;
+
 const ShareButton = styled.button`
     width: 40px;
     height: 40px;
@@ -346,10 +349,12 @@ const ShareButton = styled.button`
         background-color: #ebebeb;
     }
 `;
+
 const KitchenInfoLine = styled.div`
     margin: 8px 0;
     line-height: 1.4;
 `;
+
 const StarLine = styled.div`
     margin-top: 5px;
     font-size: 14px;
@@ -487,7 +492,7 @@ const InfoSection = ({
                     {Object.keys(sections).map((tab) => (
                         <TabItem
                             key={tab}
-                            active={selectedTab === tab}
+                            $active={selectedTab === tab}
                             onClick={() => handleTabClick(tab)}
                         >
                             {tab}
@@ -693,7 +698,7 @@ const InfoSection = ({
                     {[...Array(totalPages)].map((_, i) => (
                         <PageButton
                             key={i + 1}
-                            active={currentPage === i + 1}
+                            $active={currentPage === i + 1}
                             onClick={() => handlePageClick(i + 1)}
                         >
                             {i + 1}
@@ -705,4 +710,4 @@ const InfoSection = ({
     );
 };
 
-export default InfoSection;
+export default InfoSection; 

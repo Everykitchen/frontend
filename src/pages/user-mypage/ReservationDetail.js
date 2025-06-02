@@ -280,6 +280,11 @@ const PendingPayment = styled.span`
     font-weight: 700;
 `;
 
+const PaymentPending = styled.span`
+    color: #666;
+    font-style: italic;
+`;
+
 const TotalPayment = styled.span`
     color: #333;
     font-weight: 700;
@@ -677,10 +682,7 @@ const ReservationDetail = () => {
                                 <SmallActionButton
                                     variant="primary"
                                     onClick={handleSettlementClick}
-                                    disabled={
-                                        reservation.status ===
-                                        "COMPLETED_PAYMENT"
-                                    }
+                                    disabled={reservation.status !== "PENDING_PAYMENT"}
                                 >
                                     <MoneyIcon />
                                     정산하기
@@ -718,42 +720,36 @@ const ReservationDetail = () => {
                             <InfoContainer>
                                 <Labels>
                                     <span>선결제 금액</span>
-                                    {reservation.status ===
-                                        "COMPLETED_PAYMENT" && (
+                                    {reservation.status === "COMPLETED_PAYMENT" && (
                                         <>
                                             <span>후결제 금액</span>
                                             <span>최종 결제 금액</span>
                                         </>
                                     )}
-                                    {reservation.status !==
-                                        "COMPLETED_PAYMENT" && (
+                                    {reservation.status !== "COMPLETED_PAYMENT" && (
                                         <span>후결제 금액</span>
                                     )}
                                 </Labels>
                                 <Values>
                                     <span>
-                                        {reservation.prepaidAmount.toLocaleString()}
-                                        원
+                                        {reservation.status === "PENDING_RESERVED" ? (
+                                            <PaymentPending>입금 확인 중</PaymentPending>
+                                        ) : (
+                                            `${reservation.prepaidAmount.toLocaleString()}원`
+                                        )}
                                     </span>
-                                    {reservation.status ===
-                                    "COMPLETED_PAYMENT" ? (
+                                    {reservation.status === "COMPLETED_PAYMENT" ? (
                                         <>
                                             <span>
-                                                {reservation.postpaidAmount.toLocaleString()}
-                                                원
+                                                {reservation.postpaidAmount.toLocaleString()}원
                                             </span>
                                             <TotalPayment>
-                                                {(
-                                                    reservation.prepaidAmount +
-                                                    reservation.postpaidAmount
-                                                ).toLocaleString()}
-                                                원
+                                                {(reservation.prepaidAmount + reservation.postpaidAmount).toLocaleString()}원
                                             </TotalPayment>
                                         </>
                                     ) : (
                                         <PendingPayment>
-                                            {reservation.status ===
-                                            "PENDING_PAYMENT"
+                                            {reservation.status === "PENDING_PAYMENT"
                                                 ? "호스트 승인대기"
                                                 : "정산예정"}
                                         </PendingPayment>
