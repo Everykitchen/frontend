@@ -77,6 +77,21 @@ const CheckboxLabel = styled.label`
     gap: 6px;
 `;
 
+const CenterMarker = styled.div`
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    background: #FF7926;
+    border: 2px solid white;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px #FF7926;
+    z-index: 1;
+    pointer-events: none;
+`;
+
 const KitchenMap = () => {
     const [storeList, setStoreList] = useState([]);
     const [page, setPage] = useState(0);
@@ -84,6 +99,7 @@ const KitchenMap = () => {
     const [hasMore, setHasMore] = useState(true);
     const [showOnlyLiked, setShowOnlyLiked] = useState(false);
     const [sortOption, setSortOption] = useState("distance");
+    const [selectedKitchen, setSelectedKitchen] = useState(null);
 
     const mapRef = useRef(null);
     const markerMap = useRef({});
@@ -92,6 +108,7 @@ const KitchenMap = () => {
     const overlayRef = useRef(null);
     const [mapInstance, setMapInstance] = useState(null);
     const [userPosition, setUserPosition] = useState(null);
+    const centerCircleRef = useRef(null);
 
     const loaded = useKakaoLoader();
 
@@ -148,47 +165,89 @@ const KitchenMap = () => {
         return parts.length >= 2 ? `${parts[0]} ${parts[1]}` : loc;
     };
 
-    const addKitchenMarker = (k, map) => {
-        const pos = new window.kakao.maps.LatLng(k.latitude, k.longitude);
+    const fetchNearbyKitchens = async (lat, lng, map) => {
+        try {
+            // 기존 마커 모두 제거
+            Object.values(markerMap.current).forEach(marker => {
+                if (marker && marker.getMap()) {
+                    marker.setMap(null);
+                }
+            });
+            markerMap.current = {};
+
+            const res = await api.get(`/api/kitchens`, {
+                params: { lat, lng }
+            });
+            
+            // 새로운 마커 추가
+            res.data.forEach((kitchen) => {
+                addKitchenMarker(kitchen, map);
+            });
+
+            // 3km 반경 원 업데이트
+            updateCenterCircle(lat, lng, map);
+        } catch (err) {
+            console.error("반경 내 주방 조회 실패", err);
+        }
+    };
+
+    const updateCenterCircle = (lat, lng, map) => {
+        if (centerCircleRef.current) {
+            centerCircleRef.current.setMap(null);
+        }
+
+        // 3km 반경 원 생성 (카카오맵은 미터 단위 사용)
+        const circle = new window.kakao.maps.Circle({
+            center: new window.kakao.maps.LatLng(lat, lng),
+            radius: 3000,
+            strokeWeight: 1,
+            strokeColor: '#FF7926',
+            strokeOpacity: 0.5,
+            strokeStyle: 'dashed',
+            fillColor: '#FF7926',
+            fillOpacity: 0.05  // 투명도 증가
+        });
+
+        circle.setMap(map);
+        centerCircleRef.current = circle;
+    };
+
+    const clearOverlay = () => {
+        if (overlayRef.current) {
+            const { overlay, root, container } = overlayRef.current;
+            overlay.setMap(null);
+            root.unmount();
+            container.remove();
+            overlayRef.current = null;
+            setSelectedKitchen(null);
+        }
+    };
+
+    const addKitchenMarker = (kitchen, map) => {
+        const pos = new window.kakao.maps.LatLng(kitchen.latitude, kitchen.longitude);
+        
         const marker = new window.kakao.maps.Marker({
             map,
-            position: pos,
+            position: pos
         });
-        markerMap.current[k.kitchenId] = marker;
+
+        markerMap.current[kitchen.id || kitchen.kitchenId] = marker;
 
         window.kakao.maps.event.addListener(marker, "click", () => {
-            if (overlayRef.current) {
-                const { overlay, root, container } = overlayRef.current;
-                overlay.setMap(null);
-                root.unmount();
-                container.remove();
-                overlayRef.current = null;
-            }
+            clearOverlay();
+
             const container = document.createElement("div");
             const root = createRoot(container);
             root.render(
                 <KitchenInfo
-                    kitchen={{
-                        kitchenName: k.kitchenName,
-                        imageUrl: k.imageUrl || defaultKitchenImage,
-                        location: formatLocation(k.location),
-                        avgStar: k.avgStar,
-                        reviewCount: k.reviewCount,
-                        category: k.category,
-                        minPrice: k.minPrice,
-                    }}
-                    onClose={() => {
-                        if (overlayRef.current) {
-                            const { overlay, root, container } =
-                                overlayRef.current;
-                            overlay.setMap(null);
-                            root.unmount();
-                            container.remove();
-                            overlayRef.current = null;
-                        }
+                    kitchen={kitchen}
+                    onClose={clearOverlay}
+                    onDetailClick={() => {
+                        window.location.href = `/kitchen/${kitchen.id || kitchen.kitchenId}`;
                     }}
                 />
             );
+
             const overlay = new window.kakao.maps.CustomOverlay({
                 position: pos,
                 content: container,
@@ -198,43 +257,38 @@ const KitchenMap = () => {
             });
             overlay.setMap(map);
             overlayRef.current = { overlay, root, container };
-
-            map.panTo(pos);
+            setSelectedKitchen(kitchen);
         });
-    };
-
-    const fetchNearbyKitchens = async (lat, lng, map) => {
-        try {
-            const res = await api.get(
-                `/api/common/kitchen?lat=${lat}&long=${lng}`
-            );
-            const list = Array.isArray(res.data)
-                ? res.data
-                : res.data.content || [];
-            Object.values(markerMap.current).forEach((m) => m.setMap(null));
-            markerMap.current = {};
-            list.forEach((k) => addKitchenMarker(k, map));
-        } catch (err) {
-            console.error("반경 내 주방 조회 실패", err);
-        }
     };
 
     const initMap = (lat, lng) => {
         const map = new window.kakao.maps.Map(mapRef.current, {
             center: new window.kakao.maps.LatLng(lat, lng),
-            level: 5,
+            level: 4,
         });
         setMapInstance(map);
 
+        // 초기 주방 목록 로드
         fetchNearbyKitchens(lat, lng, map);
 
-        window.kakao.maps.event.addListener(map, "idle", () => {
-            clearTimeout(debounceTimer.current);
-            debounceTimer.current = setTimeout(() => {
-                const center = map.getCenter();
-                fetchNearbyKitchens(center.getLat(), center.getLng(), map);
-            }, 500);
+        // 지도 이동 시작할 때 오버레이 제거
+        window.kakao.maps.event.addListener(map, "dragstart", clearOverlay);
+        
+        // 지도 이동 시 주방 목록 업데이트 (드래그 종료 시)
+        window.kakao.maps.event.addListener(map, "dragend", () => {
+            const center = map.getCenter();
+            fetchNearbyKitchens(center.getLat(), center.getLng(), map);
         });
+
+        // 지도 줌 레벨 변경 시 반경 원 업데이트 및 오버레이 제거
+        window.kakao.maps.event.addListener(map, "zoom_changed", () => {
+            clearOverlay();
+            const center = map.getCenter();
+            updateCenterCircle(center.getLat(), center.getLng(), map);
+        });
+
+        // 지도 클릭 시 오버레이 제거
+        window.kakao.maps.event.addListener(map, "click", clearOverlay);
     };
 
     useEffect(() => {
@@ -292,6 +346,29 @@ const KitchenMap = () => {
         }
     };
 
+    const handleKitchenClick = (kitchen) => {
+        if (!mapInstance) return;
+
+        clearOverlay();
+
+        // 위도/경도로 지도 이동
+        const position = new window.kakao.maps.LatLng(
+            kitchen.latitude,
+            kitchen.longitude
+        );
+        mapInstance.panTo(position);
+        mapInstance.setLevel(3);
+
+        // 해당 위치를 기준으로 주변 주방 다시 불러오기
+        fetchNearbyKitchens(kitchen.latitude, kitchen.longitude, mapInstance);
+
+        // 해당 위치의 마커가 있다면 클릭 이벤트 발생
+        const marker = markerMap.current[kitchen.kitchenId];
+        if (marker) {
+            window.kakao.maps.event.trigger(marker, 'click');
+        }
+    };
+
     return (
         <Layout>
             <MapWrapper>
@@ -299,20 +376,17 @@ const KitchenMap = () => {
                     <LoadingText>지도를 불러오는 중입니다...</LoadingText>
                 ) : (
                     <>
-                        <div
-                            ref={mapRef}
-                            style={{ width: "100%", height: "100%" }}
-                        />
+                        <div ref={mapRef} style={{ width: "100%", height: "100%" }} />
                         {userPosition && mapInstance && (
                             <LocationButton
-                                onClick={() =>
-                                    mapInstance.panTo(
-                                        new window.kakao.maps.LatLng(
-                                            userPosition.lat,
-                                            userPosition.lng
-                                        )
-                                    )
-                                }
+                                onClick={() => {
+                                    const pos = new window.kakao.maps.LatLng(
+                                        userPosition.lat,
+                                        userPosition.lng
+                                    );
+                                    mapInstance.panTo(pos);
+                                    fetchNearbyKitchens(userPosition.lat, userPosition.lng, mapInstance);
+                                }}
                             >
                                 현재 위치로
                             </LocationButton>
@@ -346,27 +420,15 @@ const KitchenMap = () => {
                     </CheckboxLabel>
                 </Controls>
 
-                {getSortedList(storeList).map((k, i, arr) => {
+                {getSortedList(storeList).map((kitchen, i, arr) => {
                     const isLast = i === arr.length - 1;
                     return (
-                        <div
-                            key={k.kitchenId}
-                            ref={isLast ? lastCardRef : null}
-                        >
+                        <div key={kitchen.kitchenId} ref={isLast ? lastCardRef : null}>
                             <KitchenCard
-                                kitchen={k}
-                                isactive={false}
-                                onClick={() => {
-                                    const marker =
-                                        markerMap.current[k.kitchenId];
-                                    if (marker && mapInstance) {
-                                        mapInstance.panTo(marker.getPosition());
-                                        mapInstance.setLevel(3);
-                                    }
-                                }}
-                                onLikeToggle={() =>
-                                    handleLikeToggle(k.kitchenId)
-                                }
+                                kitchen={kitchen}
+                                isactive={selectedKitchen?.kitchenId === kitchen.kitchenId}
+                                onClick={() => handleKitchenClick(kitchen)}
+                                onLikeToggle={() => handleLikeToggle(kitchen.kitchenId)}
                             />
                         </div>
                     );

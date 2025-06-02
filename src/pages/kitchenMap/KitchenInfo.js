@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+import defaultKitchenImage from "../../assets/jpg/kitchen1.jpg";
 
 const InfoSidebar = styled.div`
     width: 280px;
@@ -7,6 +8,12 @@ const InfoSidebar = styled.div`
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     padding: 21px;
+    cursor: pointer;
+    transition: transform 0.2s;
+
+    &:hover {
+        transform: translateY(-2px);
+    }
 `;
 
 const SidebarImage = styled.img`
@@ -70,12 +77,21 @@ const CloseButton = styled.button`
     cursor: pointer;
 `;
 
-export default function KitchenInfo({ kitchen, onClose }) {
+export default function KitchenInfo({ kitchen, onClose, onDetailClick }) {
     if (!kitchen) return null;
+
+    const handleClick = (e) => {
+        e.stopPropagation();
+        onDetailClick?.();
+    };
+
     return (
-        <InfoSidebar>
-            <CloseButton onClick={onClose}>&times;</CloseButton>
-            <SidebarImage src={kitchen.imageUrl} alt="주방 사진" />
+        <InfoSidebar onClick={handleClick}>
+            <CloseButton onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+            }}>&times;</CloseButton>
+            <SidebarImage src={kitchen.imageUrl || defaultKitchenImage} alt="주방 사진" />
             <SidebarTitle>{kitchen.kitchenName}</SidebarTitle>
             <SidebarRating>
                 <StarIcon>★</StarIcon>

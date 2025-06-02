@@ -2,18 +2,24 @@ import styled from "styled-components";
 import { FaStar } from "react-icons/fa";
 
 const Card = styled.div`
-    position: relative;
-    padding: 16px;
-    margin-bottom: 10px;
-    border: 2px solid ${({ isactive }) => (isactive ? "#ffbc39" : "#ddd")};
-    border-radius: 12px;
     background: white;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
     cursor: pointer;
-    box-shadow: ${({ isactive }) =>
-        isactive
-            ? "0 0 0 3px rgba(255,188,57,0.3)"
-            : "0 2px 6px rgba(0, 0, 0, 0.05)"};
-    transition: all 0.2s;
+    transition: transform 0.2s;
+    border: 1px solid #eee;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+    &:hover {
+        transform: translateY(-2px);
+    }
+
+    ${({ isactive }) =>
+        isactive &&
+        `
+        border: 1px solid #FF7926;
+    `}
 `;
 
 const Info = styled.div`
@@ -79,7 +85,7 @@ const StarIcon = styled(FaStar)`
     flex-shrink: 0;
 `;
 
-const KitchenCard = ({ kitchen, isactive, onClick }) => (
+const KitchenCard = ({ kitchen, isactive, onClick, onLikeToggle }) => (
     <Card isactive={isactive} onClick={onClick}>
         <Info>
             <TitleRow>
