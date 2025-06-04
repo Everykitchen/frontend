@@ -161,6 +161,7 @@ const MainPage = () => {
     const [isFetching, setIsFetching] = useState(false);
     const [sortOrder, setSortOrder] = useState('');
     const [showFloatingTop, setShowFloatingTop] = useState(false);
+    const filterTimeoutRef = useRef(null);
 
     const observer = useRef();
     const navigate = useNavigate();
@@ -202,28 +203,49 @@ const MainPage = () => {
         [loading, isFetching, hasMore]
     );
 
-    const fetchStores = async (pageNum = 0) => {
+    const handleFilterChange = (newFilters) => {
+        // 이전 타이머 취소
+        if (filterTimeoutRef.current) {
+            clearTimeout(filterTimeoutRef.current);
+        }
+
+        // 새로운 필터 값으로 상태 업데이트
+        setFilters((prev) => {
+            const updatedFilters = { ...prev, ...newFilters };
+            
+            // 타이머 설정 - 클로저로 최신 필터 값 캡처
+            filterTimeoutRef.current = setTimeout(() => {
+                // 최신 필터 값으로 API 호출
+                const params = {
+                    page: 0,
+                    size: 12,
+                    location: updatedFilters.location || null,
+                    count: updatedFilters.count || null,
+                    price: updatedFilters.price || null,
+                    availableDate: updatedFilters.date || null,
+                    facilities: updatedFilters.facilities?.length > 0 ? updatedFilters.facilities.join(",") : null,
+                };
+                
+                console.log('Fetching with updated filters:', params); // 디버깅용
+                
+                // 페이지 초기화 후 API 호출
+                setPage(0);
+                fetchStoresWithParams(params);
+            }, 2000);
+            
+            return updatedFilters;
+        });
+    };
+
+    // API 호출 함수 분리
+    const fetchStoresWithParams = async (params) => {
         if (isFetching) return;
 
         try {
             setIsFetching(true);
             setLoading(true);
 
-            const response = await api.get("/api/common/kitchen", {
-                params: {
-                    location: selectedLocation || "",
-                    count: count || null,
-                    price: price || null,
-                    availableDate: date
-                        ? new Date(date).toISOString().split("T")[0]
-                        : null,
-                    facilities:
-                        facilities.length > 0 ? facilities.join(",") : null,
-                    page: pageNum,
-                    size: 12,
-                },
-            });
-
+            const response = await api.get("/api/common/kitchen", { params });
             const kitchens = response.data?.content || [];
 
             const transformed = kitchens.map((kitchen) => ({
@@ -243,14 +265,7 @@ const MainPage = () => {
                 reviewCount: kitchen.reviewCount || 0,
             }));
 
-            // 첫 페이지면 새로 설정, 아니면 기존 목록에 추가
-            if (pageNum === 0) {
-                setStoreList(transformed);
-            } else {
-                setStoreList((prev) => [...prev, ...transformed]);
-            }
-
-            // 더 불러올 데이터가 있는지 체크
+            setStoreList(transformed);
             setHasMore(kitchens.length > 0 && !response.data.last);
         } catch (err) {
             console.error("주방 목록 불러오기 실패", err);
@@ -261,6 +276,28 @@ const MainPage = () => {
             }, 2000);
         }
     };
+
+    // 페이지 변경 시 API 호출을 위한 함수
+    const fetchStores = async (pageNum = 0) => {
+        const params = {
+            page: pageNum,
+            size: 12,
+            location: filters.location || null,
+            count: filters.count || null,
+            price: filters.price || null,
+            availableDate: filters.date || null,
+            facilities: filters.facilities?.length > 0 ? filters.facilities.join(",") : null,
+        };
+        
+        await fetchStoresWithParams(params);
+    };
+
+    // 페이지 변경 시 API 호출
+    useEffect(() => {
+        if (page > 0) {
+            fetchStores(page);
+        }
+    }, [page]);
 
     // 주소 형식 변경 함수
     const formatLocation = (location) => {
@@ -295,18 +332,14 @@ const MainPage = () => {
         navigate(`/kitchen/${id}`);
     };
 
+    // 컴포넌트 언마운트 시 타이머 정리
     useEffect(() => {
-        fetchStores(page);
-    }, [page]);
-
-    useEffect(() => {
-        setPage(0);
-        fetchStores(0, true); // 필터 바뀌면 새로 요청
-    }, [filters]);
-
-    const handleFilterChange = (newFilters) => {
-        setFilters((prev) => ({ ...prev, ...newFilters }));
-    };
+        return () => {
+            if (filterTimeoutRef.current) {
+                clearTimeout(filterTimeoutRef.current);
+            }
+        };
+    }, []);
 
     const handleSortSelect = (value) => {
         setSortOrder(value);

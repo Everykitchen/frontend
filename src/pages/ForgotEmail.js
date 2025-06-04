@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/axiosInstance";
 
 const Container = styled.div`
     max-width: 500px;
@@ -129,7 +129,7 @@ const ForgotEmail = () => {
             return;
         }
         try {
-            const res = await axios.post("/api/auth/find-email", {
+            const res = await api.post("/api/auth/find-email", {
                 name,
                 birthday,
                 phoneNumber

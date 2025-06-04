@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/axiosInstance";
 import EmailVerification from "../components/EmailVerification";
 
 const Container = styled.div`
@@ -157,7 +157,7 @@ const ForgotPassword = () => {
             return;
         }
         try {
-            await axios.put("/api/auth/reset-password", {
+            await api.put("/api/auth/reset-password", {
                 email: email,
                 password: password
             });
@@ -166,6 +166,7 @@ const ForgotPassword = () => {
                 navigate("/login");
             }, 1000);
         } catch (error) {
+            console.error("Password reset error:", error);
             const msg = error?.response?.data?.result?.resultMessage;
             if (msg) {
                 if (msg.includes("비밀번호")) {
