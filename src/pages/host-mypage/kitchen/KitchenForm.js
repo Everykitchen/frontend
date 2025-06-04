@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import StepPrice from "./StepPrice";
 import StepFacility from "./StepFacility";
 import StepTool from "./StepTool";
@@ -55,16 +55,18 @@ const DAY_KOR_TO_ENG = {
 const KitchenForm = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const { kitchenId } = useParams();
     const isEdit = location.state?.isEdit || false;
     const editData = location.state?.editData || {};
 
+    const [category, setCategory] = useState("");
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
         kitchenName: "",
         description: "",
         phoneNumber: "",
         location: "",
-        detailLocation: "",
+        detailAddress: "",
         latitude: null,
         longitude: null,
         size: "",
@@ -78,6 +80,7 @@ const KitchenForm = () => {
         account: {
             accountNumber: "",
             bankName: "",
+            accountHolderName: "",
         },
         ingredients: [],
         extraIngredients: [],
@@ -88,48 +91,63 @@ const KitchenForm = () => {
     });
 
     useEffect(() => {
-        if (isEdit && editData) {
-            const priceMap = {};
-            (editData.defaultPrice || []).forEach((p) => {
-                const korDay = Object.entries(DAY_KOR_TO_ENG).find(
-                    ([kor, eng]) => eng === p.week
-                )?.[0];
-                if (korDay) priceMap[korDay] = p.price;
-            });
+        const fetchKitchenData = async () => {
+            try {
+                const res = await api.get(`/api/common/kitchen/${kitchenId}`);
+                const editData = res.data;
 
-            setFormData({
-                id: editData.kitchenId || editData.id,
-                kitchenName: editData.kitchenName || "",
-                description: editData.description || "",
-                phoneNumber: editData.phoneNumber || "",
-                location: editData.location || "",
-                detailLocation: editData.detailLocation || "",
-                latitude: editData.latitude || "",
-                longitude: editData.longitude || "",
-                size: editData.size || "",
-                baseClientNumber: editData.baseClientNumber || "",
-                maxClientNumber: editData.maxClientNumber || "",
-                minReservationTime:
-                    editData.minReservationTime?.toString() || "1",
-                openTime: editData.openTime?.slice(0, 5) || "09:00",
-                closeTime: editData.closeTime?.slice(0, 5) || "21:00",
-                category: editData.category || "",
-                kitchenImages: editData.kitchenImages || [],
-                account: {
-                    accountNumber: editData.account?.accountNumber || "",
-                    accountHolderName:
-                        editData.account?.accountHolderName || "",
-                    bankName: editData.account?.bankName || "",
-                },
-                ingredients: editData.ingredients || [],
-                extraIngredients: editData.extraIngredients || [],
-                kitchenFacility: editData.kitchenFacility || [],
-                cookingTool: editData.cookingTool || [],
-                providedItem: editData.providedItem || [],
-                defaultPrice: priceMap,
-            });
-        }
-    }, [isEdit, editData]);
+                const priceMap = {};
+                (editData.defaultPrice || []).forEach((p) => {
+                    const korDay = Object.entries(DAY_KOR_TO_ENG).find(
+                        ([kor, eng]) => eng === p.week
+                    )?.[0];
+                    if (korDay) {
+                        priceMap[korDay] = {
+                            price: p.price,
+                            enabled: p.enabled === "true" || p.enabled === true,
+                        };
+                    }
+                });
+
+                setFormData({
+                    id: editData.kitchenId || editData.id,
+                    kitchenName: editData.kitchenName || "",
+                    description: editData.description || "",
+                    phoneNumber: editData.phoneNumber || "",
+                    location: editData.location || "",
+                    detailAddress: editData.detailAddress || "",
+                    latitude: editData.latitude || "",
+                    longitude: editData.longitude || "",
+                    size: editData.size || "",
+                    baseClientNumber: editData.baseClientNumber || "",
+                    maxClientNumber: editData.maxClientNumber || "",
+                    minReservationTime:
+                        editData.minReservationTime?.toString() || "1",
+                    openTime: editData.openTime?.slice(0, 5) || "09:00",
+                    closeTime: editData.closeTime?.slice(0, 5) || "21:00",
+                    category: editData.category || "",
+                    kitchenImages: editData.images || [],
+                    account: {
+                        accountNumber: editData.accountNumber || "",
+                        accountHolderName: editData.accountHolderName || "",
+                        bankName: editData.bankName || "",
+                    },
+                    ingredients: editData.ingredients || [],
+                    extraIngredients: editData.extraIngredients || [],
+                    kitchenFacility: editData.kitchenFacility || [],
+                    cookingTool: editData.cookingTool || [],
+                    providedItem: editData.providedItem || [],
+                    defaultPrice: priceMap,
+                });
+            } catch (err) {
+                console.error("주방 정보 불러오기 실패", err);
+                alert("주방 정보를 불러오는 데 실패했습니다.");
+            }
+        };
+
+        setCategory(editData.category || "");
+        if (isEdit && kitchenId) fetchKitchenData();
+    }, [isEdit, kitchenId]);
 
     const nextStep = () => setStep((prev) => prev + 1);
     const prevStep = () => setStep((prev) => prev - 1);
@@ -140,6 +158,7 @@ const KitchenForm = () => {
         description: data.description,
         phoneNumber: data.phoneNumber,
         location: data.location,
+        detailAddress: data.detailAddress,
         latitude: parseFloat(data.latitude),
         longitude: parseFloat(data.longitude),
         size: parseFloat(data.size),
@@ -229,7 +248,7 @@ const KitchenForm = () => {
 
         try {
             const response = isEdit
-                ? await api.post(`/api/host/kitchen/${formData.id}`, form, {
+                ? await api.patch(`/api/host/kitchen/${formData.id}`, form, {
                       headers: { "Content-Type": "multipart/form-data" },
                   })
                 : await api.post("/api/host/kitchen", form, {
@@ -256,6 +275,8 @@ const KitchenForm = () => {
                         formData={formData}
                         setFormData={setFormData}
                         nextStep={nextStep}
+                        category={category}
+                        setCategory={setCategory}
                     />
                 );
             case 2:

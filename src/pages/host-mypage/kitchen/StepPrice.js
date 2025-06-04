@@ -246,11 +246,16 @@ const PriceInput = styled.input`
     }
 `;
 
-const StepPrice = ({ formData, setFormData, nextStep }) => {
+const StepPrice = ({
+    formData,
+    setFormData,
+    nextStep,
+    category,
+    setCategory,
+}) => {
     const kakaoLoaded = useKakaoLoader();
     const daumLoaded = useDaumPostcodeLoader();
 
-    const [category, setCategory] = useState(formData.category || "");
     const [imageFiles, setImageFiles] = useState(formData.kitchenImages || []);
     const [imageUrls, setImageUrls] = useState(
         formData.kitchenImages?.map((file) =>
@@ -413,7 +418,7 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
         if (!formData.phoneNumber) newErrors.phoneNumber = true;
         if (!formData.description) newErrors.description = true;
         if (!formData.location) newErrors.location = true;
-        if (!formData.detailLocation) newErrors.detailLocation = true;
+        if (!formData.detailAddress) newErrors.detailAddress = true;
         if (!formData.size) newErrors.size = true;
         if (!formData.baseClientNumber) newErrors.baseClientNumber = true;
         if (!formData.maxClientNumber) newErrors.maxClientNumber = true;
@@ -547,14 +552,14 @@ const StepPrice = ({ formData, setFormData, nextStep }) => {
                 <Label>상세 주소</Label>
                 <Input
                     type="text"
-                    value={formData.detailLocation || ""}
+                    value={formData.detailAddress || ""}
                     $isInvalid={
-                        Object.keys(errors).length > 0 && errors.detailLocation
+                        Object.keys(errors).length > 0 && errors.detailAddress
                     }
                     onChange={(e) =>
                         setFormData({
                             ...formData,
-                            detailLocation: e.target.value,
+                            detailAddress: e.target.value,
                         })
                     }
                 />

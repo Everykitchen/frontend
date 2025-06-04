@@ -141,6 +141,14 @@ const AppRouter = () => {
                 }
             />
             <Route
+                path="/host-mypage/kitchen-form/:kitchenId"
+                element={
+                    <ProtectedRoute allowedRole="HOST">
+                        <KitchenForm />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
                 path="/host-mypage/reservations"
                 element={
                     <ProtectedRoute allowedRole="HOST">
@@ -198,15 +206,14 @@ const AppRouter = () => {
                     </ProtectedRoute>
                 }
             />
-            <Route 
-                path="/host-mypage/reservations/calendar" 
+            <Route
+                path="/host-mypage/reservations/calendar"
                 element={
                     <ProtectedRoute allowedRole="HOST">
                         <ReservationCalendar />
                     </ProtectedRoute>
                 }
-            /> 
-
+            />
         </Routes>
     );
 };

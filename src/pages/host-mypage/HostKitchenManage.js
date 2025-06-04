@@ -123,8 +123,8 @@ const KitchenManage = () => {
         const selectedKitchen = kitchenList.find(
             (kitchen) => kitchen.kitchenId === kitchenId
         );
-        navigate("/host-mypage/kitchen-form", {
-            state: { isEdit: true, editData: selectedKitchen },
+        navigate(`/host-mypage/kitchen-form/${kitchenId}`, {
+            state: { isEdit: true },
         });
     };
 
