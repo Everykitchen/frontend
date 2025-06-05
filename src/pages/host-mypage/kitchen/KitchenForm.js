@@ -132,20 +132,26 @@ const KitchenForm = () => {
                         accountHolderName: editData.accountHolderName || "",
                         bankName: editData.bankName || "",
                     },
-                    ingredients: editData.ingredients || [],
-                    extraIngredients: editData.extraIngredients || [],
+                    ingredients: (editData.ingredients || []).filter(
+                        (i) => i.additional === false
+                    ),
+                    extraIngredients: (editData.ingredients || []).filter(
+                        (i) => i.additional === true
+                    ),
+
                     kitchenFacility: editData.kitchenFacility || [],
                     cookingTool: editData.cookingTool || [],
                     providedItem: editData.providedItem || [],
                     defaultPrice: priceMap,
                 });
+
+                setCategory(editData.category || "");
             } catch (err) {
                 console.error("주방 정보 불러오기 실패", err);
                 alert("주방 정보를 불러오는 데 실패했습니다.");
             }
         };
 
-        setCategory(editData.category || "");
         if (isEdit && kitchenId) fetchKitchenData();
     }, [isEdit, kitchenId]);
 

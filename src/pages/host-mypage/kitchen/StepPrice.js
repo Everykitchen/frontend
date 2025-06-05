@@ -256,15 +256,9 @@ const StepPrice = ({
     const kakaoLoaded = useKakaoLoader();
     const daumLoaded = useDaumPostcodeLoader();
 
-    const [imageFiles, setImageFiles] = useState(formData.kitchenImages || []);
-    const [imageUrls, setImageUrls] = useState(
-        formData.kitchenImages?.map((file) =>
-            file instanceof File ? URL.createObjectURL(file) : file
-        ) || []
-    );
-    const [representativeImage, setRepresentativeImage] = useState(
-        imageUrls.length > 0 ? imageUrls[0] : ""
-    );
+    const [imageFiles, setImageFiles] = useState([]);
+    const [imageUrls, setImageUrls] = useState([]);
+    const [representativeImage, setRepresentativeImage] = useState("");
     const [activeDays, setActiveDays] = useState(
         formData.activeDays || ["월", "화", "수", "목", "금", "토", "일"]
     );
@@ -287,6 +281,14 @@ const StepPrice = ({
         }));
     }, [category]);
 
+    // 초기 이미지 설정 (등록 또는 수정 진입 시)
+    useEffect(() => {
+        if (formData.kitchenImages?.length > 0) {
+            setImageFiles(formData.kitchenImages);
+        }
+    }, [formData.kitchenImages]);
+
+    // 이미지 URL 변환 및 대표 이미지 설정
     useEffect(() => {
         const urls = imageFiles.map((file) =>
             file instanceof File ? URL.createObjectURL(file) : file
@@ -300,6 +302,13 @@ const StepPrice = ({
             kitchenImages: imageFiles,
         }));
     }, [imageFiles]);
+
+    useEffect(() => {
+        setFormData((prev) => ({
+            ...prev,
+            category,
+        }));
+    }, [category]);
 
     useEffect(() => {
         const updatedPrice = {};
@@ -481,6 +490,7 @@ const StepPrice = ({
                         </ToggleButton>
                     ))}
                 </ToggleButtons>
+
                 <Label>이미지 등록</Label>
                 <FileInput
                     type="file"
@@ -663,8 +673,14 @@ const StepPrice = ({
                         <PriceRow key={day}>
                             <input
                                 type="checkbox"
-                                checked={activeDays.includes(day)}
+                                checked={
+                                    formData.defaultPrice?.[day]?.enabled ||
+                                    false
+                                }
                                 onChange={() => toggleDay(day)}
+                                disabled={
+                                    !formData.defaultPrice?.[day]?.enabled
+                                }
                             />
                             <DayLabel>{day}</DayLabel>
                             <PriceInput
