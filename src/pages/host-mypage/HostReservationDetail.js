@@ -412,6 +412,55 @@ const MapContainer = styled.div`
     }
 `;
 
+const ConfirmModal = styled(Modal)`
+    // 기존 Modal 스타일 상속
+`;
+
+const ConfirmModalContent = styled(ModalContent)`
+    max-width: 400px;
+    text-align: center;
+`;
+
+const ConfirmMessage = styled.p`
+    font-size: 16px;
+    margin: 20px 0;
+    line-height: 1.5;
+    color: #333;
+`;
+
+const ButtonGroup = styled.div`
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 20px;
+`;
+
+const ConfirmButton = styled.button`
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+
+    &.cancel {
+        background-color: #ff6b6b;
+        color: white;
+        &:hover {
+            background-color: #ff5252;
+        }
+    }
+
+    &.close {
+        background-color: #f5f5f5;
+        color: #666;
+        &:hover {
+            background-color: #e0e0e0;
+        }
+    }
+`;
+
 const HostReservationDetail = () => {
     const { reservationId } = useParams();
     const navigate = useNavigate();
@@ -421,6 +470,7 @@ const HostReservationDetail = () => {
     const [showMap, setShowMap] = useState(false);
     const [mapLoading, setMapLoading] = useState(false);
     const mapRef = useRef(null);
+    const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
     const loaded = useKakaoLoader();
 
@@ -634,6 +684,21 @@ const HostReservationDetail = () => {
         navigate(-1);
     };
 
+    const handleCancelReservation = async () => {
+        try {
+            const response = await axios.delete(`/api/host/reservation/${reservationId}/cancel`);
+            if (response.status === 200) {
+                alert("예약이 취소되었습니다.");
+                navigate("/host-mypage/reservations"); // 예약 목록 페이지로 이동
+            }
+        } catch (error) {
+            console.error("예약 취소 실패:", error);
+            alert("예약 취소 처리에 실패했습니다.");
+        } finally {
+            setShowCancelConfirm(false);
+        }
+    };
+
     if (loading)
         return (
             <Container>
@@ -817,6 +882,7 @@ const HostReservationDetail = () => {
                                         }
                                         : {}
                                     }
+                                    onClick={() => setShowCancelConfirm(true)}
                                 >
                                     예약취소
                                 </CancelButton>
@@ -845,6 +911,35 @@ const HostReservationDetail = () => {
                             </MapContainer>
                         </ModalContent>
                     </Modal>
+                )}
+
+                {showCancelConfirm && (
+                    <ConfirmModal>
+                        <ConfirmModalContent>
+                            <ModalHeader>
+                                <ModalTitle>예약 취소 확인</ModalTitle>
+                                <CloseButton onClick={() => setShowCancelConfirm(false)}>×</CloseButton>
+                            </ModalHeader>
+                            <ConfirmMessage>
+                                정말로 예약을 취소하시겠습니까?<br />
+                                취소된 예약은 복구할 수 없습니다.
+                            </ConfirmMessage>
+                            <ButtonGroup>
+                                <ConfirmButton 
+                                    className="close" 
+                                    onClick={() => setShowCancelConfirm(false)}
+                                >
+                                    닫기
+                                </ConfirmButton>
+                                <ConfirmButton 
+                                    className="cancel" 
+                                    onClick={handleCancelReservation}
+                                >
+                                    예약 취소
+                                </ConfirmButton>
+                            </ButtonGroup>
+                        </ConfirmModalContent>
+                    </ConfirmModal>
                 )}
             </ContentWrapper>
         </Container>

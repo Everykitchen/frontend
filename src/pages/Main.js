@@ -265,7 +265,13 @@ const MainPage = () => {
                 reviewCount: kitchen.reviewCount || 0,
             }));
 
-            setStoreList(transformed);
+            // 첫 페이지면 새로 설정, 아니면 기존 목록에 추가
+            if (params.page === 0) {
+                setStoreList(transformed);
+            } else {
+                setStoreList(prev => [...prev, ...transformed]);
+            }
+
             setHasMore(kitchens.length > 0 && !response.data.last);
         } catch (err) {
             console.error("주방 목록 불러오기 실패", err);
