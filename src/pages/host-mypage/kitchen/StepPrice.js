@@ -265,9 +265,28 @@ const StepPrice = ({
     const [errors, setErrors] = useState({});
 
     const toggleDay = (day) => {
-        setActiveDays((prev) =>
-            prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
-        );
+        setActiveDays((prev) => {
+            const isNowActive = !prev.includes(day);
+            const newDays = isNowActive
+                ? [...prev, day]
+                : prev.filter((d) => d !== day);
+
+            setFormData((prevData) => ({
+                ...prevData,
+                defaultPrice: {
+                    ...prevData.defaultPrice,
+                    [day]: {
+                        ...prevData.defaultPrice[day],
+                        enabled: isNowActive,
+                        price: isNowActive
+                            ? prevData.defaultPrice?.[day]?.price || ""
+                            : "",
+                    },
+                },
+            }));
+
+            return newDays;
+        });
     };
 
     const triggerTimePicker = (e) => {
@@ -294,9 +313,11 @@ const StepPrice = ({
             file instanceof File ? URL.createObjectURL(file) : file
         );
         setImageUrls(urls);
+
         setRepresentativeImage((prev) =>
             urls.includes(prev) ? prev : urls[0] || ""
         );
+
         setFormData((prev) => ({
             ...prev,
             kitchenImages: imageFiles,
@@ -351,14 +372,7 @@ const StepPrice = ({
         const fileArray = Array.from(files).filter(
             (file) => file instanceof File
         );
-        setImageFiles((prev) => {
-            const updated = [...prev, ...fileArray];
-            setFormData((form) => ({
-                ...form,
-                kitchenImages: updated,
-            }));
-            return updated;
-        });
+        setImageFiles((prev) => [...prev, ...fileArray]);
     };
 
     const handleRemoveImage = (index) => {
@@ -503,8 +517,19 @@ const StepPrice = ({
                         {imageUrls.map((url, index) => (
                             <ImageBox
                                 key={index}
-                                selected={representativeImage === url}
-                                onClick={() => setRepresentativeImage(url)}
+                                selected={imageUrls[0] === url}
+                                onClick={() => {
+                                    setRepresentativeImage(url);
+                                    setImageFiles((prev) => {
+                                        const clicked = prev[index];
+                                        return [
+                                            clicked,
+                                            ...prev.filter(
+                                                (_, i) => i !== index
+                                            ),
+                                        ];
+                                    });
+                                }}
                             >
                                 <PreviewImage
                                     src={url}
@@ -678,9 +703,6 @@ const StepPrice = ({
                                     false
                                 }
                                 onChange={() => toggleDay(day)}
-                                disabled={
-                                    !formData.defaultPrice?.[day]?.enabled
-                                }
                             />
                             <DayLabel>{day}</DayLabel>
                             <PriceInput
