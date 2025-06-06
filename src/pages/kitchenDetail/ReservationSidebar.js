@@ -442,8 +442,8 @@ const ReservationSidebar = ({
         ];
         const dayName = days[date.getDay()];
         
-        // defaultPrice 배열을 reverse하고 처음 7개만 사용
-        const lastWeekPrices = [...kitchenData.defaultPrice].reverse().slice(0, 7);
+        // defaultPrice 배열을 reverse하고 처음 8개만 사용
+        const lastWeekPrices = [...kitchenData.defaultPrice].reverse().slice(0, 8);
         const priceInfo = lastWeekPrices.find(p => p.week === dayName);
         
         return priceInfo ? priceInfo.enabled : false;

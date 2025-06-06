@@ -69,6 +69,11 @@ const Input = styled.input`
     border: 1px solid #ccc;
     border-radius: 4px;
     width: 100%;
+    transition: border-color 0.2s ease;
+    &:focus {
+        outline: none;
+        border-color: #ffbc39;
+    }
 `;
 
 const ButtonContainer = styled.div`
@@ -87,6 +92,14 @@ const NavButton = styled.button`
     cursor: pointer;
 `;
 
+const ErrorMessage = styled.span`
+    color: #d9534f;
+    font-size: 14px;
+    font-weight: 500;
+    display: block;
+    margin-bottom: 16px;
+`;
+
 const StepFacility = ({ formData, setFormData, nextStep, prevStep }) => {
     const [facilityStates, setFacilityStates] = useState(
         formData.kitchenFacility.length > 0
@@ -99,20 +112,21 @@ const StepFacility = ({ formData, setFormData, nextStep, prevStep }) => {
                   {
                       facilityType: "인덕션",
                       count: 1,
-                      description: "예: SK매직 인덕션, 4구",
+                      description: "",
                   },
                   {
                       facilityType: "오븐",
                       count: 1,
-                      description: "예: LG 오븐, 230도 가능",
+                      description: "",
                   },
                   {
                       facilityType: "조리대",
                       count: 1,
-                      description: "예: 1800X900 조리대",
+                      description: "",
                   },
               ]
     );
+    const [validationError, setValidationError] = useState('');
 
     useEffect(() => {
         const facilitiesToSave = facilityStates
@@ -161,12 +175,28 @@ const StepFacility = ({ formData, setFormData, nextStep, prevStep }) => {
         }));
     };
 
+    const validateAndNext = () => {
+        const hasEmptyFields = facilityStates.some(
+            facility => !facility.facilityType.trim() || !facility.description.trim()
+        );
+        
+        if (hasEmptyFields) {
+            setValidationError('모든 설비 정보를 입력해주세요');
+            return;
+        }
+
+        setValidationError('');
+        syncFormData();
+        nextStep();
+    };
+
     return (
         <Container>
             <SectionTitle>
                 보유하신 주방 설비에 대한 정보를 작성해주세요.
                 <AddButton onClick={handleAddFacility}>+ 항목추가</AddButton>
             </SectionTitle>
+            {validationError && <ErrorMessage>{validationError}</ErrorMessage>}
 
             <Table>
                 <thead>
@@ -210,6 +240,15 @@ const StepFacility = ({ formData, setFormData, nextStep, prevStep }) => {
                                 <Input
                                     type="text"
                                     value={facility.description}
+                                    placeholder={
+                                        facility.facilityType === "인덕션"
+                                            ? "예: SK매직 인덕션, 4구"
+                                            : facility.facilityType === "오븐"
+                                            ? "예: LG 오븐, 230도 가능"
+                                            : facility.facilityType === "조리대"
+                                            ? "예: 1800X900 조리대"
+                                            : "설비에 대한 상세 설명을 입력해주세요"
+                                    }
                                     onChange={(e) =>
                                         handleInputChange(
                                             index,
@@ -232,20 +271,13 @@ const StepFacility = ({ formData, setFormData, nextStep, prevStep }) => {
             </Table>
 
             <ButtonContainer>
-                <NavButton
-                    onClick={() => {
+                <NavButton onClick={() => {
                         syncFormData();
                         prevStep();
-                    }}
-                >
+                }}>
                     이전
                 </NavButton>
-                <NavButton
-                    onClick={() => {
-                        syncFormData();
-                        nextStep();
-                    }}
-                >
+                <NavButton onClick={validateAndNext}>
                     다음
                 </NavButton>
             </ButtonContainer>

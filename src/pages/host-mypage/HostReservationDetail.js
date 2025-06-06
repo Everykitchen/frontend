@@ -152,7 +152,7 @@ const CopyButton = styled.button`
     white-space: nowrap;
     display: inline-block;
     margin-left: 20px;
-
+    
     &:hover {
         text-decoration: underline;
     }
@@ -220,7 +220,7 @@ const SmallActionButton = styled.button`
             if (props.disabled) return "#BDBDBD";
             return props.variant === "primary" ? "white" : "#333";
         }};
-
+        
         svg path {
             fill: ${(props) => {
                 if (props.disabled) return "#BDBDBD";
@@ -228,11 +228,11 @@ const SmallActionButton = styled.button`
             }};
         }
     }
-
+    
     @media (max-width: 768px) {
         font-size: 14px;
         gap: 8px;
-
+        
         svg,
         img {
             width: 24px;
@@ -326,7 +326,7 @@ const CancelButton = styled.button`
     border: none;
     width: 120px;
     text-align: center;
-
+    
     &:hover {
         background-color: #ffe2d1;
         color: #ff6b0f;
@@ -383,7 +383,7 @@ const CloseButton = styled.button`
     font-size: 24px;
     cursor: pointer;
     color: #666;
-
+    
     &:hover {
         color: #333;
     }
@@ -471,7 +471,7 @@ const HostReservationDetail = () => {
     const [mapLoading, setMapLoading] = useState(false);
     const mapRef = useRef(null);
     const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-
+    
     const loaded = useKakaoLoader();
 
     useEffect(() => {
@@ -484,14 +484,14 @@ const HostReservationDetail = () => {
                     `/api/host/reservation/${reservationId}`
                 );
                 console.log("호스트 예약 상세 정보:", res.data);
-
+                
                 // 좌표가 없으면 서울 좌표로 기본값 설정
                 const data = res.data;
                 if (!data.latitude || !data.longitude) {
                     data.latitude = 37.5665; // 서울 기본 좌표
                     data.longitude = 126.978;
                 }
-
+                
                 setReservationData(data);
             } catch (err) {
                 console.error("상세 정보 불러오기 실패:", err);
@@ -502,51 +502,51 @@ const HostReservationDetail = () => {
         };
         fetchDetail();
     }, [reservationId]);
-
+    
     // 지도 초기화 및 표시 함수
     useEffect(() => {
         if (!loaded || !showMap || !mapRef.current || !reservationData) return;
-
+            
         // 지도 초기화 시작
         setMapLoading(true);
-
+        
         try {
             // 이전에 생성된 지도 요소 정리
             if (mapRef.current) {
                 mapRef.current.innerHTML = "";
             }
-
+            
             // 지연 처리로 DOM이 준비된 후 지도 생성
             const timer = setTimeout(() => {
                 try {
                     const coords = new window.kakao.maps.LatLng(
-                        reservationData.latitude,
+                        reservationData.latitude, 
                         reservationData.longitude
                     );
-
+                    
                     const mapOptions = {
                         center: coords,
                         level: 3,
                     };
-
+                    
                     // 지도 객체 생성
                     const map = new window.kakao.maps.Map(
                         mapRef.current,
                         mapOptions
                     );
-
+                    
                     // 마커 생성
                     const marker = new window.kakao.maps.Marker({
                         position: coords,
                     });
                     marker.setMap(map);
-
+                    
                     // 상호명 표시
                     const infowindow = new window.kakao.maps.InfoWindow({
                         content: `<div style="padding:5px;font-size:12px;">${reservationData.kitchenName}</div>`,
                     });
                     infowindow.open(map, marker);
-
+                    
                     // 지도 크기 재조정 처리
                     setTimeout(() => {
                         map.relayout();
@@ -558,14 +558,14 @@ const HostReservationDetail = () => {
                     setMapLoading(false);
                 }
             }, 100);
-
+            
             return () => clearTimeout(timer);
         } catch (err) {
             console.error("지도 생성 오류:", err);
             setMapLoading(false);
         }
     }, [loaded, showMap, reservationData]);
-
+    
     // 상태 텍스트 변환
     const getStatusText = (status) => {
         const map = {
@@ -603,21 +603,21 @@ const HostReservationDetail = () => {
                 alert("로그인 정보를 찾을 수 없습니다. 다시 로그인해주세요.");
                 return;
             }
-
+            
             // 필수 정보인 kitchenId와 reservationId 확인
             if (!reservationData.kitchenId) {
                 console.error("주의: kitchenId가 없습니다!", reservationData);
                 alert("주방 정보가 없어 채팅을 시작할 수 없습니다.");
                 return;
             }
-
+            
             // 채팅방 이동 전 상세 정보 로깅
             console.log("호스트 채팅방 이동 시도:", {
                 kitchenId: reservationData.kitchenId,
                 reservationId: reservationData.reservationId,
                 kitchenName: reservationData.kitchenName,
             });
-
+            
             // 백엔드 요구 사항에 맞게 정확한 값 전달
             // 호스트 채팅 엔드포인트에는 kitchenId, reservationId만 필요
             // 직접 URL 접근을 위해 쿼리 파라미터 추가
@@ -626,12 +626,12 @@ const HostReservationDetail = () => {
                 reservationId: reservationData.reservationId,
                 kitchenName: reservationData.kitchenName,
             };
-
+            
             console.log("navigate 호출:", {
                 url: `/host-mypage/chats/direct?reservationId=${reservationData.reservationId}`,
                 state: navigateState,
             });
-
+            
             navigate(
                 `/host-mypage/chats/direct?reservationId=${reservationData.reservationId}`,
                 {
@@ -646,14 +646,14 @@ const HostReservationDetail = () => {
             const response = await axios.post(`/api/host/reservation/${reservationId}/completed`);
             if (response.status === 200) {
                 alert("정산이 완료되었습니다.");
-                window.location.reload();
+            window.location.reload();
             }
         } catch (error) {
             console.error("정산 완료 처리 실패:", error);
             alert("정산 완료 처리에 실패했습니다.");
         }
     };
-
+    
     const handleCopyAddress = () => {
         if (reservationData?.kitchenLocation) {
             navigator.clipboard
@@ -667,7 +667,7 @@ const HostReservationDetail = () => {
                 });
         }
     };
-
+    
     const handleShowMap = () => {
         setShowMap(true);
     };
@@ -757,12 +757,12 @@ const HostReservationDetail = () => {
                                     지도조회
                                 </SmallActionButton>
                                 <SmallActionButton onClick={handleKitchenInfo}>
-                                    <img
-                                        src={informationIcon}
-                                        alt="주방 정보"
+                                    <img 
+                                        src={informationIcon} 
+                                        alt="주방 정보" 
                                         style={{
                                             filter: "brightness(0) saturate(100%) invert(40%) sepia(0%) saturate(0%) hue-rotate(222deg) brightness(92%) contrast(86%)",
-                                        }}
+                                        }} 
                                     />
                                     주방 정보
                                 </SmallActionButton>
@@ -787,14 +787,14 @@ const HostReservationDetail = () => {
                                         onClick={handleCompletedPayment}
                                         disabled={reservationData.status !== "PENDING_PAYMENT"}
                                     >
-                                        <MoneyIcon />
-                                        정산완료
-                                    </SmallActionButton>
+                                    <MoneyIcon />
+                                    정산완료
+                                </SmallActionButton>
                                 )}
                             </ActionButtons>
                         </KitchenInfo>
                     </TopSection>
-
+                    
                     <BottomSection>
                         <InfoSection>
                             <SectionTitle>예약 정보</SectionTitle>
@@ -820,7 +820,7 @@ const HostReservationDetail = () => {
                                 </Values>
                             </InfoContainer>
                         </InfoSection>
-
+                        
                         <InfoSection>
                             <SectionTitle>결제 정보</SectionTitle>
                             <InfoContainer>
@@ -833,7 +833,7 @@ const HostReservationDetail = () => {
                                         </>
                                     )}
                                     {reservationData.status !== "COMPLETED_PAYMENT" && (
-                                        <span>후결제 금액</span>
+                                    <span>후결제 금액</span>
                                     )}
                                 </Labels>
                                 <Values>
@@ -854,22 +854,22 @@ const HostReservationDetail = () => {
                                             </TotalPayment>
                                         </>
                                     ) : (
-                                        <PendingPayment>
+                                    <PendingPayment>
                                             {reservationData.status === "PENDING_PAYMENT"
                                                 ? "호스트 승인대기"
                                                 : "정산예정"}
-                                        </PendingPayment>
+                                    </PendingPayment>
                                     )}
                                 </Values>
                             </InfoContainer>
-
+                            
                             <ActionSection>
                                 {reservationData.status !== "COMPLETED_PAYMENT" && (
-                                    <CancellationNotice>
+                                <CancellationNotice>
                                         {reservationData.status === "PENDING_PAYMENT"
                                             ? "입금된 정산금을 확인한 뒤 정산완료를 클릭해주세요."
                                             : "예약자에게 채팅으로 사전에 고지한 뒤 예약 취소를 해주시길 바랍니다."}
-                                    </CancellationNotice>
+                                </CancellationNotice>
                                 )}
                                 <CancelButton
                                     disabled={reservationData.status === "COMPLETED_PAYMENT"}
@@ -880,7 +880,7 @@ const HostReservationDetail = () => {
                                             backgroundColor: "#F6F6F6",
                                             color: "#BDBDBD",
                                         }
-                                        : {}
+                                            : {}
                                     }
                                     onClick={() => setShowCancelConfirm(true)}
                                 >
@@ -890,7 +890,7 @@ const HostReservationDetail = () => {
                         </InfoSection>
                     </BottomSection>
                 </DetailCard>
-
+                
                 {showMap && (
                     <Modal>
                         <ModalContent>
@@ -946,4 +946,4 @@ const HostReservationDetail = () => {
     );
 };
 
-export default HostReservationDetail;
+export default HostReservationDetail; 
