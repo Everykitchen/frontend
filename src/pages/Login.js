@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/axiosInstance";
 import { jwtDecode } from "jwt-decode";
 
 const LoginContainer = styled.div`
@@ -101,13 +101,14 @@ function Login() {
     const [password, setPassword] = useState("");
     const [role, setRole] = useState("USER");
     const [error, setError] = useState("");
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
 
         try {
-            const response = await axios.post("/api/auth/login", {
+            const response = await api.post("/api/auth/login", {
                 email,
                 password,
             });
@@ -129,13 +130,17 @@ function Login() {
                 localStorage.setItem("refreshToken", refreshToken);
                 localStorage.setItem("role", tokenRole);
 
-                window.location.href =
-                    tokenRole === "HOST" ? "/host-mypage" : "/";
+                navigate(tokenRole === "HOST" ? "/host-mypage" : "/");
             } else {
                 setError("이메일 또는 비밀번호가 올바르지 않습니다.");
             }
         } catch (error) {
-            setError("로그인 중 오류가 발생했습니다.");
+            console.error("Login error:", error);
+            if (error.response?.status === 401) {
+                setError("이메일 또는 비밀번호가 올바르지 않습니다.");
+            } else {
+                setError("로그인 중 오류가 발생했습니다.");
+            }
         }
     };
 

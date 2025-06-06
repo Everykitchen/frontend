@@ -179,26 +179,75 @@ const BottomSection = styled.div`
     border-radius: 12px;
     padding: 24px;
     display: flex;
+    flex-direction: column;
     gap: 40px;
+
+    @media (min-width: 1200px) {
+        flex-direction: row;
+    }
 `;
 
 const ChartSection = styled.div`
-    width: 40%;
+    width: 100%;
+    min-width: 0;
+
+    @media (min-width: 1200px) {
+        width: 45%;
+    }
 `;
 
 const TableSection = styled.div`
-    width: 50%;
+    width: 100%;
     position: relative;
     padding-top: 24px;
 
-    &::before {
-        content: '';
-        position: absolute;
-        top: 30px;
-        left: 50%;
-        height: 80%;
-        width: 1px;
-        background-color: #E0E0E0;
+    @media (min-width: 1200px) {
+        width: 55%;
+        padding-left: 40px;
+        &::before {
+            content: '';
+            position: absolute;
+            top: 30px;
+            left: 0;
+            height: 80%;
+            width: 1px;
+            background-color: #E0E0E0;
+        }
+    }
+`;
+
+const ChartContainer = styled.div`
+    position: relative;
+    width: 100%;
+    height: 320px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    @media (min-width: 1200px) {
+        width: 450px;
+    }
+`;
+
+const ChartWrapper = styled.div`
+    width: 100%;
+    height: 300px;
+    position: relative;
+`;
+
+const AxisLabel = styled.div`
+    position: absolute;
+    font-size: 13px;
+    color: #888;
+    &.y-axis {
+        left: 10px;
+        top: 0;
+    }
+    &.x-axis {
+        right: 0;
+        bottom: 0;
+        transform: translateX(-50%);
     }
 `;
 
@@ -273,9 +322,15 @@ const KitchenHeader = styled.div`
 
 const SalesTable = styled.div`
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 60px;
-    padding: 24px;
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 24px 0;
+
+    @media (min-width: 768px) {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 60px;
+        padding: 24px;
+    }
 `;
 
 const TableRow = styled.div`
@@ -287,8 +342,20 @@ const TableRow = styled.div`
     font-weight: ${props => props.isHeader ? '600' : '400'};
 `;
 
+const oddMonthLabels = ['01', '03', '05', '07', '09', '11'];
+const xTickFormatter = (tick) => {
+    if (tick.includes('.')) return tick; // 25.01
+    if (oddMonthLabels.includes(tick.padStart(2, '0'))) return `${tick}`;
+    return '';
+};
+
 const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
+        // label이 '25.01' 형식이면 '2025년 1월'로, 아니면 '1월' 형식으로 표시
+        const displayLabel = label.includes('.') 
+            ? `${label.split('.')[0]}년 ${parseInt(label.split('.')[1])}월`
+            : `${label}월`;
+
         return (
             <div style={{ 
                 background: 'white', 
@@ -297,7 +364,7 @@ const CustomTooltip = ({ active, payload, label }) => {
                 fontSize: '14px',
                 borderRadius: '4px',
             }}>
-                <p style={{ margin: 0 }}>{label}</p>
+                <p style={{ margin: 0 }}>{displayLabel}</p>
                 <p style={{ margin: '4px 0 0 0', color: '#FF7926', fontWeight: '500' }}>
                     {`${payload[0].value.toLocaleString()}만원`}
                 </p>
@@ -365,49 +432,42 @@ const HostSales = () => {
     // 통계 데이터 조회
     const fetchStatistics = async () => {
         try {
-            // 오늘 날짜를 YYYY-MM-DD 형식으로 가져오기
+            // 현재 날짜의 월의 마지막 날짜 계산
             const today = new Date();
             const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const day = String(today.getDate()).padStart(2, '0');
-            const todayStr = `${year}-${month}-${day}`;
+            const month = today.getMonth() + 1; // 0-based month
+            const lastDay = new Date(year, month, 0).getDate(); // 해당 월의 마지막 날짜
+            const lastDayStr = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 
             const params = {
-                // '최근' 선택 시 오늘 날짜, 그 외에는 선택된 연도의 12월 31일
-                end: selectedYear === 'recent' ? todayStr : selectedYear === 'recent' ? todayStr : `${selectedYear}-12-31`,
+                end: selectedYear === 'recent' ? lastDayStr : `${selectedYear}-12-31`,
                 interval: 'MONTH'
             };
 
+            // kitchenId가 null이 아닐 때만 파라미터에 추가
             if (kitchenId) {
                 params.kitchenId = kitchenId;
             }
 
-            console.log('통계 API 파라미터:', params);
+            console.log('통계 API 호출:', params);
 
             const response = await api.get('/api/host/statistics', { params });
+            console.log('통계 API 응답:', response.data);
             
             const formattedData = response.data.map(item => {
                 const [year, month] = item.term.split('-');
-                if (month === '01') {
-                    return {
-                        month: `${year.slice(2)}.01`, // X축용
-                        monthLabel: `${year.slice(2)}.01`, // 그래프용
-                        tableLabel: `${year.slice(2)}년 1월`, // 표용
-                        revenue: Math.round(item.revenue / 10000)
-                    };
-                } else {
-                    return {
-                        month: `${parseInt(month, 10)}`, // X축용
-                        monthLabel: `${parseInt(month, 10)}`,
-                        tableLabel: `${parseInt(month, 10)}월`,
-                        revenue: Math.round(item.revenue / 10000)
-                    };
-                }
+                return {
+                    month: month === '01' ? `${year.slice(2)}.01` : `${parseInt(month, 10)}`,
+                    monthLabel: month === '01' ? `${year.slice(2)}.01` : `${parseInt(month, 10)}`,
+                    tableLabel: month === '01' ? `${year.slice(2)}년 1월` : `${parseInt(month, 10)}월`,
+                    revenue: Math.round(item.revenue / 10000)
+                };
             });
             
             setMonthlyData(formattedData);
         } catch (error) {
             console.error('통계 데이터 조회 실패:', error);
+            setMonthlyData([]); // 에러 시 빈 배열로 초기화
         }
     };
 
@@ -429,9 +489,10 @@ const HostSales = () => {
     useEffect(() => {
         if (kitchens.length > 0) {
             fetchReservations(currentPage);
+            // kitchenId나 selectedYear가 변경될 때마다 통계 데이터 새로 조회
             fetchStatistics();
         }
-    }, [selectedKitchens, kitchenId, currentPage, selectedYear]);
+    }, [kitchenId, selectedYear, currentPage]); // selectedKitchens 제거하고 kitchenId로 변경
 
     const handleKitchenSelect = (kitchenIdClicked) => {
         if (kitchenIdClicked === 'all') {
@@ -465,14 +526,6 @@ const HostSales = () => {
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return `${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
-    };
-
-    // BarChart x축 라벨 홀수월만 표시
-    const oddMonthLabels = ['01', '03', '05', '07', '09', '11'];
-    const xTickFormatter = (tick) => {
-        if (tick.includes('.')) return tick; // 25.01
-        if (oddMonthLabels.includes(tick.padStart(2, '0'))) return tick;
-        return '';
     };
 
     // 드롭다운 화살표 색상 조건부 스타일
@@ -603,33 +656,38 @@ const HostSales = () => {
                                 )}
                             </DropdownWrapper>
                         </YearSelectWrapper>
-                        <div style={{ position: 'relative', width: 450, height: 320 }}>
-                            <BarChart
-                                width={450}
-                                height={300}
-                                data={monthlyData}
-                                margin={{
-                                    top: 5,
-                                    right: 20,
-                                    left: 20,
-                                    bottom: 30,
-                                }}
-                                barSize={12}
-                            >
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="monthLabel" tickFormatter={xTickFormatter} />
-                                <YAxis />
-                                <Tooltip 
-                                    cursor={false}
-                                    content={<CustomTooltip />}
-                                />
-                                <Bar dataKey="revenue" fill="#FFBC39" />
-                            </BarChart>
-                            {/* y축 정보 */}
-                            <div style={{ position: 'absolute', left: 10, top: 0, fontSize: 13, color: '#888' }}>매출액</div>
-                            {/* x축 정보 */}
-                            <div style={{ position: 'absolute', right: 0, bottom: 30, fontSize: 13, color: '#888' }}>월</div>
-                        </div>
+                        <ChartContainer>
+                            <ChartWrapper>
+                                <BarChart
+                                    width={window.innerWidth >= 1200 ? 450 : '100%'}
+                                    height={300}
+                                    data={monthlyData}
+                                    margin={{
+                                        top: 5,
+                                        right: 20,
+                                        left: 20,
+                                        bottom: 30,
+                                    }}
+                                    barSize={12}
+                                >
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis 
+                                        dataKey="monthLabel" 
+                                        tickFormatter={xTickFormatter}
+                                        tick={{ fontSize: 12 }}
+                                        interval={window.innerWidth >= 1200 ? 0 : 1}
+                                    />
+                                    <YAxis />
+                                    <Tooltip 
+                                        cursor={false}
+                                        content={<CustomTooltip />}
+                                    />
+                                    <Bar dataKey="revenue" fill="#FFBC39" />
+                                </BarChart>
+                                <AxisLabel className="y-axis">매출액</AxisLabel>
+                                <AxisLabel className="x-axis">월</AxisLabel>
+                            </ChartWrapper>
+                        </ChartContainer>
                     </ChartSection>
 
                     <TableSection>
@@ -659,8 +717,21 @@ const HostSales = () => {
                                 ))}
                             </div>
                         </SalesTable>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16, width: '100%' }}>
-                            <span style={{ fontWeight: 600, fontSize: 16, textAlign: 'right', width: '100%' }}>총 매출액: {monthlyData.reduce((sum, d) => sum + d.revenue, 0).toLocaleString()}만원</span>
+                        <div style={{ 
+                            display: 'flex', 
+                            justifyContent: 'flex-end', 
+                            marginTop: 16, 
+                            width: '100%',
+                            padding: '0 24px'
+                        }}>
+                            <span style={{ 
+                                fontWeight: 600, 
+                                fontSize: 16, 
+                                textAlign: 'right', 
+                                width: '100%' 
+                            }}>
+                                총 매출액: {monthlyData.reduce((sum, d) => sum + d.revenue, 0).toLocaleString()}만원
+                            </span>
                         </div>
                     </TableSection>
                 </BottomSection>

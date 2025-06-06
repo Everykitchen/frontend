@@ -3,6 +3,8 @@ import styled, { css } from "styled-components";
 import UserSideBar from "../../components/UserSideBar";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import api from "../../api/axiosInstance";
+import useKakaoLink from "../../hooks/useKakaoLink";
+import ReactDOM from "react-dom";
 
 const Container = styled.div`
   display: flex;
@@ -154,6 +156,81 @@ const SubmitButton = styled.button`
   cursor: pointer;
 `;
 
+const ConfirmationModal = styled.div`
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 24px;
+    border-radius: 10px;
+    width: 350px;
+    z-index: 100000;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+`;
+
+const ConfirmationOverlay = styled.div`
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 99999;
+`;
+
+const ConfirmationTitle = styled.h3`
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    margin-top: 20px;
+    text-align: center;
+    color: #333;
+`;
+
+const ButtonGroup = styled.div`
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+`;
+
+const ConfirmationButton = styled.button`
+    padding: 10px 24px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+    
+    &.yes {
+        background-color: #ffbc39;
+        color: white;
+        &:hover {
+            background-color: #ffa500;
+        }
+    }
+    
+    &.no {
+        background-color: #f5f5f5;
+        color: #666;
+        &:hover {
+            background-color: #e5e5e5;
+        }
+    }
+`;
+
+const CloseButton = styled.button`
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    color: #666;
+`;
+
 function parseUnit(unit) {
   // Extract number and unit (e.g., '1kg', '100g')
   const match = unit.match(/(\d+)(kg|g)/i);
@@ -200,11 +277,15 @@ const IngredientSettlement = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const kitchenId = location.state?.kitchenId;
+  const loaded = useKakaoLink();
 
   const [basic, setBasic] = useState([]);
   const [additional, setAdditional] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [kakaoMessage, setKakaoMessage] = useState("");
+  const [settlementData, setSettlementData] = useState(null);
 
   useEffect(() => {
     if (!kitchenId || !reservationId) return;
@@ -256,8 +337,7 @@ const IngredientSettlement = () => {
     }
   };
 
-  const handleSubmit = async () => {
-    if (!kitchenId || !reservationId) return;
+  const sendKakaoMessage = () => {
     const usedIngredients = [
       ...basic,
       ...additional
@@ -267,16 +347,81 @@ const IngredientSettlement = () => {
         quantityUsed: i.amount,
         price: getUsedPrice(i)
       }));
-    try {
-      await api.post(`/user/kitchen/${kitchenId}/reservation/${reservationId}/settlement`, {
-        usedIngredients,
-        totalUsedPrice: total
+
+    const data = {
+      usedIngredients,
+      totalUsedPrice: total
+    };
+    setSettlementData(data);
+
+    const message = 
+      `[에브리키친 재료 정산 안내]\n` +
+      `총 정산 금액: ₩${total.toLocaleString()}\n\n` +
+      `사용한 재료 내역:\n` +
+      usedIngredients.map(item => 
+        `${item.name}: ${item.quantityUsed} (${item.price.toLocaleString()}원)`
+      ).join('\n') + '\n\n' +
+      `※ 송금 후 입금확인되면 정산이 확정됩니다.`;
+
+    setKakaoMessage(message);
+    
+    // 카카오톡 메시지 전송 시 콜백 함수 추가
+    window.Kakao.Link.sendDefault({
+      objectType: "text",
+      text: message,
+      link: {
+        mobileWebUrl: window.location.href,
+        webUrl: window.location.href,
+      },
+      buttons: [
+        {
+          title: "정산 페이지 바로가기",
+          link: {
+            mobileWebUrl: window.location.href,
+            webUrl: window.location.href,
+          },
+        },
+      ],
+      callback: () => {
+        // 카카오톡 메시지 창이 닫힌 후에 확인 모달 표시
+        setShowConfirmation(true);
+      }
+    });
+  };
+
+  const handleConfirmation = async (confirmed) => {
+    if (confirmed && settlementData) {
+      try {
+        await api.post(
+          `/user/kitchen/${kitchenId}/reservation/${reservationId}/settlement`,
+          settlementData
+        );
+        alert("정산이 완료되었습니다.");
+        navigate(`/mypage/reservations/${reservationId}`);
+      } catch (err) {
+        alert("정산 요청에 실패했습니다.");
+      }
+    } else if (!confirmed) {
+      // "아니오" 선택 시 다시 카카오톡 메시지 전송
+      window.Kakao.Link.sendDefault({
+        objectType: "text",
+        text: kakaoMessage,
+        link: {
+          mobileWebUrl: window.location.href,
+          webUrl: window.location.href,
+        },
+        buttons: [
+          {
+            title: "정산 페이지 바로가기",
+            link: {
+              mobileWebUrl: window.location.href,
+              webUrl: window.location.href,
+            },
+          },
+        ],
       });
-      alert("정산이 완료되었습니다.");
-      navigate(`/mypage/reservations/${reservationId}`);
-    } catch (err) {
-      alert("정산 요청에 실패했습니다.");
     }
+    setShowConfirmation(false);
   };
 
   if (loading) return <div>로딩 중...</div>;
@@ -360,11 +505,43 @@ const IngredientSettlement = () => {
           <TotalBoxRow>
             <TotalBox>
               총 사용 금액: &nbsp; <span style={{ fontWeight: 700, color: '#FFBC39', fontSize: '24px' }}>{total.toLocaleString()}원</span>
-              <SubmitButton onClick={handleSubmit}>송금하기</SubmitButton>
+              <SubmitButton onClick={sendKakaoMessage}>카카오톡으로 송금 안내 받기</SubmitButton>
             </TotalBox>
           </TotalBoxRow>
         </TableSection>
       </MainContent>
+
+      {showConfirmation && ReactDOM.createPortal(
+        <>
+          <ConfirmationOverlay onClick={() => setShowConfirmation(false)} />
+          <ConfirmationModal onClick={(e) => e.stopPropagation()}>
+            <CloseButton 
+              onClick={() => setShowConfirmation(false)}
+              style={{ right: "12px", top: "12px" }}
+            >
+              ×
+            </CloseButton>
+            <ConfirmationTitle>
+              카카오톡으로 송금 안내 메시지를 전송하셨나요?
+            </ConfirmationTitle>
+            <ButtonGroup>
+              <ConfirmationButton 
+                className="yes"
+                onClick={() => handleConfirmation(true)}
+              >
+                네
+              </ConfirmationButton>
+              <ConfirmationButton 
+                className="no"
+                onClick={() => handleConfirmation(false)}
+              >
+                아니오
+              </ConfirmationButton>
+            </ButtonGroup>
+          </ConfirmationModal>
+        </>,
+        document.body
+      )}
     </Container>
   );
 };

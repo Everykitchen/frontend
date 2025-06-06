@@ -143,6 +143,16 @@ const HostReservations = () => {
         return status;
     };
 
+    // 예약 상태가 진행중인지 확인하는 함수
+    const isInProgress = (status) => {
+        return ["PENDING_RESERVED", "RESERVED", "PENDING_PAYMENT"].includes(status);
+    };
+
+    // 예약 상태가 완료인지 확인하는 함수
+    const isCompleted = (status) => {
+        return status === "COMPLETED_PAYMENT";
+    };
+
     // 현재 페이지에 해당하는 항목들만 선택
     const currentItems = filteredList.slice(
         currentPage * itemsPerPage,
@@ -178,13 +188,10 @@ const HostReservations = () => {
                                 {tab} (
                                 {tab === "전체"
                                     ? reservations.length
-                                    : reservations.filter((item) =>
-                                          tab === "완료"
-                                              ? getStatusLabel(item.status) ===
-                                                "완료"
-                                              : getStatusLabel(item.status) ===
-                                                "진행중"
-                                      ).length}
+                                    : tab === "진행중"
+                                    ? reservations.filter(item => isInProgress(item.status)).length
+                                    : reservations.filter(item => isCompleted(item.status)).length
+                                }
                                 )
                             </Tab>
                         ))}

@@ -682,7 +682,7 @@ const ReservationDetail = () => {
                                 <SmallActionButton
                                     variant="primary"
                                     onClick={handleSettlementClick}
-                                    disabled={reservation.status !== "PENDING_PAYMENT"}
+                                    disabled={!["RESERVED", "PENDING_PAYMENT"].includes(reservation.status)}
                                 >
                                     <MoneyIcon />
                                     정산하기
