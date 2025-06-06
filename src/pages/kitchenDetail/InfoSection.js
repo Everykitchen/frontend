@@ -471,8 +471,15 @@ const InfoSection = ({
                 </TopRow>
                 <KitchenInfoLine>{kitchenData.location}</KitchenInfoLine>
                 <KitchenInfoLine>
-                    {kitchenData.defaultPrice[0].price.toLocaleString()}원 ~ /
-                    1시간
+                    {(() => {
+                        // defaultPrice 배열을 reverse하고 처음 7개만 사용
+                        const lastWeekPrices = [...kitchenData.defaultPrice].reverse().slice(0, 7);
+                        // 활성화된 요일 중 가장 낮은 가격 찾기
+                        const minPrice = lastWeekPrices
+                            .filter(price => price.enabled)
+                            .reduce((min, price) => Math.min(min, price.price), Infinity);
+                        return `${minPrice === Infinity ? 0 : minPrice.toLocaleString()}원 ~ / 1시간`;
+                    })()}
                 </KitchenInfoLine>
                 <StarLine>
                     <img
