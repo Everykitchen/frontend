@@ -362,15 +362,15 @@ const ChatHistory = () => {
                 <Title>채팅 내역</Title>
                 <TabMenu>
                     <TabGroup>
-                        {['전체', '미예약', '예약중'].map(status => (
-                            <Tab
-                                key={status}
-                                active={activeStatus === status}
-                                onClick={() => setActiveStatus(status)}
-                            >
-                                {status} ({getStatusCount(status)})
-                            </Tab>
-                        ))}
+                    {['전체', '미예약', '예약중'].map(status => (
+                        <Tab
+                            key={status}
+                            active={activeStatus === status}
+                            onClick={() => setActiveStatus(status)}
+                        >
+                            {status} ({getStatusCount(status)})
+                        </Tab>
+                    ))}
                     </TabGroup>
                     <DropdownWrapper ref={dropdownRef}>
                         <DropdownButton onClick={() => setDropdownOpen(!dropdownOpen)}>

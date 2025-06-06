@@ -58,6 +58,11 @@ const Input = styled.input`
     border: 1px solid #ccc;
     border-radius: 4px;
     width: 100%;
+    transition: border-color 0.2s ease;
+    &:focus {
+        outline: none;
+        border-color: #ffbc39;
+    }
 `;
 
 const ButtonContainer = styled.div`
@@ -76,6 +81,40 @@ const NavButton = styled.button`
     cursor: pointer;
 `;
 
+const CustomCheckbox = styled.input`
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid ${props => props.checked ? '#ffbc39' : '#ccc'};
+    border-radius: 4px;
+    margin-right: 8px;
+    position: relative;
+    cursor: pointer;
+    vertical-align: middle;
+
+    &:checked {
+        background-color: #ffbc39;
+        &::after {
+            content: '✓';
+            position: absolute;
+            color: white;
+            font-size: 14px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    }
+`;
+
+const ErrorMessage = styled.span`
+    color: #d9534f;
+    font-size: 14px;
+    font-weight: 500;
+    display: block;
+    margin-bottom: 16px;
+`;
+
 const StepSupply = ({ formData, setFormData, nextStep, prevStep }) => {
     const [supplies, setSupplies] = useState(
         formData.providedItem.length > 0
@@ -85,6 +124,7 @@ const StepSupply = ({ formData, setFormData, nextStep, prevStep }) => {
               }))
             : [{ itemName: "", check: true }]
     );
+    const [validationError, setValidationError] = useState('');
 
     useEffect(() => {
         setFormData((prev) => ({
@@ -121,13 +161,24 @@ const StepSupply = ({ formData, setFormData, nextStep, prevStep }) => {
         }));
     };
 
+    const validateAndNext = () => {
+        const hasEmptyFields = supplies.some(supply => !supply.itemName.trim());
+        if (hasEmptyFields) {
+            setValidationError('모든 품목명을 입력해주세요');
+            return;
+        }
+        setValidationError('');
+        syncFormData();
+        nextStep();
+    };
+
     return (
         <Container>
             <SectionTitle>
                 보유하신 구비 품목들에 체크해주세요.
                 <AddButton onClick={handleAddSupply}>+ 항목추가</AddButton>
             </SectionTitle>
-
+            {validationError && <ErrorMessage>{validationError}</ErrorMessage>}
             <Table>
                 <thead>
                     <tr>
@@ -140,7 +191,7 @@ const StepSupply = ({ formData, setFormData, nextStep, prevStep }) => {
                     {supplies.map((supply, index) => (
                         <tr key={index}>
                             <td>
-                                <input
+                                <CustomCheckbox
                                     type="checkbox"
                                     checked={supply.check}
                                     onChange={(e) =>
@@ -184,10 +235,7 @@ const StepSupply = ({ formData, setFormData, nextStep, prevStep }) => {
                     이전
                 </NavButton>
                 <NavButton
-                    onClick={() => {
-                        syncFormData();
-                        nextStep();
-                    }}
+                    onClick={validateAndNext}
                 >
                     다음
                 </NavButton>

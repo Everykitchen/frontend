@@ -7,7 +7,7 @@ import axios from "../../api/axiosInstance";
 
 /**
  * 호스트의 예약 내역 목록을 보여주는 페이지 컴포넌트
- *
+ * 
  * 주요 기능:
  * - 호스트의 예약 목록을 페이징 처리하여 표시
  * - 전체/진행중/완료 필터링 기능
@@ -63,7 +63,7 @@ const CalendarButton = styled.button`
     cursor: pointer;
     display: flex;
     align-items: center;
-
+    
     &:hover {
         background-color: #ff6b0f;
     }
@@ -204,7 +204,7 @@ const HostReservations = () => {
                         달력으로 조회
                     </CalendarButton>
                 </TabMenu>
-
+                
                 {loading && <div>로딩 중...</div>}
                 {error && <div style={{ color: "red" }}>{error}</div>}
                 {!loading && !error && currentItems.length === 0 && (
@@ -222,7 +222,7 @@ const HostReservations = () => {
                         예약 내역이 없습니다.
                     </div>
                 )}
-
+                
                 {currentItems.map((reservation) => (
                     <HostReservationCard
                         key={reservation.reservationId}
@@ -244,42 +244,42 @@ const HostReservations = () => {
                         }
                     />
                 ))}
-
+                
                 {!loading &&
                     !error &&
                     filteredList.length > 0 &&
                     totalPages > 1 && (
-                        <Pagination>
-                            <PageButton
+                    <Pagination>
+                        <PageButton
                                 onClick={() =>
                                     handlePageChange(currentPage - 1)
                                 }
                                 disabled={currentPage === 0}
-                            >
-                                이전
-                            </PageButton>
-                            {[...Array(totalPages)].map((_, index) => (
-                                <PageButton
+                        >
+                            이전
+                        </PageButton>
+                        {[...Array(totalPages)].map((_, index) => (
+                            <PageButton
                                     key={index}
                                     onClick={() => handlePageChange(index)}
                                     active={currentPage === index}
-                                >
-                                    {index + 1}
-                                </PageButton>
-                            ))}
-                            <PageButton
+                            >
+                                {index + 1}
+                            </PageButton>
+                        ))}
+                        <PageButton
                                 onClick={() =>
                                     handlePageChange(currentPage + 1)
                                 }
                                 disabled={currentPage === totalPages - 1}
-                            >
-                                다음
-                            </PageButton>
-                        </Pagination>
-                    )}
+                        >
+                            다음
+                        </PageButton>
+                    </Pagination>
+                )}
             </ContentWrapper>
         </Container>
     );
 };
 
-export default HostReservations;
+export default HostReservations; 

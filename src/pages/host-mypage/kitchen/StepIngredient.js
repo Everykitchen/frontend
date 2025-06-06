@@ -59,6 +59,11 @@ const Input = styled.input`
     border: 1px solid #ccc;
     border-radius: 4px;
     width: 100%;
+    transition: border-color 0.2s ease;
+    &:focus {
+        outline: none;
+        border-color: #ffbc39;
+    }
     // 스피너 제거
     &::-webkit-outer-spin-button,
     &::-webkit-inner-spin-button {
@@ -88,6 +93,19 @@ const Select = styled.select`
     border: 1px solid #ccc;
     border-radius: 4px;
     width: 100%;
+    transition: border-color 0.2s ease;
+    &:focus {
+        outline: none;
+        border-color: #ffbc39;
+    }
+`;
+
+const ErrorMessage = styled.span`
+    color: #d9534f;
+    font-size: 14px;
+    font-weight: 500;
+    display: block;
+    margin-bottom: 16px;
 `;
 
 const StepIngredient = ({
@@ -115,6 +133,8 @@ const StepIngredient = ({
               }))
             : [{ ingredientName: "", unit: "", price: 0 }]
     );
+
+    const [validationError, setValidationError] = useState('');
 
     useEffect(() => {
         setFormData((prev) => ({
@@ -169,6 +189,24 @@ const StepIngredient = ({
         }));
     };
 
+    const validateAndSubmit = () => {
+        const hasEmptyBasicFields = basicIngredients.some(
+            item => !item.ingredientName.trim() || !item.unit || item.price === 0
+        );
+        const hasEmptyExtraFields = extraIngredients.some(
+            item => !item.ingredientName.trim() || !item.unit || item.price === 0
+        );
+
+        if (hasEmptyBasicFields || hasEmptyExtraFields) {
+            setValidationError('모든 재료 정보를 입력해주세요');
+            return;
+        }
+
+        setValidationError('');
+        syncFormData();
+        handleSubmitKitchen();
+    };
+
     return (
         <Container>
             <SectionTitle>
@@ -177,6 +215,7 @@ const StepIngredient = ({
                     + 항목추가
                 </AddButton>
             </SectionTitle>
+            {validationError && <ErrorMessage>{validationError}</ErrorMessage>}
             <Table>
                 <thead>
                     <tr>
@@ -342,12 +381,7 @@ const StepIngredient = ({
                 >
                     이전
                 </NavButton>
-                <NavButton
-                    onClick={() => {
-                        syncFormData();
-                        handleSubmitKitchen();
-                    }}
-                >
+                <NavButton onClick={validateAndSubmit}>
                     등록
                 </NavButton>
             </ButtonContainer>

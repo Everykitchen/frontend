@@ -430,6 +430,25 @@ const ReservationSidebar = ({
         setErrorMessage("");
     };
 
+    const filterDates = (date) => {
+        const days = [
+            "SUNDAY",
+            "MONDAY",
+            "TUESDAY",
+            "WEDNESDAY",
+            "THURSDAY",
+            "FRIDAY",
+            "SATURDAY",
+        ];
+        const dayName = days[date.getDay()];
+        
+        // defaultPrice 배열을 reverse하고 처음 8개만 사용
+        const lastWeekPrices = [...kitchenData.defaultPrice].reverse().slice(0, 8);
+        const priceInfo = lastWeekPrices.find(p => p.week === dayName);
+        
+        return priceInfo ? priceInfo.enabled : false;
+    };
+
     const getDayPrice = (date) => {
         const days = [
             "SUNDAY",
@@ -441,17 +460,11 @@ const ReservationSidebar = ({
             "SATURDAY",
         ];
         const dayName = days[date.getDay()];
-        console.log("Price calculation:", {
-            selectedDate: date,
-            dayName,
-            defaultPrice: kitchenData.defaultPrice,
-            foundPrice: kitchenData.defaultPrice.find(
-                (p) => p.week === dayName
-            ),
-        });
-        const priceInfo = kitchenData.defaultPrice.find(
-            (p) => p.week === dayName
-        );
+        
+        // defaultPrice 배열을 reverse하고 처음 7개만 사용
+        const lastWeekPrices = [...kitchenData.defaultPrice].reverse().slice(0, 7);
+        const priceInfo = lastWeekPrices.find(p => p.week === dayName);
+        
         return priceInfo ? priceInfo.price : 0;
     };
 
@@ -529,23 +542,6 @@ const ReservationSidebar = ({
                 },
             });
         }
-    };
-
-    const filterDates = (date) => {
-        const days = [
-            "SUNDAY",
-            "MONDAY",
-            "TUESDAY",
-            "WEDNESDAY",
-            "THURSDAY",
-            "FRIDAY",
-            "SATURDAY",
-        ];
-        const dayName = days[date.getDay()];
-        const priceInfo = kitchenData.defaultPrice.find(
-            (p) => p.week === dayName
-        );
-        return priceInfo ? priceInfo.enabled : false;
     };
 
     return (

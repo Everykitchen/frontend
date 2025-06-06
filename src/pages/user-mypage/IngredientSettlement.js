@@ -349,8 +349,8 @@ const IngredientSettlement = () => {
       }));
 
     const data = {
-      usedIngredients,
-      totalUsedPrice: total
+        usedIngredients,
+        totalUsedPrice: total
     };
     setSettlementData(data);
 
@@ -396,11 +396,11 @@ const IngredientSettlement = () => {
           `/user/kitchen/${kitchenId}/reservation/${reservationId}/settlement`,
           settlementData
         );
-        alert("정산이 완료되었습니다.");
-        navigate(`/mypage/reservations/${reservationId}`);
-      } catch (err) {
-        alert("정산 요청에 실패했습니다.");
-      }
+      alert("정산이 완료되었습니다.");
+      navigate(`/mypage/reservations/${reservationId}`);
+    } catch (err) {
+      alert("정산 요청에 실패했습니다.");
+    }
     } else if (!confirmed) {
       // "아니오" 선택 시 다시 카카오톡 메시지 전송
       window.Kakao.Link.sendDefault({

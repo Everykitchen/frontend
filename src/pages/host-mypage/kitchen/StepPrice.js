@@ -38,6 +38,11 @@ const Input = styled.input`
     border-radius: 6px;
     width: 100%;
     margin-bottom: 16px;
+    transition: border-color 0.2s ease;
+    &:focus {
+        outline: none;
+        border-color: #ffbc39;
+    }
 `;
 
 const FileInput = styled.input`
@@ -54,6 +59,10 @@ const TextArea = styled.textarea`
     border-radius: 6px;
     font-size: 14px;
     line-height: 1.5;
+    &:focus {
+        outline: none;
+        border-color: #ffbc39;
+    }
 `;
 
 const ToggleButtons = styled.div`
@@ -65,7 +74,8 @@ const ToggleButtons = styled.div`
 const ToggleButton = styled.button`
     padding: 8px 20px;
     border: 1px solid #ccc;
-    background-color: ${({ active }) => (active ? "#ffbc39" : "white")};
+    background-color: ${({ active, value }) => 
+        active ? (value === 'COOKING' ? '#4CAF50' : '#ffbc39') : 'white'};
     color: ${({ active }) => (active ? "white" : "#333")};
     border-radius: 20px;
     font-size: 14px;
@@ -115,6 +125,11 @@ const BankRow = styled.div`
         border: 1px solid #ccc;
         border-radius: 6px;
         height: 40px;
+        transition: border-color 0.2s ease;
+        &:focus {
+            outline: none;
+            border-color: #ffbc39;
+        }
     }
     select {
         min-width: 100px;
@@ -126,6 +141,11 @@ const Select = styled.select`
     padding: 6px 10px;
     border-radius: 4px;
     border: 1px solid #ccc;
+    transition: border-color 0.2s ease;
+    &:focus {
+        outline: none;
+        border-color: #ffbc39;
+    }
 `;
 
 const NextButton = styled.button`
@@ -224,6 +244,7 @@ const PriceRow = styled.div`
     display: flex;
     align-items: center;
     gap: 12px;
+    position: relative;
 `;
 
 const DayLabel = styled.label`
@@ -237,6 +258,11 @@ const PriceInput = styled.input`
     border-radius: 6px;
     width: 120px;
     background-color: ${(props) => (props.disabled ? "#f1f1f1" : "white")};
+    transition: border-color 0.2s ease;
+    &:focus {
+        outline: none;
+        border-color: #ffbc39;
+    }
 
     // 스피너 제거
     &::-webkit-outer-spin-button,
@@ -245,6 +271,66 @@ const PriceInput = styled.input`
         margin: 0;
     }
 `;
+
+const ErrorMessage = styled.span`
+    color: #d9534f;
+    font-size: 12px;
+    margin-left: 8px;
+    font-weight: 500;
+`;
+
+const SectionTitleWithError = styled.div`
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #f0ad4e;
+`;
+
+const Title = styled.h3`
+    font-size: 16px;
+    font-weight: bold;
+`;
+
+const CustomCheckbox = styled.input`
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid ${props => props.checked ? '#ffbc39' : '#ccc'};
+    border-radius: 4px;
+    margin-right: 8px;
+    position: relative;
+    cursor: pointer;
+    vertical-align: middle;
+
+    &:checked {
+        background-color: #ffbc39;
+        &::after {
+            content: '✓';
+            position: absolute;
+            color: white;
+            font-size: 14px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    }
+`;
+
+const PriceErrorMessage = styled.span`
+    color: #d9534f;
+    font-size: 12px;
+    position: absolute;
+    right: -200px;
+    white-space: nowrap;
+`;
+
+const validatePhoneNumber = (phoneNumber) => {
+    if (!phoneNumber) return false;
+    const phoneRegex = /^\d{3}-?\d{3,4}-?\d{4}$/;
+    return phoneRegex.test(phoneNumber);
+};
 
 const StepPrice = ({
     formData,
@@ -263,6 +349,8 @@ const StepPrice = ({
         formData.activeDays || ["월", "화", "수", "목", "금", "토", "일"]
     );
     const [errors, setErrors] = useState({});
+    const [validationErrors, setValidationErrors] = useState({});
+    const [touched, setTouched] = useState({});
 
     const toggleDay = (day) => {
         setActiveDays((prev) => {
@@ -356,23 +444,101 @@ const StepPrice = ({
     }, [activeDays]);
 
     const handlePriceChange = (day, value) => {
-        setFormData((prev) => ({
-            ...prev,
-            defaultPrice: {
-                ...prev.defaultPrice,
-                [day]: {
-                    ...prev.defaultPrice[day],
-                    price: value,
+        // 숫자만 입력 가능하도록
+        if (value === '' || /^\d*$/.test(value)) {
+            setFormData((prev) => ({
+                ...prev,
+                defaultPrice: {
+                    ...prev.defaultPrice,
+                    [day]: {
+                        ...prev.defaultPrice[day],
+                        price: value,
+                    },
                 },
-            },
+            }));
+        }
+    };
+
+    const handleBlur = (field, value) => {
+        setTouched(prev => ({ ...prev, [field]: true }));
+        
+        let error = '';
+        if (field === 'phoneNumber' && !validatePhoneNumber(value)) {
+            error = '올바른 전화번호 형식이 아닙니다 (예: 010-1234-5678)';
+        } else if (field === 'maxClientNumber' && Number(value) < Number(formData.baseClientNumber)) {
+            error = '최대 인원은 기준 인원보다 커야 합니다';
+        } else if (field === 'closeTime' && value <= formData.openTime) {
+            error = '마감 시간은 오픈 시간보다 늦어야 합니다';
+        } else if (!validateNumber(value, field)) {
+            switch (field) {
+                case 'size':
+                    error = '0보다 큰 숫자를 입력해주세요';
+                    break;
+                case 'baseClientNumber':
+                case 'maxClientNumber':
+                    error = '0 이상의 정수를 입력해주세요';
+                    break;
+                case 'accountNumber':
+                    error = '숫자와 \'-\'만 입력 가능합니다';
+                    break;
+                default:
+                    if (field.startsWith('price_')) {
+                        error = '0 이상의 정수를 입력해주세요';
+                    }
+            }
+        }
+        
+        setValidationErrors(prev => ({
+            ...prev,
+            [field]: error
         }));
     };
 
+    const validateNumber = (value, field) => {
+        if (!value) return false;
+        const num = Number(value);
+        switch (field) {
+            case 'size':
+                return !isNaN(num) && num > 0;
+            case 'baseClientNumber':
+            case 'maxClientNumber':
+                return Number.isInteger(num) && num >= 0;
+            case 'accountNumber':
+                return /^[0-9-]*$/.test(value);
+            default:
+                if (field.startsWith('price_')) {
+                    return Number.isInteger(num) && num >= 0;
+                }
+                return true;
+        }
+    };
+
     const handleImageUpload = (files) => {
-        const fileArray = Array.from(files).filter(
-            (file) => file instanceof File
-        );
-        setImageFiles(fileArray);
+        const fileArray = Array.from(files);
+        let hasError = false;
+        let errorMessage = '';
+
+        // 용량 체크
+        const oversizedFile = fileArray.find(file => file.size > 5 * 1024 * 1024);
+        if (oversizedFile) {
+            errorMessage = '5MB 이하의 이미지만 등록 가능합니다';
+            hasError = true;
+        }
+
+        // 개수 체크
+        if (fileArray.length < 3) {
+            errorMessage = '주방 이미지를 3개 이상 첨부해주세요';
+            hasError = true;
+        }
+
+        setValidationErrors(prev => ({
+            ...prev,
+            kitchenImages: hasError ? errorMessage : ''
+        }));
+
+        if (!hasError) {
+            setImageFiles(fileArray);
+        }
     };
 
     const handleRemoveImage = (index) => {
@@ -437,75 +603,155 @@ const StepPrice = ({
 
     const validateRequiredFields = () => {
         const newErrors = {};
-        if (!formData.kitchenName) newErrors.kitchenName = true;
-        if (!formData.phoneNumber) newErrors.phoneNumber = true;
-        if (!formData.description) newErrors.description = true;
-        if (!formData.location) newErrors.location = true;
-        if (!formData.detailAddress) newErrors.detailAddress = true;
-        if (!formData.size) newErrors.size = true;
-        if (!formData.baseClientNumber) newErrors.baseClientNumber = true;
-        if (!formData.maxClientNumber) newErrors.maxClientNumber = true;
-        if (!formData.category) newErrors.category = true;
-        if (!formData.kitchenImages || formData.kitchenImages.length === 0)
-            newErrors.kitchenImages = true;
+        let firstInvalidField = null;
 
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        // 기본 필수 입력 검사
+        if (!formData.kitchenName) {
+            newErrors.kitchenName = '주방명을 입력해주세요';
+            if (!firstInvalidField) firstInvalidField = 'kitchenName';
+        }
+        if (!formData.phoneNumber) {
+            newErrors.phoneNumber = '전화번호를 입력해주세요';
+            if (!firstInvalidField) firstInvalidField = 'phoneNumber';
+        }
+        if (!formData.description) {
+            newErrors.description = '공간 소개글을 입력해주세요';
+            if (!firstInvalidField) firstInvalidField = 'description';
+        }
+        if (!formData.location) {
+            newErrors.location = '주소를 입력해주세요';
+            if (!firstInvalidField) firstInvalidField = 'location';
+        }
+        if (!formData.detailAddress) {
+            newErrors.detailAddress = '상세 주소를 입력해주세요';
+            if (!firstInvalidField) firstInvalidField = 'detailAddress';
+        }
+        if (!formData.category) {
+            newErrors.category = '분류를 선택해주세요';
+            if (!firstInvalidField) firstInvalidField = 'category';
+        }
+
+        // 숫자 필드 검증
+        if (!formData.size || !validateNumber(formData.size, 'size')) {
+            newErrors.size = '0보다 큰 숫자를 입력해주세요';
+            if (!firstInvalidField) firstInvalidField = 'size';
+        }
+        if (!formData.baseClientNumber || !validateNumber(formData.baseClientNumber, 'baseClientNumber')) {
+            newErrors.baseClientNumber = '0 이상의 정수를 입력해주세요';
+            if (!firstInvalidField) firstInvalidField = 'baseClientNumber';
+        }
+        if (!formData.maxClientNumber || !validateNumber(formData.maxClientNumber, 'maxClientNumber')) {
+            newErrors.maxClientNumber = '0 이상의 정수를 입력해주세요';
+            if (!firstInvalidField) firstInvalidField = 'maxClientNumber';
+        }
+        if (Number(formData.maxClientNumber) < Number(formData.baseClientNumber)) {
+            newErrors.maxClientNumber = '최대 인원이 기준 인원보다 작습니다';
+            if (!firstInvalidField) firstInvalidField = 'maxClientNumber';
+        }
+
+        // 시간 검증
+        if (formData.closeTime <= formData.openTime) {
+            newErrors.closeTime = '마감 시간은 오픈 시간보다 늦어야 합니다';
+            if (!firstInvalidField) firstInvalidField = 'closeTime';
+        }
+
+        // 이미지 검증
+        if (!formData.kitchenImages || formData.kitchenImages.length === 0) {
+            newErrors.kitchenImages = '이미지를 등록해주세요';
+            if (!firstInvalidField) firstInvalidField = 'kitchenImages';
+        } else if (formData.kitchenImages.length < 3) {
+            newErrors.kitchenImages = '주방 이미지를 3개 이상 첨부해주세요';
+            if (!firstInvalidField) firstInvalidField = 'kitchenImages';
+        }
+
+        // 계좌번호 검증
+        if (formData.account?.accountNumber && !/^[0-9-]*$/.test(formData.account.accountNumber)) {
+            newErrors.accountInfo = '잘못된 계좌번호 형식입니다';
+            if (!firstInvalidField) firstInvalidField = 'accountNumber';
+        }
+
+        // 금액 설정 검증
+        const hasInvalidPrice = Object.entries(formData.defaultPrice || {}).some(([day, data]) => {
+            if (day === '공휴일') return false;
+            if (!data.enabled) return false;
+            
+            // 활성화된 요일의 경우
+            const price = data.price;
+            // 빈 값이거나 숫자가 아닌 경우
+            if (!price || price === '') {
+                return true;
+            }
+            // 숫자로 변환
+            const numPrice = Number(price);
+            // 정수가 아니거나 0 미만인 경우
+            return !Number.isInteger(numPrice) || numPrice < 0;
+        });
+
+        if (hasInvalidPrice) {
+            newErrors.defaultPrice = '0 이상의 정수를 입력해주세요';
+            if (!firstInvalidField) firstInvalidField = 'defaultPrice';
+        }
+
+        setValidationErrors(newErrors);
+
+        if (firstInvalidField) {
+            alert('항목을 모두 입력하세요');
+            return false;
+        }
+
+        return true;
     };
 
     const handleNext = () => {
-        if (!validateRequiredFields()) {
-            alert("항목을 모두 입력해주세요.");
-            return;
+        if (validateRequiredFields()) {
+            nextStep();
         }
-        nextStep();
+    };
+
+    const handleCategoryChange = (newCategory) => {
+        setCategory(newCategory);
+        // 분류 선택 시 해당 오류 메시지 제거
+        setValidationErrors(prev => ({
+            ...prev,
+            category: ''
+        }));
     };
 
     return (
         <Container>
             <FieldGroup>
-                <Label>주방명</Label>
+                <Label>주방명 {validationErrors.kitchenName && <ErrorMessage>{validationErrors.kitchenName}</ErrorMessage>}</Label>
                 <Input
+                    id="kitchenName"
                     placeholder="예: OO 쿠킹스튜디오"
                     value={formData.kitchenName || ""}
-                    $isInvalid={
-                        Object.keys(errors).length > 0 && errors.kitchenName
-                    }
-                    onChange={(e) =>
-                        setFormData({
-                            ...formData,
-                            kitchenName: e.target.value,
-                        })
-                    }
+                    $isInvalid={!!validationErrors.kitchenName}
+                    onChange={(e) => setFormData({ ...formData, kitchenName: e.target.value })}
+                    onBlur={(e) => handleBlur('kitchenName', e.target.value)}
                 />
-                <Label>전화번호</Label>
+                <Label>전화번호 {validationErrors.phoneNumber && <ErrorMessage>{validationErrors.phoneNumber}</ErrorMessage>}</Label>
                 <Input
                     placeholder="010-0000-0000"
                     value={formData.phoneNumber || ""}
-                    $isInvalid={
-                        Object.keys(errors).length > 0 && errors.phoneNumber
-                    }
-                    onChange={(e) =>
-                        setFormData({
-                            ...formData,
-                            phoneNumber: e.target.value,
-                        })
-                    }
+                    $isInvalid={!!validationErrors.phoneNumber}
+                    onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                    onBlur={(e) => handleBlur('phoneNumber', e.target.value)}
                 />
-                <Label>분류</Label>
+                <Label>분류 {validationErrors.category && <ErrorMessage>{validationErrors.category}</ErrorMessage>}</Label>
                 <ToggleButtons>
                     {categoryOptions.map((option) => (
                         <ToggleButton
                             key={option.value}
                             active={category === option.value}
-                            onClick={() => setCategory(option.value)}
+                            value={option.value}
+                            onClick={() => handleCategoryChange(option.value)}
                         >
                             {option.label}
                         </ToggleButton>
                     ))}
                 </ToggleButtons>
 
-                <Label>이미지 등록</Label>
+                <Label>이미지 등록 {validationErrors.kitchenImages && <ErrorMessage>{validationErrors.kitchenImages}</ErrorMessage>}</Label>
                 <FileInput
                     type="file"
                     accept="image/*"
@@ -552,135 +798,90 @@ const StepPrice = ({
                         ))}
                     </ImagePreviewWrapper>
                 )}
-                <Label>공간 소개글</Label>
+                <Label>공간 소개글 {validationErrors.description && <ErrorMessage>{validationErrors.description}</ErrorMessage>}</Label>
                 <TextArea
                     placeholder="공간에 대한 소개를 작성해주세요."
                     value={formData.description || ""}
-                    $isInvalid={
-                        Object.keys(errors).length > 0 && errors.description
-                    }
-                    onChange={(e) =>
-                        setFormData({
-                            ...formData,
-                            description: e.target.value,
-                        })
-                    }
+                    $isInvalid={!!validationErrors.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    onBlur={(e) => handleBlur('description', e.target.value)}
                 />
             </FieldGroup>
 
             <Section>
                 <SectionTitle>공간 정보</SectionTitle>
-                <Label>주소지</Label>
+                <Label>주소지 {validationErrors.location && <ErrorMessage>{validationErrors.location}</ErrorMessage>}</Label>
                 <AddressRow>
                     <Input
                         type="text"
                         value={formData.location || ""}
                         readOnly
-                        $isInvalid={
-                            Object.keys(errors).length > 0 && errors.location
-                        }
+                        $isInvalid={!!validationErrors.location}
+                        onClick={handleAddressSearch}
+                        style={{ cursor: 'pointer' }}
                     />
                     <SearchAddressButton onClick={handleAddressSearch}>
                         주소 검색
                     </SearchAddressButton>
                 </AddressRow>
-                <Label>상세 주소</Label>
+                <Label>상세 주소 {validationErrors.detailAddress && <ErrorMessage>{validationErrors.detailAddress}</ErrorMessage>}</Label>
                 <Input
                     type="text"
                     value={formData.detailAddress || ""}
-                    $isInvalid={
-                        Object.keys(errors).length > 0 && errors.detailAddress
-                    }
-                    onChange={(e) =>
-                        setFormData({
-                            ...formData,
-                            detailAddress: e.target.value,
-                        })
-                    }
+                    $isInvalid={!!validationErrors.detailAddress}
+                    onChange={(e) => setFormData({ ...formData, detailAddress: e.target.value })}
+                    onBlur={(e) => handleBlur('detailAddress', e.target.value)}
                 />
                 {/* 위도/경도는 숨기거나 readonly로 표시 */}
                 <Label>위도</Label>
                 <Input type="text" value={formData.latitude || ""} readOnly />
                 <Label>경도</Label>
                 <Input type="text" value={formData.longitude || ""} readOnly />
-                <Label>면적(m3)</Label>
+                <Label>면적(m3) {validationErrors.size && <ErrorMessage>{validationErrors.size}</ErrorMessage>}</Label>
                 <Input
                     value={formData.size || ""}
-                    $isInvalid={Object.keys(errors).length > 0 && errors.size}
-                    onChange={(e) =>
-                        setFormData({ ...formData, size: e.target.value })
-                    }
+                    $isInvalid={!!validationErrors.size}
+                    onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+                    onBlur={(e) => handleBlur('size', e.target.value)}
                 />
-                <Label>기준 인원</Label>
+                <Label>기준 인원 {validationErrors.baseClientNumber && <ErrorMessage>{validationErrors.baseClientNumber}</ErrorMessage>}</Label>
                 <Input
                     value={formData.baseClientNumber || ""}
-                    $isInvalid={
-                        Object.keys(errors).length > 0 &&
-                        errors.baseClientNumber
-                    }
-                    onChange={(e) =>
-                        setFormData({
-                            ...formData,
-                            baseClientNumber: e.target.value,
-                        })
-                    }
+                    $isInvalid={!!validationErrors.baseClientNumber}
+                    onChange={(e) => setFormData({ ...formData, baseClientNumber: e.target.value })}
+                    onBlur={(e) => handleBlur('baseClientNumber', e.target.value)}
                 />
-                <Label>최대 인원</Label>
+                <Label>최대 인원 {validationErrors.maxClientNumber && <ErrorMessage>{validationErrors.maxClientNumber}</ErrorMessage>}</Label>
                 <Input
                     value={formData.maxClientNumber || ""}
-                    $isInvalid={
-                        Object.keys(errors).length > 0 && errors.maxClientNumber
-                    }
-                    onChange={(e) =>
-                        setFormData({
-                            ...formData,
-                            maxClientNumber: e.target.value,
-                        })
-                    }
+                    $isInvalid={!!validationErrors.maxClientNumber}
+                    onChange={(e) => setFormData({ ...formData, maxClientNumber: e.target.value })}
+                    onBlur={(e) => handleBlur('maxClientNumber', e.target.value)}
                 />
-                <Label>오픈 시간</Label>
+                <Label>오픈 시간 {validationErrors.openTime && <ErrorMessage>{validationErrors.openTime}</ErrorMessage>}</Label>
                 <Input
                     type="time"
                     value={formData.openTime || ""}
-                    $isInvalid={
-                        Object.keys(errors).length > 0 && errors.openTime
-                    }
-                    onChange={(e) =>
-                        setFormData({
-                            ...formData,
-                            openTime: e.target.value,
-                        })
-                    }
+                    $isInvalid={!!validationErrors.openTime}
+                    onChange={(e) => setFormData({ ...formData, openTime: e.target.value })}
                     onFocus={triggerTimePicker}
+                    onBlur={(e) => handleBlur('openTime', e.target.value)}
                 />
-                <Label>마감 시간</Label>
+                <Label>마감 시간 {validationErrors.closeTime && <ErrorMessage>{validationErrors.closeTime}</ErrorMessage>}</Label>
                 <Input
                     type="time"
                     value={formData.closeTime || ""}
-                    $isInvalid={
-                        Object.keys(errors).length > 0 && errors.closeTime
-                    }
-                    onChange={(e) =>
-                        setFormData({
-                            ...formData,
-                            closeTime: e.target.value,
-                        })
-                    }
+                    $isInvalid={!!validationErrors.closeTime}
+                    onChange={(e) => setFormData({ ...formData, closeTime: e.target.value })}
                     onFocus={triggerTimePicker}
+                    onBlur={(e) => handleBlur('closeTime', e.target.value)}
                 />
-                <Label>최소 예약시간</Label>
+                <Label>최소 예약시간 {validationErrors.minReservationTime && <ErrorMessage>{validationErrors.minReservationTime}</ErrorMessage>}</Label>
                 <Select
                     value={formData.minReservationTime || ""}
-                    $isInvalid={
-                        Object.keys(errors).length > 0 &&
-                        errors.minReservationTime
-                    }
-                    onChange={(e) =>
-                        setFormData({
-                            ...formData,
-                            minReservationTime: e.target.value,
-                        })
-                    }
+                    $isInvalid={!!validationErrors.minReservationTime}
+                    onChange={(e) => setFormData({ ...formData, minReservationTime: e.target.value })}
+                    onBlur={(e) => handleBlur('minReservationTime', e.target.value)}
                 >
                     {[1, 2, 3, 4, 5].map((hour) => (
                         <option key={hour} value={hour}>
@@ -691,31 +892,27 @@ const StepPrice = ({
             </Section>
 
             <Section>
-                <SectionTitle>금액 설정</SectionTitle>
-                <Label>요일별 1시간 기준 금액</Label>
+                <SectionTitleWithError>
+                    <Title>금액 설정</Title>
+                    {validationErrors.defaultPrice && <ErrorMessage>{validationErrors.defaultPrice}</ErrorMessage>}
+                </SectionTitleWithError>
+                <Label>영업을 하지 않는 요일은 체크박스를 해제하시고, 요일별로 {formData.minReservationTime}시간 기준 금액을 써주세요.</Label>
                 <PriceTable>
                     {["월", "화", "수", "목", "금", "토", "일"].map((day) => (
                         <PriceRow key={day}>
-                            <input
+                            <CustomCheckbox
                                 type="checkbox"
-                                checked={
-                                    formData.defaultPrice?.[day]?.enabled ||
-                                    false
-                                }
+                                checked={formData.defaultPrice?.[day]?.enabled || false}
                                 onChange={() => toggleDay(day)}
                             />
                             <DayLabel>{day}</DayLabel>
                             <PriceInput
                                 type="number"
-                                value={
-                                    formData.defaultPrice?.[day]?.price || ""
-                                }
-                                onChange={(e) =>
-                                    handlePriceChange(day, e.target.value)
-                                }
-                                disabled={
-                                    !formData.defaultPrice?.[day]?.enabled
-                                }
+                                value={formData.defaultPrice?.[day]?.price || ""}
+                                onChange={(e) => handlePriceChange(day, e.target.value)}
+                                onBlur={(e) => handleBlur(`price_${day}`, e.target.value)}
+                                disabled={!formData.defaultPrice?.[day]?.enabled}
+                                $isInvalid={!!validationErrors[`price_${day}`]}
                             />
                             <span>원</span>
                         </PriceRow>
@@ -734,9 +931,13 @@ const StepPrice = ({
             </Section>
 
             <Section>
-                <SectionTitle>계좌정보</SectionTitle>
+                <SectionTitleWithError>
+                    <Title>계좌정보</Title>
+                    {validationErrors.accountInfo && <ErrorMessage>{validationErrors.accountInfo}</ErrorMessage>}
+                </SectionTitleWithError>
                 <BankRow>
                     <Input
+                        id="accountNumber"
                         placeholder="계좌번호"
                         value={formData.account?.accountNumber || ""}
                         onChange={(e) =>
@@ -748,6 +949,8 @@ const StepPrice = ({
                                 },
                             })
                         }
+                        onBlur={(e) => handleBlur('accountNumber', e.target.value)}
+                        $isInvalid={!!validationErrors.accountInfo}
                     />
                     <Input
                         placeholder="예금주명"
