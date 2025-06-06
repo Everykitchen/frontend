@@ -114,6 +114,14 @@ const StepTool = ({ formData, setFormData, nextStep, prevStep }) => {
         setTools(updated);
     };
 
+    const syncFormData = () => {
+        const filtered = tools.filter((t) => t.toolName?.trim());
+        setFormData((prev) => ({
+            ...prev,
+            cookingTool: filtered,
+        }));
+    };
+
     return (
         <Container>
             <SectionTitle>
@@ -168,8 +176,22 @@ const StepTool = ({ formData, setFormData, nextStep, prevStep }) => {
             </Table>
 
             <ButtonContainer>
-                <NavButton onClick={prevStep}>이전</NavButton>
-                <NavButton onClick={nextStep}>다음</NavButton>
+                <NavButton
+                    onClick={() => {
+                        syncFormData();
+                        prevStep();
+                    }}
+                >
+                    이전
+                </NavButton>
+                <NavButton
+                    onClick={() => {
+                        syncFormData();
+                        nextStep();
+                    }}
+                >
+                    다음
+                </NavButton>
             </ButtonContainer>
         </Container>
     );

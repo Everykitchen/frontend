@@ -372,7 +372,7 @@ const StepPrice = ({
         const fileArray = Array.from(files).filter(
             (file) => file instanceof File
         );
-        setImageFiles((prev) => [...prev, ...fileArray]);
+        setImageFiles(fileArray);
     };
 
     const handleRemoveImage = (index) => {

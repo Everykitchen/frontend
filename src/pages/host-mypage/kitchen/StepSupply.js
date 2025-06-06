@@ -113,6 +113,14 @@ const StepSupply = ({ formData, setFormData, nextStep, prevStep }) => {
         setSupplies(updated);
     };
 
+    const syncFormData = () => {
+        const filtered = supplies.filter((s) => s.itemName?.trim());
+        setFormData((prev) => ({
+            ...prev,
+            providedItem: filtered,
+        }));
+    };
+
     return (
         <Container>
             <SectionTitle>
@@ -167,8 +175,22 @@ const StepSupply = ({ formData, setFormData, nextStep, prevStep }) => {
             </Table>
 
             <ButtonContainer>
-                <NavButton onClick={prevStep}>이전</NavButton>
-                <NavButton onClick={nextStep}>다음</NavButton>
+                <NavButton
+                    onClick={() => {
+                        syncFormData();
+                        prevStep();
+                    }}
+                >
+                    이전
+                </NavButton>
+                <NavButton
+                    onClick={() => {
+                        syncFormData();
+                        nextStep();
+                    }}
+                >
+                    다음
+                </NavButton>
             </ButtonContainer>
         </Container>
     );

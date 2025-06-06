@@ -119,12 +119,18 @@ const StepIngredient = ({
     useEffect(() => {
         setFormData((prev) => ({
             ...prev,
-            ingredients: basicIngredients.filter((i) =>
-                i.ingredientName?.trim()
-            ),
-            extraIngredients: extraIngredients.filter((i) =>
-                i.ingredientName?.trim()
-            ),
+            ingredients: basicIngredients
+                .filter((i) => i.ingredientName?.trim())
+                .map((i) => ({
+                    ...i,
+                    additional: false,
+                })),
+            extraIngredients: extraIngredients
+                .filter((i) => i.ingredientName?.trim())
+                .map((i) => ({
+                    ...i,
+                    additional: true,
+                })),
         }));
     }, [basicIngredients, extraIngredients]);
 
@@ -143,6 +149,24 @@ const StepIngredient = ({
 
     const handleDelete = (setter, index) => {
         setter((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const syncFormData = () => {
+        setFormData((prev) => ({
+            ...prev,
+            ingredients: basicIngredients
+                .filter((i) => i.ingredientName?.trim())
+                .map((i) => ({
+                    ...i,
+                    additional: false,
+                })),
+            extraIngredients: extraIngredients
+                .filter((i) => i.ingredientName?.trim())
+                .map((i) => ({
+                    ...i,
+                    additional: true,
+                })),
+        }));
     };
 
     return (
@@ -310,8 +334,22 @@ const StepIngredient = ({
             </Table>
 
             <ButtonContainer>
-                <NavButton onClick={prevStep}>이전</NavButton>
-                <NavButton onClick={handleSubmitKitchen}>등록</NavButton>
+                <NavButton
+                    onClick={() => {
+                        syncFormData();
+                        prevStep();
+                    }}
+                >
+                    이전
+                </NavButton>
+                <NavButton
+                    onClick={() => {
+                        syncFormData();
+                        handleSubmitKitchen();
+                    }}
+                >
+                    등록
+                </NavButton>
             </ButtonContainer>
         </Container>
     );

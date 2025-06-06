@@ -133,12 +133,11 @@ const KitchenForm = () => {
                         bankName: editData.bankName || "",
                     },
                     ingredients: (editData.ingredients || []).filter(
-                        (i) => i.additional === false
+                        (i) => String(i.additional) === "false"
                     ),
                     extraIngredients: (editData.ingredients || []).filter(
-                        (i) => i.additional === true
+                        (i) => String(i.additional) === "true"
                     ),
-
                     kitchenFacility: editData.kitchenFacility || [],
                     cookingTool: editData.cookingTool || [],
                     providedItem: editData.providedItem || [],
@@ -177,8 +176,11 @@ const KitchenForm = () => {
         accountNumber: data.account.accountNumber,
         accountHolderName: data.account.accountHolderName,
         bankName: data.account.bankName,
-        ingredients: data.ingredients,
-        extraIngredients: data.extraIngredients,
+        ingredients: [
+            ...data.ingredients.map((i) => ({ ...i, additional: false })),
+            ...data.extraIngredients.map((i) => ({ ...i, additional: true })),
+        ],
+
         kitchenFacility: data.kitchenFacility,
         cookingTool: data.cookingTool,
         providedItem: data.providedItem,
@@ -205,13 +207,22 @@ const KitchenForm = () => {
         for (const key in payload) {
             const value = payload[key];
 
+            // 1. 이미지 처리
             if (key === "kitchenImages") {
-                value.forEach((file) => {
-                    if (file instanceof File) {
-                        form.append("kitchenImages", file);
-                    }
-                });
-            } else if (key === "defaultPrice") {
+                const hasNewUpload = value.some((img) => img instanceof File);
+
+                if (hasNewUpload) {
+                    value.forEach((file) => {
+                        if (file instanceof File) {
+                            form.append("kitchenImages", file);
+                        }
+                    });
+                }
+                continue; // 중요!
+            }
+
+            // 2. 가격 설정 처리
+            if (key === "defaultPrice") {
                 value.forEach((item, index) => {
                     const { week, enabled, price } = item;
 
@@ -232,11 +243,14 @@ const KitchenForm = () => {
                         );
                     }
                 });
-            } else if (
+                continue;
+            }
+
+            // 3. 배열 필드 처리
+            if (
                 Array.isArray(value) &&
                 [
                     "ingredients",
-                    "extraIngredients",
                     "kitchenFacility",
                     "cookingTool",
                     "providedItem",
@@ -247,9 +261,11 @@ const KitchenForm = () => {
                         form.append(`${key}[${index}].${subKey}`, item[subKey]);
                     }
                 });
-            } else {
-                form.append(key, value);
+                continue;
             }
+
+            // 4. 기본 필드 처리
+            form.append(key, value);
         }
 
         try {
@@ -266,6 +282,9 @@ const KitchenForm = () => {
                     `주방이 성공적으로 ${isEdit ? "수정" : "등록"}되었습니다.`
                 );
                 navigate("/host-mypage/kitchen-management");
+            }
+            for (let pair of form.entries()) {
+                console.log(pair[0], pair[1]);
             }
         } catch (err) {
             console.error("제출 실패", err);

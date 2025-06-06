@@ -147,6 +147,20 @@ const StepFacility = ({ formData, setFormData, nextStep, prevStep }) => {
         setFacilityStates(updated);
     };
 
+    const syncFormData = () => {
+        const facilitiesToSave = facilityStates
+            .filter((f) => f.facilityType)
+            .map((f) => ({
+                facilityType: f.facilityType,
+                count: f.count,
+                description: f.description,
+            }));
+        setFormData((prev) => ({
+            ...prev,
+            kitchenFacility: facilitiesToSave,
+        }));
+    };
+
     return (
         <Container>
             <SectionTitle>
@@ -218,8 +232,22 @@ const StepFacility = ({ formData, setFormData, nextStep, prevStep }) => {
             </Table>
 
             <ButtonContainer>
-                <NavButton onClick={prevStep}>이전</NavButton>
-                <NavButton onClick={nextStep}>다음</NavButton>
+                <NavButton
+                    onClick={() => {
+                        syncFormData();
+                        prevStep();
+                    }}
+                >
+                    이전
+                </NavButton>
+                <NavButton
+                    onClick={() => {
+                        syncFormData();
+                        nextStep();
+                    }}
+                >
+                    다음
+                </NavButton>
             </ButtonContainer>
         </Container>
     );
