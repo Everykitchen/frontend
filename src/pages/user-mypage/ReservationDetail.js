@@ -416,6 +416,7 @@ const ReservationDetail = () => {
     const [showMap, setShowMap] = useState(false);
     const [mapLoading, setMapLoading] = useState(false);
     const mapRef = useRef(null);
+    const [mapCoordinates, setMapCoordinates] = useState(null);
     
     const loaded = useKakaoLoader();
 
@@ -450,9 +451,32 @@ const ReservationDetail = () => {
         fetchDetail();
     }, [id]);
     
+    const handleShowMap = async () => {
+        if (!reservation?.kitchenId) {
+            alert("주방 정보를 찾을 수 없습니다.");
+            return;
+        }
+
+        try {
+            const response = await api.get(`/api/common/kitchen/${reservation.kitchenId}`);
+            const { latitude, longitude } = response.data;
+            
+            if (!latitude || !longitude) {
+                alert("주방 위치 정보를 찾을 수 없습니다.");
+                return;
+            }
+
+            setMapCoordinates({ latitude, longitude });
+            setShowMap(true);
+        } catch (error) {
+            console.error("주방 정보 조회 실패:", error);
+            alert("주방 위치 정보를 불러오는데 실패했습니다.");
+        }
+    };
+
     // 지도 초기화 및 표시 함수
     useEffect(() => {
-        if (!loaded || !showMap || !mapRef.current || !reservation) return;
+        if (!loaded || !showMap || !mapRef.current || !mapCoordinates) return;
             
         // 지도 초기화 시작
         setMapLoading(true);
@@ -467,8 +491,8 @@ const ReservationDetail = () => {
             const timer = setTimeout(() => {
                 try {
                     const coords = new window.kakao.maps.LatLng(
-                        reservation.latitude, 
-                        reservation.longitude
+                        mapCoordinates.latitude, 
+                        mapCoordinates.longitude
                     );
                     
                     const mapOptions = {
@@ -511,7 +535,7 @@ const ReservationDetail = () => {
             console.error("지도 생성 오류:", err);
             setMapLoading(false);
         }
-    }, [loaded, showMap, reservation]);
+    }, [loaded, showMap, mapCoordinates, reservation?.kitchenName]);
 
     const getStatusText = (status) => {
         switch (status) {
@@ -600,10 +624,6 @@ const ReservationDetail = () => {
         }
     };
     
-    const handleShowMap = () => {
-        setShowMap(true);
-    };
-
     const handleKitchenInfo = () => {
         if (reservation?.kitchenId) {
             navigate(`/kitchen/${reservation.kitchenId}`);

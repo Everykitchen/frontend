@@ -598,8 +598,6 @@ const MyPage = () => {
                         </ActionSection>
                     </ProfileSection>
 
-                    <Divider />
-
                     <SectionRow>
                         <SectionColumn>
                             <SectionTitle>최근 예약 내역</SectionTitle>

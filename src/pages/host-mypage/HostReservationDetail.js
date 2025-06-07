@@ -471,6 +471,7 @@ const HostReservationDetail = () => {
     const [mapLoading, setMapLoading] = useState(false);
     const mapRef = useRef(null);
     const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+    const [mapCoordinates, setMapCoordinates] = useState(null);
     
     const loaded = useKakaoLoader();
 
@@ -503,9 +504,32 @@ const HostReservationDetail = () => {
         fetchDetail();
     }, [reservationId]);
     
+    const handleShowMap = async () => {
+        if (!reservationData?.kitchenId) {
+            alert("주방 정보를 찾을 수 없습니다.");
+            return;
+        }
+
+        try {
+            const response = await axios.get(`/api/common/kitchen/${reservationData.kitchenId}`);
+            const { latitude, longitude } = response.data;
+            
+            if (!latitude || !longitude) {
+                alert("주방 위치 정보를 찾을 수 없습니다.");
+                return;
+            }
+
+            setMapCoordinates({ latitude, longitude });
+            setShowMap(true);
+        } catch (error) {
+            console.error("주방 정보 조회 실패:", error);
+            alert("주방 위치 정보를 불러오는데 실패했습니다.");
+        }
+    };
+
     // 지도 초기화 및 표시 함수
     useEffect(() => {
-        if (!loaded || !showMap || !mapRef.current || !reservationData) return;
+        if (!loaded || !showMap || !mapRef.current || !mapCoordinates) return;
             
         // 지도 초기화 시작
         setMapLoading(true);
@@ -520,8 +544,8 @@ const HostReservationDetail = () => {
             const timer = setTimeout(() => {
                 try {
                     const coords = new window.kakao.maps.LatLng(
-                        reservationData.latitude, 
-                        reservationData.longitude
+                        mapCoordinates.latitude, 
+                        mapCoordinates.longitude
                     );
                     
                     const mapOptions = {
@@ -564,7 +588,7 @@ const HostReservationDetail = () => {
             console.error("지도 생성 오류:", err);
             setMapLoading(false);
         }
-    }, [loaded, showMap, reservationData]);
+    }, [loaded, showMap, mapCoordinates, reservationData?.kitchenName]);
     
     // 상태 텍스트 변환
     const getStatusText = (status) => {
@@ -668,10 +692,6 @@ const HostReservationDetail = () => {
         }
     };
     
-    const handleShowMap = () => {
-        setShowMap(true);
-    };
-
     const handleKitchenInfo = () => {
         if (reservationData?.kitchenId) {
             navigate(`/kitchen/${reservationData.kitchenId}`);

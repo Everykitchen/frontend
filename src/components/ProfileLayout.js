@@ -75,7 +75,7 @@ export const Data = styled.div`
     font-size: 14px;
     text-align: right;
     flex: 1;
-    padding-right: 500px;
+    padding-right: 65%;
 `;
 
 export const EditIcon = styled.img`
