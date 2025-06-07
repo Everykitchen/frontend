@@ -1,52 +1,64 @@
 import { Routes, Route, useLocation } from "react-router-dom";
+import ProtectedRoute from "./ProtectedRoute";
+
+// 공통 페이지
 import Main from "../pages/Main";
 import Login from "../pages/Login";
 import ForgotEmail from "../pages/ForgotEmail";
 import ForgotPassword from "../pages/ForgotPassword";
-import KitchenDetailPage from "../pages/kitchenDetail/KitchenDetailPage";
-import SignupChoicePage from "../pages/signup/SignupChoicePage";
-import UserSignupPage from "../pages/signup/UserSignupPage";
-import UserSignupSuccess from "../pages/signup/UserSignupSuccess";
-import HostSignupPage from "../pages/signup/HostSignupPage";
-import HostSignupSuccess from "../pages/signup/HostSignupSuccess";
-import HostReservations from "../pages/host-mypage/hostReservations";
-import HostReservationDetail from "../pages/host-mypage/HostReservationDetail";
-import HostSales from "../pages/host-mypage/HostSales";
-import ChatHistory from "../pages/host-mypage/ChatHistory";
-import ChattingRoom from "../pages/host-mypage/ChattingRoom";
-import IngredientSettlement from "../pages/user-mypage/IngredientSettlement";
 import SearchResult from "../pages/SearchResult";
+import KitchenDetailPage from "../pages/kitchenDetail/KitchenDetailPage";
+import KitchenMap from "../pages/kitchenMap/KitchenMap";
 
-import ProtectedRoute from "./ProtectedRoute";
+// 회원가입 관련
+import {
+    SignupChoicePage,
+    UserSignupPage,
+    UserSignupSuccess,
+    HostSignupPage,
+    HostSignupSuccess,
+} from "../pages/signup/SignupIndex";
+
+// 사용자 마이페이지
 import {
     MyPage,
     Reservations,
     ReservationDetail,
     Reviews,
     Likes,
+    IngredientSettlement,
+    UserChatHistory,
+    UserChattingRoom,
 } from "../pages/user-mypage/MyPageIndex";
-import UserChatHistory from "../pages/user-mypage/ChatHistory";
-import UserChattingRoom from "../pages/user-mypage/ChattingRoom";
 
+// 호스트 마이페이지
 import {
     HostMyPage,
     KitchenManage,
+    HostReservations,
+    HostReservationDetail,
+    ReservationCalendar,
+    HostSales,
+    ChatHistory,
+    ChattingRoom,
+    KitchenForm,
 } from "../pages/host-mypage/HostMyPageIndex";
-import KitchenForm from "../pages/host-mypage/kitchen/KitchenForm";
-
-import KitchenMap from "../pages/kitchenMap/KitchenMap";
-import ReservationCalendar from "../pages/host-mypage/ReservationCalendar";
 
 const AppRouter = () => {
     const location = useLocation();
 
     return (
         <Routes key={location.pathname} location={location}>
+            {/* 공통 */}
             <Route path="/" element={<Main />} />
-            <Route path="/search" element={<SearchResult />} />
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-email" element={<ForgotEmail />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/search" element={<SearchResult />} />
+            <Route path="/kitchen/:id" element={<KitchenDetailPage />} />
+            <Route path="/map" element={<KitchenMap />} />
+
+            {/* 회원가입 */}
             <Route path="/signup" element={<SignupChoicePage />} />
             <Route path="/signup/user" element={<UserSignupPage />} />
             <Route
@@ -59,6 +71,7 @@ const AppRouter = () => {
                 element={<HostSignupSuccess />}
             />
 
+            {/* 사용자 마이페이지 */}
             <Route
                 path="/mypage"
                 element={
@@ -115,7 +128,16 @@ const AppRouter = () => {
                     </ProtectedRoute>
                 }
             />
+            <Route
+                path="/mypage/ingredient-settlement/:id"
+                element={
+                    <ProtectedRoute allowedRole="USER">
+                        <IngredientSettlement />
+                    </ProtectedRoute>
+                }
+            />
 
+            {/* 호스트 마이페이지 */}
             <Route
                 path="/host-mypage"
                 element={
@@ -193,24 +215,6 @@ const AppRouter = () => {
                 element={
                     <ProtectedRoute allowedRole="HOST">
                         <ChattingRoom />
-                    </ProtectedRoute>
-                }
-            />
-            <Route path="/kitchen/:id" element={<KitchenDetailPage />} />
-            <Route path="/map" element={<KitchenMap />} />
-            <Route
-                path="/mypage/ingredient-settlement/:id"
-                element={
-                    <ProtectedRoute allowedRole="USER">
-                        <IngredientSettlement />
-                    </ProtectedRoute>
-                }
-            />
-            <Route
-                path="/host-mypage/reservations/calendar"
-                element={
-                    <ProtectedRoute allowedRole="HOST">
-                        <ReservationCalendar />
                     </ProtectedRoute>
                 }
             />
