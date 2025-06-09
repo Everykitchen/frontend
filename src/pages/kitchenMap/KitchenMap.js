@@ -301,7 +301,7 @@ const KitchenMap = () => {
                 });
                 initMap(coords.latitude, coords.longitude);
             },
-            () => initMap(37.9, 126.96)
+            () => initMap(37.32, 127.13)
         );
     }, [loaded]);
 
