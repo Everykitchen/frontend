@@ -300,7 +300,7 @@ const ReservationCalendar = () => {
     
     // 상태에 따른 라벨 반환
     const getStatusLabel = (status) => {
-        if (status === "RESERVED" || status === "PENDING_PAYMENT") return "진행중";
+        if (status === "RESERVED" || status === "PENDING_PAYMENT" || status === "PENDING_RESERVED") return "진행중";
         if (status === "COMPLETED_PAYMENT") return "완료";
         return status;
     };

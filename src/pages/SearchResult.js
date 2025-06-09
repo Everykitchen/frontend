@@ -127,7 +127,7 @@ const SearchResult = () => {
                 price: kitchen.minPrice
                     ? `${kitchen.minPrice.toLocaleString()}원~`
                     : "가격 정보 없음",
-                time: `${kitchen.minReservationTime}분`,
+                time: `${kitchen.minReservationTime}시간`,
                 tags: kitchen.category
                     ? [kitchen.category === "COOKING" ? "쿠킹" : "베이킹"]
                     : [],
