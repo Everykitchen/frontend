@@ -12,14 +12,14 @@ import useKakaoLoader from "../../hooks/useKakaoLoader";
 
 /**
  * 사용자의 예약 상세 정보를 표시하는 페이지 컴포넌트입니다.
- * 
+ *
  * 주요 기능:
  * - 예약번호를 기준으로 상세 정보를 로드하여 표시
  * - 주방 위치를 지도로 확인할 수 있는 기능
  * - 예약자와 호스트 간 채팅 기능
  * - 정산 기능으로 이동
  * - 주소 복사 및 주방 정보 확인 기능
- * 
+ *
  * HostReservationDetail과 유사한 UI를 유지하되
  * 사용자 관점의 기능과 UI로 조정되어 있습니다.
  */
@@ -32,9 +32,7 @@ const Container = styled.div`
 
 const ContentWrapper = styled.div`
     flex: 1;
-    padding: 40px;
-    padding-left: 100px;
-    padding-right: 100px;
+    padding: 60px;
     margin-top: 30px;
 `;
 
@@ -138,7 +136,7 @@ const CopyButton = styled.button`
     white-space: nowrap;
     display: inline-block;
     margin-left: 20px;
-    
+
     &:hover {
         text-decoration: underline;
     }
@@ -206,7 +204,7 @@ const SmallActionButton = styled.button`
             if (props.disabled) return "#BDBDBD";
             return props.variant === "primary" ? "white" : "#333";
         }};
-        
+
         svg path {
             fill: ${(props) => {
                 if (props.disabled) return "#BDBDBD";
@@ -214,11 +212,11 @@ const SmallActionButton = styled.button`
             }};
         }
     }
-    
+
     @media (max-width: 768px) {
         font-size: 14px;
         gap: 8px;
-        
+
         svg,
         img {
             width: 24px;
@@ -364,7 +362,7 @@ const CloseButton = styled.button`
     font-size: 24px;
     cursor: pointer;
     color: #666;
-    
+
     &:hover {
         color: #333;
     }
@@ -417,7 +415,7 @@ const ReservationDetail = () => {
     const [mapLoading, setMapLoading] = useState(false);
     const mapRef = useRef(null);
     const [mapCoordinates, setMapCoordinates] = useState(null);
-    
+
     const loaded = useKakaoLoader();
 
     const goBack = () => {
@@ -431,14 +429,14 @@ const ReservationDetail = () => {
             try {
                 const response = await api.get(`/api/user/reservation/${id}`);
                 console.log("예약 상세 정보:", response.data);
-                
+
                 // 좌표가 없으면 서울 좌표로 기본값 설정
                 const data = response.data;
                 if (!data.latitude || !data.longitude) {
                     data.latitude = 37.5665; // 서울 기본 좌표
                     data.longitude = 126.978;
                 }
-                
+
                 setReservation(data);
             } catch (error) {
                 console.error("예약 상세 정보 로드 실패:", error);
@@ -450,7 +448,7 @@ const ReservationDetail = () => {
 
         fetchDetail();
     }, [id]);
-    
+
     const handleShowMap = async () => {
         if (!reservation?.kitchenId) {
             alert("주방 정보를 찾을 수 없습니다.");
@@ -458,9 +456,11 @@ const ReservationDetail = () => {
         }
 
         try {
-            const response = await api.get(`/api/common/kitchen/${reservation.kitchenId}`);
+            const response = await api.get(
+                `/api/common/kitchen/${reservation.kitchenId}`
+            );
             const { latitude, longitude } = response.data;
-            
+
             if (!latitude || !longitude) {
                 alert("주방 위치 정보를 찾을 수 없습니다.");
                 return;
@@ -477,47 +477,47 @@ const ReservationDetail = () => {
     // 지도 초기화 및 표시 함수
     useEffect(() => {
         if (!loaded || !showMap || !mapRef.current || !mapCoordinates) return;
-            
+
         // 지도 초기화 시작
         setMapLoading(true);
-        
+
         try {
             // 이전에 생성된 지도 요소 정리
             if (mapRef.current) {
                 mapRef.current.innerHTML = "";
             }
-            
+
             // 지연 처리로 DOM이 준비된 후 지도 생성
             const timer = setTimeout(() => {
                 try {
                     const coords = new window.kakao.maps.LatLng(
-                        mapCoordinates.latitude, 
+                        mapCoordinates.latitude,
                         mapCoordinates.longitude
                     );
-                    
+
                     const mapOptions = {
                         center: coords,
                         level: 3,
                     };
-                    
+
                     // 지도 객체 생성
                     const map = new window.kakao.maps.Map(
                         mapRef.current,
                         mapOptions
                     );
-                    
+
                     // 마커 생성
                     const marker = new window.kakao.maps.Marker({
                         position: coords,
                     });
                     marker.setMap(map);
-                    
+
                     // 상호명 표시
                     const infowindow = new window.kakao.maps.InfoWindow({
                         content: `<div style="padding:5px;font-size:12px;">${reservation.kitchenName}</div>`,
                     });
                     infowindow.open(map, marker);
-                    
+
                     // 지도 크기 재조정 처리
                     setTimeout(() => {
                         map.relayout();
@@ -529,7 +529,7 @@ const ReservationDetail = () => {
                     setMapLoading(false);
                 }
             }, 100);
-            
+
             return () => clearTimeout(timer);
         } catch (err) {
             console.error("지도 생성 오류:", err);
@@ -609,7 +609,7 @@ const ReservationDetail = () => {
             alert("정산에 필요한 정보가 없습니다.");
         }
     };
-    
+
     const handleCopyAddress = () => {
         if (reservation?.kitchenLocation) {
             navigator.clipboard
@@ -623,7 +623,7 @@ const ReservationDetail = () => {
                 });
         }
     };
-    
+
     const handleKitchenInfo = () => {
         if (reservation?.kitchenId) {
             navigate(`/kitchen/${reservation.kitchenId}`);
@@ -683,12 +683,12 @@ const ReservationDetail = () => {
                                     지도조회
                                 </SmallActionButton>
                                 <SmallActionButton onClick={handleKitchenInfo}>
-                                    <img 
-                                        src={informationIcon} 
-                                        alt="주방 정보" 
+                                    <img
+                                        src={informationIcon}
+                                        alt="주방 정보"
                                         style={{
                                             filter: "brightness(0) saturate(100%) invert(40%) sepia(0%) saturate(0%) hue-rotate(222deg) brightness(92%) contrast(86%)",
-                                        }} 
+                                        }}
                                     />
                                     주방 정보
                                 </SmallActionButton>
@@ -702,7 +702,12 @@ const ReservationDetail = () => {
                                 <SmallActionButton
                                     variant="primary"
                                     onClick={handleSettlementClick}
-                                    disabled={!["RESERVED", "PENDING_PAYMENT"].includes(reservation.status)}
+                                    disabled={
+                                        ![
+                                            "RESERVED",
+                                            "PENDING_PAYMENT",
+                                        ].includes(reservation.status)
+                                    }
                                 >
                                     <MoneyIcon />
                                     정산하기
@@ -710,7 +715,7 @@ const ReservationDetail = () => {
                             </ActionButtons>
                         </KitchenInfo>
                     </TopSection>
-                    
+
                     <BottomSection>
                         <InfoSection>
                             <SectionTitle>예약 정보</SectionTitle>
@@ -734,61 +739,73 @@ const ReservationDetail = () => {
                                 </Values>
                             </InfoContainer>
                         </InfoSection>
-                        
+
                         <InfoSection>
                             <SectionTitle>결제 정보</SectionTitle>
                             <InfoContainer>
                                 <Labels>
                                     <span>선결제 금액</span>
-                                    {reservation.status === "COMPLETED_PAYMENT" && (
+                                    {reservation.status ===
+                                        "COMPLETED_PAYMENT" && (
                                         <>
                                             <span>후결제 금액</span>
                                             <span>최종 결제 금액</span>
                                         </>
                                     )}
-                                    {reservation.status !== "COMPLETED_PAYMENT" && (
-                                    <span>후결제 금액</span>
+                                    {reservation.status !==
+                                        "COMPLETED_PAYMENT" && (
+                                        <span>후결제 금액</span>
                                     )}
                                 </Labels>
                                 <Values>
                                     <span>
-                                        {reservation.status === "PENDING_RESERVED" ? (
-                                            <PaymentPending>입금 확인 중</PaymentPending>
+                                        {reservation.status ===
+                                        "PENDING_RESERVED" ? (
+                                            <PaymentPending>
+                                                입금 확인 중
+                                            </PaymentPending>
                                         ) : (
                                             `${reservation.prepaidAmount.toLocaleString()}원`
                                         )}
                                     </span>
-                                    {reservation.status === "COMPLETED_PAYMENT" ? (
+                                    {reservation.status ===
+                                    "COMPLETED_PAYMENT" ? (
                                         <>
                                             <span>
-                                                {reservation.postpaidAmount.toLocaleString()}원
+                                                {reservation.postpaidAmount.toLocaleString()}
+                                                원
                                             </span>
                                             <TotalPayment>
-                                                {(reservation.prepaidAmount + reservation.postpaidAmount).toLocaleString()}원
+                                                {(
+                                                    reservation.prepaidAmount +
+                                                    reservation.postpaidAmount
+                                                ).toLocaleString()}
+                                                원
                                             </TotalPayment>
                                         </>
                                     ) : (
-                                    <PendingPayment>
-                                            {reservation.status === "PENDING_PAYMENT"
+                                        <PendingPayment>
+                                            {reservation.status ===
+                                            "PENDING_PAYMENT"
                                                 ? "호스트 승인대기"
                                                 : "정산예정"}
-                                    </PendingPayment>
+                                        </PendingPayment>
                                     )}
                                 </Values>
                             </InfoContainer>
-                            
+
                             <ActionSection>
                                 {reservation.status !== "COMPLETED_PAYMENT" && (
-                                <CancellationNotice>
-                                    예약 취소는 채팅으로 문의해주세요.
-                                </CancellationNotice>
+                                    <CancellationNotice>
+                                        예약 취소는 채팅으로 문의해주세요.
+                                    </CancellationNotice>
                                 )}
                                 <CancelButton disabled>예약취소</CancelButton>
                             </ActionSection>
                         </InfoSection>
                     </BottomSection>
                 </DetailCard>
-                
+
                 {showMap && (
                     <Modal>
                         <ModalContent>
