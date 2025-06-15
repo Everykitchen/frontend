@@ -9,7 +9,7 @@ export const Container = styled.div`
 
 export const Content = styled.div`
     flex: 1;
-    padding: 40px;
+    padding: 60px;
     margin-top: 30px;
 `;
 
@@ -75,7 +75,7 @@ export const Data = styled.div`
     font-size: 14px;
     text-align: right;
     flex: 1;
-    padding-right: 500px;
+    padding-right: 65%;
 `;
 
 export const EditIcon = styled.img`
@@ -98,7 +98,7 @@ export const ImageInput = styled.div`
 `;
 
 export const ChangeImageButton = styled.button`
-    background:rgb(243, 243, 243);
+    background: rgb(243, 243, 243);
     color: black;
     border: none;
     border-radius: 8px;
@@ -109,7 +109,7 @@ export const ChangeImageButton = styled.button`
     transition: background-color 0.2s ease;
 
     &:hover {
-        background:rgb(238, 238, 238);
+        background: rgb(238, 238, 238);
     }
 `;
 
@@ -125,7 +125,7 @@ export const LogoutWrapper = styled.div`
 `;
 
 export const LogoutButton = styled.button`
-    background:rgb(255, 95, 77);
+    background: rgb(255, 95, 77);
     padding: 10px 24px;
     border: none;
     border-radius: 10px;
@@ -175,7 +175,7 @@ export const NameInput = styled.input`
     padding: 0 4px;
     &:focus {
         outline: none;
-        border-color: #FF7926;
+        border-color: #ff7926;
     }
 `;
 
@@ -206,7 +206,7 @@ export const PhoneInput = styled.input`
 
     &:focus {
         outline: none;
-        border-color: #FF7926;
+        border-color: #ff7926;
     }
 `;
 
@@ -232,8 +232,8 @@ export const SectionTitle = styled.h3`
 
 export const Card = styled.div`
     width: 100%;
-    background: #FCFCFC;
-    border: 1px solid #E0E0E0;
+    background: #fcfcfc;
+    border: 1px solid #e0e0e0;
     border-radius: 12px;
     padding: 20px;
     display: flex;
@@ -266,20 +266,20 @@ export const ItemHeader = styled.div`
     position: relative;
 
     &::after {
-        content: '';
+        content: "";
         position: absolute;
         bottom: 0;
         left: 0;
         width: 100%;
         height: 1.5px;
-        background-color: #FF7926;
+        background-color: #ff7926;
     }
-    
+
     & > div:first-child {
         text-align: left;
         padding-left: 10px;
     }
-    
+
     & > div:last-child {
         text-align: right;
         padding-right: 10px;
@@ -300,12 +300,12 @@ export const ReservationItem = styled(Item)`
     color: #333;
     height: 48px;
     align-items: center;
-    
+
     & > span:first-child {
         text-align: left;
         padding-left: 10px;
     }
-    
+
     & > span:last-child {
         text-align: right;
         padding-right: 10px;
@@ -318,12 +318,12 @@ export const KitchenItem = styled(Item)`
     color: #333;
     height: 48px;
     align-items: center;
-    
+
     & > span:first-child {
         text-align: left;
         padding-left: 10px;
     }
-    
+
     & > span:last-child {
         text-align: right;
         padding-right: 10px;

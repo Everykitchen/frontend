@@ -73,9 +73,17 @@ const Title = styled.div`
 `;
 
 const Price = styled.div`
-    font-weight: 400;
+    font-weight: 500;
     font-size: 15px;
     color: #333;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+`;
+
+const TimeUnit = styled.span`
+    color: #666;
+    font-weight: 400;
 `;
 
 const Tags = styled.div`
@@ -130,7 +138,7 @@ const NewStoreCard = ({ store, onLikeToggle }) => {
 
                 <Title>{store.name}</Title>
                 <Price>
-                    {store.price} / {store.time}
+                    {store.price} <TimeUnit>/ {store.time}</TimeUnit>
                 </Price>
 
                 <Tags>

@@ -178,7 +178,7 @@ const ChattingRoomComponent = ({ isHost, chatInfo, messages: initialMessages }) 
   const navigate = useNavigate();
   const [messages, setMessages] = useState(initialMessages || []);
   const [inputMessage, setInputMessage] = useState('');
-  const chatContainerRef = useRef(null);
+    const chatContainerRef = useRef(null);
 
   // location.state에서 채팅방 정보 설정
   useEffect(() => {
@@ -188,32 +188,32 @@ const ChattingRoomComponent = ({ isHost, chatInfo, messages: initialMessages }) 
   }, [location.state]);
 
   const scrollToBottom = () => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-    }
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
   };
 
   const handleSendMessage = () => {
     if (!inputMessage.trim()) return;
-
+    
     // 임시 메시지 추가
-    const newMessage = {
-      messageId: Date.now(),
-      chat: inputMessage,
-      role: isHost ? 'HOST' : 'USER',
-      sentAt: new Date().toISOString()
+      const newMessage = {
+        messageId: Date.now(),
+        chat: inputMessage,
+        role: isHost ? 'HOST' : 'USER',
+        sentAt: new Date().toISOString()
+      };
+      
+      setMessages(prev => [...prev, newMessage]);
+      setInputMessage('');
+      setTimeout(() => scrollToBottom(), 100);
     };
 
-    setMessages(prev => [...prev, newMessage]);
-    setInputMessage('');
-    setTimeout(() => scrollToBottom(), 100);
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      handleSendMessage();
-    }
-  };
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            handleSendMessage();
+        }
+    };
 
   const handleBack = () => {
     navigate(isHost ? '/host-mypage/chats' : '/user-mypage/chats');
@@ -229,8 +229,8 @@ const ChattingRoomComponent = ({ isHost, chatInfo, messages: initialMessages }) 
   };
 
   return (
-    <Container>
-      <Header>
+            <Container>
+                <Header>
         <BackButton onClick={handleBack}>
           &lt; 뒤로
         </BackButton>
@@ -239,9 +239,9 @@ const ChattingRoomComponent = ({ isHost, chatInfo, messages: initialMessages }) 
             ? `${chatInfo?.userName || '고객'}님과의 대화` 
             : chatInfo?.kitchenName || '채팅'}
         </KitchenName>
-      </Header>
-
-      <ChatContainer ref={chatContainerRef}>
+                </Header>
+                
+                <ChatContainer ref={chatContainerRef}>
         {messages.length === 0 ? (
           <EmptyState>
             <p>아직 채팅 내역이 없습니다. 첫 메시지를 보내보세요!</p>
@@ -259,25 +259,25 @@ const ChattingRoomComponent = ({ isHost, chatInfo, messages: initialMessages }) 
             );
           })
         )}
-      </ChatContainer>
+                </ChatContainer>
 
-      <InputContainer>
+                <InputContainer>
         <Input
-          type="text"
+                        type="text"
           value={inputMessage}
           onChange={(e) => setInputMessage(e.target.value)}
-          onKeyPress={handleKeyPress}
+                        onKeyPress={handleKeyPress}
           placeholder="메시지를 입력하세요..."
-        />
-        <SendButton
-          onClick={handleSendMessage}
+                    />
+                    <SendButton
+                        onClick={handleSendMessage}
           disabled={!inputMessage.trim()}
-        >
-          →
-        </SendButton>
-      </InputContainer>
-    </Container>
-  );
+                    >
+                        →
+                    </SendButton>
+                </InputContainer>
+            </Container>
+    );
 };
 
 export default ChattingRoomComponent; 

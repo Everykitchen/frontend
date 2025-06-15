@@ -139,7 +139,7 @@ function Login() {
             if (error.response?.status === 401) {
                 setError("이메일 또는 비밀번호가 올바르지 않습니다.");
             } else {
-                setError("로그인 중 오류가 발생했습니다.");
+            setError("로그인 중 오류가 발생했습니다.");
             }
         }
     };
@@ -188,7 +188,7 @@ function Login() {
                     <LinkGroup>
                         <SetLink to="/signup">회원가입 </SetLink>
                         <SetLink to="/forgot-email">이메일 찾기</SetLink>
-                        <SetLink to="/forgot-password">비밀번호 찾기</SetLink>
+                    <SetLink to="/forgot-password">비밀번호 찾기</SetLink>
                     </LinkGroup>
                 </LoginLinksSection>
             </LoginContainer>

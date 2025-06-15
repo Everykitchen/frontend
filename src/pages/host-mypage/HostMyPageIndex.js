@@ -1,2 +1,9 @@
 export { default as HostMyPage } from "./HostMyPage";
 export { default as KitchenManage } from "./HostKitchenManage";
+export { default as HostReservations } from "./HostReservations";
+export { default as HostReservationDetail } from "./HostReservationDetail";
+export { default as ReservationCalendar } from "./ReservationCalendar";
+export { default as HostSales } from "./HostSales";
+export { default as ChatHistory } from "./ChatHistory";
+export { default as ChattingRoom } from "./ChattingRoom";
+export { default as KitchenForm } from "./kitchen/KitchenForm";

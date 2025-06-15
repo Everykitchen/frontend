@@ -115,8 +115,8 @@ const HostMyPage = () => {
             return;
         }
 
-        setSelectedImage(file);
-        setPreviewImage(URL.createObjectURL(file));
+            setSelectedImage(file);
+            setPreviewImage(URL.createObjectURL(file));
         setError(""); // 이전 에러 메시지 초기화
     };
 
@@ -314,7 +314,7 @@ const HostMyPage = () => {
                 setBirthYear(year);
                 setBirthMonth(month);
                 setBirthDay(day);
-                
+
                 setUserInfo({
                     id: data.id || 0,
                     name: data.name || "",
@@ -381,13 +381,13 @@ const HostMyPage = () => {
                                     <UserName>{userInfo?.name || "호스트명"}</UserName>
                                 )}
                             </NameRow>
-                            <InfoRow>
+                                    <InfoRow>
                                 <Label>이메일</Label>
-                                <Data>{userInfo?.email}</Data>
-                            </InfoRow>
+                                        <Data>{userInfo?.email}</Data>
+                                    </InfoRow>
                             <InfoRow>
                                 <Label>휴대폰</Label>
-                                {isEditing ? (
+                                        {isEditing ? (
                                     <PhoneInputGroup>
                                         <PhoneInput type="text" value={phoneNumber1} onChange={(e) => handlePhoneNumberChange(e.target.value, 1)} maxLength={3} placeholder="010" />
                                         <Separator>-</Separator>
@@ -395,9 +395,9 @@ const HostMyPage = () => {
                                         <Separator>-</Separator>
                                         <PhoneInput type="text" value={phoneNumber3} onChange={(e) => handlePhoneNumberChange(e.target.value, 3)} maxLength={4} placeholder="5678" />
                                     </PhoneInputGroup>
-                                ) : (
-                                    <Data>{userInfo?.phoneNumber}</Data>
-                                )}
+                                        ) : (
+                                            <Data>{userInfo?.phoneNumber}</Data>
+                                        )}
                             </InfoRow>
                             <InfoRow>
                                 <Label>생년월일</Label>

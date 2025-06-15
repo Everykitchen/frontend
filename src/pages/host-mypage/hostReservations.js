@@ -23,8 +23,7 @@ const Container = styled.div`
 `;
 
 const ContentWrapper = styled.div`
-    padding: 40px;
-    padding-left: 100px;
+    padding: 60px;
     margin-top: 30px;
     flex: 1;
 `;
@@ -145,7 +144,9 @@ const HostReservations = () => {
 
     // 예약 상태가 진행중인지 확인하는 함수
     const isInProgress = (status) => {
-        return ["PENDING_RESERVED", "RESERVED", "PENDING_PAYMENT"].includes(status);
+        return ["PENDING_RESERVED", "RESERVED", "PENDING_PAYMENT"].includes(
+            status
+        );
     };
 
     // 예약 상태가 완료인지 확인하는 함수
@@ -189,9 +190,12 @@ const HostReservations = () => {
                                 {tab === "전체"
                                     ? reservations.length
                                     : tab === "진행중"
-                                    ? reservations.filter(item => isInProgress(item.status)).length
-                                    : reservations.filter(item => isCompleted(item.status)).length
-                                }
+                                    ? reservations.filter((item) =>
+                                          isInProgress(item.status)
+                                      ).length
+                                    : reservations.filter((item) =>
+                                          isCompleted(item.status)
+                                      ).length}
                                 )
                             </Tab>
                         ))}

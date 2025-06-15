@@ -18,9 +18,7 @@ const Container = styled.div`
     background: white;
 `;
 const ContentWrapper = styled.div`
-    padding: 40px;
-    padding-left: 100px;
-    padding-right: 100px;
+    padding: 60px;
     margin-top: 30px;
     flex: 1;
 `;
@@ -471,6 +469,7 @@ const HostReservationDetail = () => {
     const [mapLoading, setMapLoading] = useState(false);
     const mapRef = useRef(null);
     const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+    const [mapCoordinates, setMapCoordinates] = useState(null);
 
     const loaded = useKakaoLoader();
 
@@ -503,9 +502,34 @@ const HostReservationDetail = () => {
         fetchDetail();
     }, [reservationId]);
 
+    const handleShowMap = async () => {
+        if (!reservationData?.kitchenId) {
+            alert("주방 정보를 찾을 수 없습니다.");
+            return;
+        }
+
+        try {
+            const response = await axios.get(
+                `/api/common/kitchen/${reservationData.kitchenId}`
+            );
+            const { latitude, longitude } = response.data;
+
+            if (!latitude || !longitude) {
+                alert("주방 위치 정보를 찾을 수 없습니다.");
+                return;
+            }
+
+            setMapCoordinates({ latitude, longitude });
+            setShowMap(true);
+        } catch (error) {
+            console.error("주방 정보 조회 실패:", error);
+            alert("주방 위치 정보를 불러오는데 실패했습니다.");
+        }
+    };
+
     // 지도 초기화 및 표시 함수
     useEffect(() => {
-        if (!loaded || !showMap || !mapRef.current || !reservationData) return;
+        if (!loaded || !showMap || !mapRef.current || !mapCoordinates) return;
 
         // 지도 초기화 시작
         setMapLoading(true);
@@ -520,8 +544,8 @@ const HostReservationDetail = () => {
             const timer = setTimeout(() => {
                 try {
                     const coords = new window.kakao.maps.LatLng(
-                        reservationData.latitude,
-                        reservationData.longitude
+                        mapCoordinates.latitude,
+                        mapCoordinates.longitude
                     );
 
                     const mapOptions = {
@@ -564,7 +588,7 @@ const HostReservationDetail = () => {
             console.error("지도 생성 오류:", err);
             setMapLoading(false);
         }
-    }, [loaded, showMap, reservationData]);
+    }, [loaded, showMap, mapCoordinates, reservationData?.kitchenName]);
 
     // 상태 텍스트 변환
     const getStatusText = (status) => {
@@ -643,7 +667,9 @@ const HostReservationDetail = () => {
 
     const handleCompletedPayment = async () => {
         try {
-            const response = await axios.post(`/api/host/reservation/${reservationId}/completed`);
+            const response = await axios.post(
+                `/api/host/reservation/${reservationId}/completed`
+            );
             if (response.status === 200) {
                 alert("정산이 완료되었습니다.");
                 window.location.reload();
@@ -668,10 +694,6 @@ const HostReservationDetail = () => {
         }
     };
 
-    const handleShowMap = () => {
-        setShowMap(true);
-    };
-
     const handleKitchenInfo = () => {
         if (reservationData?.kitchenId) {
             navigate(`/kitchen/${reservationData.kitchenId}`);
@@ -686,7 +708,9 @@ const HostReservationDetail = () => {
 
     const handleCancelReservation = async () => {
         try {
-            const response = await axios.delete(`/api/host/reservation/${reservationId}/cancel`);
+            const response = await axios.delete(
+                `/api/host/reservation/${reservationId}/cancel`
+            );
             if (response.status === 200) {
                 alert("예약이 취소되었습니다.");
                 navigate("/host-mypage/reservations"); // 예약 목록 페이지로 이동
@@ -773,7 +797,8 @@ const HostReservationDetail = () => {
                                     <MessageIcon />
                                     채팅하기
                                 </SmallActionButton>
-                                {reservationData.status === "PENDING_RESERVED" ? (
+                                {reservationData.status ===
+                                "PENDING_RESERVED" ? (
                                     <SmallActionButton
                                         variant="primary"
                                         onClick={handleConfirmReservation}
@@ -785,7 +810,10 @@ const HostReservationDetail = () => {
                                     <SmallActionButton
                                         variant="primary"
                                         onClick={handleCompletedPayment}
-                                        disabled={reservationData.status !== "PENDING_PAYMENT"}
+                                        disabled={
+                                            reservationData.status !==
+                                            "PENDING_PAYMENT"
+                                        }
                                     >
                                         <MoneyIcon />
                                         정산완료
@@ -826,36 +854,48 @@ const HostReservationDetail = () => {
                             <InfoContainer>
                                 <Labels>
                                     <span>선결제 금액</span>
-                                    {reservationData.status === "COMPLETED_PAYMENT" && (
+                                    {reservationData.status ===
+                                        "COMPLETED_PAYMENT" && (
                                         <>
                                             <span>후결제 금액</span>
                                             <span>최종 결제 금액</span>
                                         </>
                                     )}
-                                    {reservationData.status !== "COMPLETED_PAYMENT" && (
+                                    {reservationData.status !==
+                                        "COMPLETED_PAYMENT" && (
                                         <span>후결제 금액</span>
                                     )}
                                 </Labels>
                                 <Values>
                                     <span>
-                                        {reservationData.status === "PENDING_RESERVED" ? (
-                                            <PaymentPending>입금 확인 중</PaymentPending>
+                                        {reservationData.status ===
+                                        "PENDING_RESERVED" ? (
+                                            <PaymentPending>
+                                                입금 확인 중
+                                            </PaymentPending>
                                         ) : (
                                             `${reservationData.prepaidAmount.toLocaleString()}원`
                                         )}
                                     </span>
-                                    {reservationData.status === "COMPLETED_PAYMENT" ? (
+                                    {reservationData.status ===
+                                    "COMPLETED_PAYMENT" ? (
                                         <>
                                             <span>
-                                                {reservationData.postpaidAmount.toLocaleString()}원
+                                                {reservationData.postpaidAmount.toLocaleString()}
+                                                원
                                             </span>
                                             <TotalPayment>
-                                                {(reservationData.prepaidAmount + reservationData.postpaidAmount).toLocaleString()}원
+                                                {(
+                                                    reservationData.prepaidAmount +
+                                                    reservationData.postpaidAmount
+                                                ).toLocaleString()}
+                                                원
                                             </TotalPayment>
                                         </>
                                     ) : (
                                         <PendingPayment>
-                                            {reservationData.status === "PENDING_PAYMENT"
+                                            {reservationData.status ===
+                                            "PENDING_PAYMENT"
                                                 ? "호스트 승인대기"
                                                 : "정산예정"}
                                         </PendingPayment>
@@ -864,23 +904,30 @@ const HostReservationDetail = () => {
                             </InfoContainer>
 
                             <ActionSection>
-                                {reservationData.status !== "COMPLETED_PAYMENT" && (
+                                {reservationData.status !==
+                                    "COMPLETED_PAYMENT" && (
                                     <CancellationNotice>
-                                        {reservationData.status === "PENDING_PAYMENT"
+                                        {reservationData.status ===
+                                        "PENDING_PAYMENT"
                                             ? "입금된 정산금을 확인한 뒤 정산완료를 클릭해주세요."
                                             : "예약자에게 채팅으로 사전에 고지한 뒤 예약 취소를 해주시길 바랍니다."}
                                     </CancellationNotice>
                                 )}
                                 <CancelButton
-                                    disabled={reservationData.status === "COMPLETED_PAYMENT"}
-                                    style={reservationData.status === "COMPLETED_PAYMENT"
-                                        ? {
-                                            opacity: 0.7,
-                                            cursor: "not-allowed",
-                                            backgroundColor: "#F6F6F6",
-                                            color: "#BDBDBD",
-                                        }
-                                        : {}
+                                    disabled={
+                                        reservationData.status ===
+                                        "COMPLETED_PAYMENT"
+                                    }
+                                    style={
+                                        reservationData.status ===
+                                        "COMPLETED_PAYMENT"
+                                            ? {
+                                                  opacity: 0.7,
+                                                  cursor: "not-allowed",
+                                                  backgroundColor: "#F6F6F6",
+                                                  color: "#BDBDBD",
+                                              }
+                                            : {}
                                     }
                                     onClick={() => setShowCancelConfirm(true)}
                                 >
@@ -918,21 +965,26 @@ const HostReservationDetail = () => {
                         <ConfirmModalContent>
                             <ModalHeader>
                                 <ModalTitle>예약 취소 확인</ModalTitle>
-                                <CloseButton onClick={() => setShowCancelConfirm(false)}>×</CloseButton>
+                                <CloseButton
+                                    onClick={() => setShowCancelConfirm(false)}
+                                >
+                                    ×
+                                </CloseButton>
                             </ModalHeader>
                             <ConfirmMessage>
-                                정말로 예약을 취소하시겠습니까?<br />
+                                정말로 예약을 취소하시겠습니까?
+                                <br />
                                 취소된 예약은 복구할 수 없습니다.
                             </ConfirmMessage>
                             <ButtonGroup>
-                                <ConfirmButton 
-                                    className="close" 
+                                <ConfirmButton
+                                    className="close"
                                     onClick={() => setShowCancelConfirm(false)}
                                 >
                                     닫기
                                 </ConfirmButton>
-                                <ConfirmButton 
-                                    className="cancel" 
+                                <ConfirmButton
+                                    className="cancel"
                                     onClick={handleCancelReservation}
                                 >
                                     예약 취소

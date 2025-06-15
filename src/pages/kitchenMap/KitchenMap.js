@@ -213,12 +213,12 @@ const KitchenMap = () => {
     };
 
     const clearOverlay = () => {
-        if (overlayRef.current) {
-            const { overlay, root, container } = overlayRef.current;
-            overlay.setMap(null);
-            root.unmount();
-            container.remove();
-            overlayRef.current = null;
+            if (overlayRef.current) {
+                const { overlay, root, container } = overlayRef.current;
+                overlay.setMap(null);
+                root.unmount();
+                container.remove();
+                overlayRef.current = null;
             setSelectedKitchen(null);
         }
     };
@@ -276,8 +276,8 @@ const KitchenMap = () => {
         
         // 지도 이동 시 주방 목록 업데이트 (드래그 종료 시)
         window.kakao.maps.event.addListener(map, "dragend", () => {
-            const center = map.getCenter();
-            fetchNearbyKitchens(center.getLat(), center.getLng(), map);
+                const center = map.getCenter();
+                fetchNearbyKitchens(center.getLat(), center.getLng(), map);
         });
 
         // 지도 줌 레벨 변경 시 반경 원 업데이트 및 오버레이 제거
@@ -301,7 +301,7 @@ const KitchenMap = () => {
                 });
                 initMap(coords.latitude, coords.longitude);
             },
-            () => initMap(37.9, 126.96)
+            () => initMap(37.32, 127.13)
         );
     }, [loaded]);
 
@@ -381,8 +381,8 @@ const KitchenMap = () => {
                             <LocationButton
                                 onClick={() => {
                                     const pos = new window.kakao.maps.LatLng(
-                                        userPosition.lat,
-                                        userPosition.lng
+                                            userPosition.lat,
+                                            userPosition.lng
                                     );
                                     mapInstance.panTo(pos);
                                     fetchNearbyKitchens(userPosition.lat, userPosition.lng, mapInstance);

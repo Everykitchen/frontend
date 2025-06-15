@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import axios from "axios";
+import axios from "../api/axiosInstance";
 
 // 스타일 컴포넌트
 const FieldGroup = styled.div`
