@@ -6,7 +6,7 @@ import StoreCard from "../../components/StoreCard";
 
 /**
  * 사용자가 찜한 주방 목록을 보여주는 페이지 컴포넌트
- * 
+ *
  * 주요 기능:
  * - 사용자가 찜한 주방 목록을 그리드 형태로 표시
  * - 찜 해제 기능
@@ -20,14 +20,14 @@ const Container = styled.div`
 
 const Content = styled.div`
     flex: 1;
-    padding: 40px;
+    padding: 60px;
     margin-top: 30px;
 `;
 
 const Title = styled.h2`
-    font-size: 28px;
+    font-size: 24px;
     font-weight: bold;
-    margin-bottom: 40px;
+    margin-bottom: 20px;
     color: #222;
     padding-bottom: 8px;
 `;
@@ -48,10 +48,10 @@ const LikedList = () => {
      */
     const convertCategoryToKorean = (category) => {
         switch (category?.toUpperCase()) {
-            case 'COOKING':
-                return '쿠킹';
-            case 'BAKING':
-                return '베이킹';
+            case "COOKING":
+                return "쿠킹";
+            case "BAKING":
+                return "베이킹";
             default:
                 return category;
         }
@@ -82,7 +82,9 @@ const LikedList = () => {
                     ? `${kitchen.minPrice.toLocaleString()}원~`
                     : "가격 정보 없음",
                 time: `${kitchen.minReservationTime}시간`,
-                tags: kitchen.category ? [convertCategoryToKorean(kitchen.category)] : [],
+                tags: kitchen.category
+                    ? [convertCategoryToKorean(kitchen.category)]
+                    : [],
                 isLiked: true,
                 review: kitchen.avgStar,
                 reviewCount: kitchen.reviewCount,

@@ -13,9 +13,9 @@ const Container = styled.div`
 `;
 
 const Content = styled.div`
-    flex: 1;
-    padding: 40px 80px;
+    padding: 60px;
     margin-top: 30px;
+    flex: 1;
 `;
 
 const TitleWrapper = styled.div`

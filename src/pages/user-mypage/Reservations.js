@@ -22,11 +22,9 @@ const Container = styled.div`
 `;
 
 const ContentWrapper = styled.div`
-    padding: 40px;
+    padding: 60px;
     margin-top: 30px;
     flex: 1;
-    margin-left: 50px;
-    margin-right: 50px;
 `;
 
 const Title = styled.h2`

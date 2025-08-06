@@ -13,14 +13,14 @@ const Container = styled.div`
 
 const Content = styled.div`
     flex: 1;
-    padding: 40px;
+    padding: 60px;
     margin-top: 30px;
 `;
 
 const Title = styled.h2`
-    font-size: 28px;
+    font-size: 24px;
     font-weight: bold;
-    margin-bottom: 40px;
+    margin-bottom: 20px;
     color: #222;
     padding-bottom: 8px;
 `;
