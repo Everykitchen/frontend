@@ -131,6 +131,7 @@ const EmptyStarIcon = styled(StarIcon)`
 const Paragraph = styled.p`
     line-height: 1.7;
     margin-bottom: 12px;
+    white-space: pre-wrap; /* 줄바꿈(\n) 유지 */
 `;
 
 const CategoryTitle = styled.h3`

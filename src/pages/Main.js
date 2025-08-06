@@ -231,7 +231,7 @@ const MainPage = () => {
                 // 페이지 초기화 후 API 호출
                 setPage(0);
                 fetchStoresWithParams(params);
-            }, 2000);
+            }, 1500);
             
             return updatedFilters;
         });
@@ -279,7 +279,7 @@ const MainPage = () => {
             setLoading(false);
             setTimeout(() => {
                 setIsFetching(false);
-            }, 2000);
+            }, 1500);
         }
     };
 
